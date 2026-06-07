@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knowledge_Wiki — 一份编译给资本的私人卷宗</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400&family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     EDITORIAL / FINANCIAL JOURNAL × BRUTALIST INFO ARCH
+     ============================================================ */
+  :root {
+    --paper:   #f5f1e8;
+    --paper-2: #ebe5d4;
+    --ink:     #1a2540;
+    --ink-2:   #2d3a5a;
+    --rule:    #1a2540;
+    --quiet:   #6e7a92;
+    --hush:    #a8b0c0;
+    --signal:  #c2410c;       /* sole accent */
+    --signal-dim: #f3d8c4;
+    --gold:    #8a6a1f;
+    --moss:    #4a5d2a;
+    --shadow:  rgba(26, 37, 64, 0.08);
+
+    --serif: 'Fraunces', 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+    --sans:  'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
+    --mono:  'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:   #161a26;
+      --paper-2: #1f2433;
+      --ink:     #f0ead8;
+      --ink-2:   #d8d2c0;
+      --rule:    #f0ead8;
+      --quiet:   #8a92a8;
+      --hush:    #4a5366;
+      --signal:  #e8843c;
+      --signal-dim: #3a2418;
+      --gold:    #d4a93a;
+      --moss:    #8aa854;
+      --shadow:  rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.55;
+    font-feature-settings: "ss01", "ss02", "kern", "liga";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  /* Paper grain ------------------------------------------- */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 1000;
+    background-image:
+      radial-gradient(rgba(26,37,64,0.025) 1px, transparent 1px),
+      radial-gradient(rgba(26,37,64,0.015) 1px, transparent 1px);
+    background-size: 3px 3px, 7px 7px;
+    background-position: 0 0, 1px 2px;
+    mix-blend-mode: multiply;
+    opacity: 0.7;
+  }
+  @media (prefers-color-scheme: dark) {
+    body::before { mix-blend-mode: screen; opacity: 0.4; }
+  }
+
+  ::selection { background: var(--ink); color: var(--paper); }
+
+  /* ===== Reusable rule lines ===== */
+  hr.thick { border: 0; border-top: 3px solid var(--rule); margin: 0; }
+  hr.thin  { border: 0; border-top: 1px solid var(--rule); margin: 0; opacity: 0.5; }
+  hr.hair  { border: 0; border-top: 1px solid var(--rule); margin: 0; opacity: 0.18; }
+
+  /* ============================================================
+     MASTHEAD
+     ============================================================ */
+  .masthead {
+    padding: 28px 56px 24px;
+    border-bottom: 3px double var(--rule);
+  }
+  .masthead-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--quiet);
+    margin-bottom: 16px;
+  }
+  .masthead-bar .mark { color: var(--ink); font-weight: 700; }
+  .masthead-bar .signal-dot {
+    display: inline-block; width: 8px; height: 8px;
+    background: var(--signal); border-radius: 50%;
+    margin-right: 6px; vertical-align: middle;
+  }
+
+  .nameplate {
+    font-family: var(--serif);
+    font-weight: 900;
+    font-size: clamp(64px, 11vw, 156px);
+    line-height: 0.86;
+    letter-spacing: -0.045em;
+    font-variation-settings: "opsz" 144;
+    margin-bottom: 8px;
+  }
+  .nameplate em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--signal);
+  }
+
+  .deck {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(18px, 2vw, 24px);
+    color: var(--ink-2);
+    line-height: 1.35;
+    max-width: 760px;
+    margin-top: 14px;
+  }
+
+  /* ============================================================
+     LAYOUT GRID
+     ============================================================ */
+  .page {
+    padding: 0 56px;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  .grid-12 {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 28px;
+  }
+
+  /* ============================================================
+     LEAD ESSAY
+     ============================================================ */
+  .lead {
+    padding: 56px 0 48px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .lead-meta {
+    grid-column: 1 / 4;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--quiet);
+    line-height: 1.7;
+  }
+  .lead-meta strong { color: var(--ink); display: block; margin-bottom: 2px; font-weight: 500; }
+  .lead-meta + .lead-meta { margin-top: 24px; }
+  .lead-meta-stack { grid-column: 1 / 4; display: flex; flex-direction: column; gap: 22px; }
+
+  .lead-body {
+    grid-column: 5 / 13;
+    font-family: var(--serif);
+    font-size: 20px;
+    line-height: 1.55;
+    color: var(--ink);
+    font-weight: 400;
+  }
+  .lead-body p + p { margin-top: 16px; text-indent: 1.6em; }
+  .lead-body p:first-child::first-letter {
+    font-family: var(--serif);
+    font-weight: 900;
+    font-size: 5.2em;
+    float: left;
+    line-height: 0.85;
+    margin: 6px 12px -2px 0;
+    color: var(--signal);
+    font-variation-settings: "opsz" 144;
+  }
+  .lead-body em { font-style: italic; color: var(--ink-2); }
+  .lead-body strong { font-weight: 600; color: var(--ink); }
+
+  /* ============================================================
+     SECTION HEAD
+     ============================================================ */
+  .sec-head {
+    margin: 80px 0 28px;
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    align-items: end;
+    gap: 28px;
+    padding-bottom: 16px;
+    border-bottom: 3px solid var(--rule);
+  }
+  .sec-num {
+    font-family: var(--serif);
+    font-weight: 900;
+    font-size: 82px;
+    line-height: 0.82;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    font-variation-settings: "opsz" 144;
+  }
+  .sec-head h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 38px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .sec-head h2 em { font-style: italic; font-weight: 400; color: var(--signal); }
+  .sec-rubric {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--quiet);
+    text-align: right;
+    line-height: 1.5;
+    align-self: end;
+    padding-bottom: 6px;
+  }
+
+  /* ============================================================
+     STRATA · THE FOUR LAYERS
+     ============================================================ */
+  .strata { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px solid var(--rule); }
+  .stratum {
+    padding: 28px 24px 30px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+    background: var(--paper);
+    transition: background 0.25s ease;
+  }
+  .stratum:last-child { border-right: 0; }
+  .stratum:hover { background: var(--paper-2); }
+
+  .stratum-num {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    color: var(--quiet);
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .stratum-num .badge { color: var(--ink); font-weight: 700; }
+
+  .stratum-name {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 30px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+  .stratum-name em { font-family: var(--mono); font-style: normal; font-weight: 400; font-size: 0.55em; color: var(--quiet); letter-spacing: 0; vertical-align: 0.4em; margin-left: 6px; }
+
+  .stratum-role {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    line-height: 1.35;
+    color: var(--ink-2);
+    margin: 14px 0 18px;
+    min-height: 3em;
+  }
+  .stratum-list {
+    list-style: none;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.9;
+    color: var(--ink-2);
+  }
+  .stratum-list li {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--rule);
+    border-top-style: dotted;
+    padding: 2px 0;
+    opacity: 0.85;
+  }
+  .stratum-list li:first-child { border-top: 0; }
+  .stratum-list li span:last-child {
+    color: var(--quiet);
+    font-variant-numeric: tabular-nums;
+  }
+  .stratum-stamp {
+    position: absolute; top: 24px; right: 24px;
+    font-family: var(--serif);
+    font-weight: 900;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--signal);
+    border: 1.5px solid var(--signal);
+    padding: 3px 8px 4px;
+    transform: rotate(-3deg);
+    line-height: 1;
+  }
+
+  /* ============================================================
+     CARTOGRAPHY · the flow
+     ============================================================ */
+  .map-area { margin-top: 28px; padding: 36px 32px; background: var(--paper-2); border: 1px solid var(--rule); position: relative; }
+  .map-legend {
+    position: absolute; top: 16px; right: 24px;
+    display: flex; gap: 18px;
+    font-family: var(--mono); font-size: 10.5px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--quiet);
+  }
+  .map-legend .swatch {
+    display: inline-block; width: 22px; height: 2px;
+    vertical-align: middle; margin-right: 6px;
+    background: var(--ink);
+  }
+  .map-legend .swatch--dash {
+    background: repeating-linear-gradient(90deg, var(--quiet) 0 4px, transparent 4px 7px);
+  }
+  .map-legend .swatch--signal { background: var(--signal); height: 3px; }
+
+  .flow-svg { width: 100%; height: auto; display: block; max-width: 1200px; margin: 18px auto 0; }
+  .flow-svg text { font-family: var(--mono); fill: var(--ink); }
+  .flow-svg .label-title { font-family: var(--serif); font-weight: 600; font-size: 16px; }
+  .flow-svg .label-meta  { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; fill: var(--quiet); }
+  .flow-svg .label-edge  { font-size: 10px; fill: var(--ink-2); font-weight: 500; }
+  .flow-svg .stage {
+    fill: var(--paper);
+    stroke: var(--ink);
+    stroke-width: 1.4;
+  }
+  .flow-svg .stage--signal { stroke: var(--signal); stroke-width: 2; }
+  .flow-svg .stage--soft { fill: var(--paper-2); }
+  .flow-svg .edge {
+    stroke: var(--ink); stroke-width: 1.4; fill: none;
+    marker-end: url(#arrow);
+  }
+  .flow-svg .edge--dash {
+    stroke-dasharray: 4 4;
+    stroke: var(--quiet);
+    marker-end: url(#arrow-dim);
+  }
+  .flow-svg .edge--signal {
+    stroke: var(--signal);
+    stroke-width: 2.2;
+    marker-end: url(#arrow-signal);
+  }
+  .flow-svg .axis-rule { stroke: var(--ink); stroke-width: 0.5; stroke-dasharray: 2 4; opacity: 0.35; }
+  .flow-svg .axis-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; fill: var(--quiet); }
+
+  /* ============================================================
+     LEDGER · 13 typed entities
+     ============================================================ */
+  .ledger {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    margin-top: 8px;
+  }
+  .ledger thead th {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--quiet);
+    font-weight: 500;
+    border-bottom: 2px solid var(--rule);
+    padding: 10px 14px 8px;
+    background: var(--paper);
+  }
+  .ledger tbody td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--rule);
+    border-bottom-style: dotted;
+    vertical-align: top;
+    color: var(--ink-2);
+  }
+  .ledger tbody tr:hover { background: var(--paper-2); }
+  .ledger tbody td.idx {
+    font-variant-numeric: tabular-nums;
+    color: var(--quiet);
+    width: 44px;
+  }
+  .ledger tbody td.slug {
+    color: var(--ink);
+    font-weight: 700;
+    width: 22%;
+  }
+  .ledger tbody td.kind {
+    font-family: var(--sans);
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .ledger tbody td.kind em {
+    display: block;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink-2);
+    font-weight: 400;
+    margin-top: 2px;
+  }
+  .ledger tbody td.sig {
+    color: var(--quiet);
+    font-size: 11.5px;
+    width: 30%;
+  }
+  .ledger tbody td.sig kbd {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    background: var(--signal-dim);
+    color: var(--signal);
+    border: 0;
+    padding: 1px 6px;
+    border-radius: 2px;
+    margin: 0 1px;
+  }
+
+  /* ============================================================
+     RULES OF THE HOUSE
+     ============================================================ */
+  .rules {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid var(--rule);
+    margin-top: 16px;
+  }
+  .rules-col { padding: 30px 32px; }
+  .rules-col + .rules-col { border-left: 1px solid var(--rule); }
+
+  .rules-head {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--quiet);
+    margin-bottom: 18px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .rules-head .glyph {
+    font-family: var(--serif);
+    font-weight: 900;
+    font-size: 42px;
+    line-height: 0.8;
+    color: var(--ink);
+    font-variation-settings: "opsz" 144;
+  }
+  .rules-col.forbid .rules-head .glyph { color: var(--signal); }
+
+  .rules-list {
+    list-style: none;
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.4;
+    color: var(--ink);
+  }
+  .rules-list li {
+    padding: 12px 0;
+    border-top: 1px solid var(--rule);
+    border-top-style: dotted;
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    gap: 6px;
+    align-items: baseline;
+  }
+  .rules-list li:first-child { border-top: 0; }
+  .rules-list li .num {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--quiet);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.1em;
+  }
+  .rules-list li code {
+    font-family: var(--mono);
+    font-size: 13.5px;
+    background: var(--paper-2);
+    color: var(--ink);
+    padding: 1px 6px;
+    border-radius: 2px;
+  }
+
+  /* ============================================================
+     LIFECYCLE STRIP
+     ============================================================ */
+  .lifecycle {
+    margin-top: 24px;
+    padding: 32px 0 24px;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .lifecycle-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0;
+    position: relative;
+  }
+  .lifecycle-grid::before {
+    content: '';
+    position: absolute;
+    top: 38px; left: 6%; right: 6%;
+    height: 1px;
+    background: var(--ink);
+    z-index: 0;
+  }
+  .lifecycle-step {
+    position: relative;
+    padding: 0 16px;
+    text-align: center;
+  }
+  .lifecycle-dot {
+    width: 18px; height: 18px;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    margin: 28px auto 0;
+    position: relative;
+    z-index: 1;
+  }
+  .lifecycle-step.is-signal .lifecycle-dot { background: var(--signal); border-color: var(--signal); }
+  .lifecycle-step.is-end .lifecycle-dot { background: var(--ink); }
+  .lifecycle-stage {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--quiet);
+    margin-top: 12px;
+  }
+  .lifecycle-name {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 1.15;
+    margin: 4px 0 6px;
+    color: var(--ink);
+  }
+  .lifecycle-name em { font-style: italic; color: var(--signal); font-weight: 400; }
+  .lifecycle-where {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--quiet);
+    line-height: 1.4;
+  }
+
+  /* ============================================================
+     EPILOGUE / GIST MAPPING
+     ============================================================ */
+  .pulls {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border-top: 3px solid var(--rule);
+    border-bottom: 3px solid var(--rule);
+  }
+  .pull {
+    padding: 24px 22px 28px;
+    border-right: 1px solid var(--rule);
+    position: relative;
+  }
+  .pull:last-child { border-right: 0; }
+  .pull-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--signal);
+    margin-bottom: 10px;
+  }
+  .pull-quote {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.25;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .pull-quote::before {
+    content: '“';
+    font-family: var(--serif);
+    font-weight: 900;
+    font-size: 70px;
+    line-height: 0;
+    vertical-align: -0.4em;
+    color: var(--signal);
+    margin-right: 4px;
+    font-variation-settings: "opsz" 144;
+  }
+  .pull-source {
+    margin-top: 14px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--quiet);
+  }
+  .pull-source strong { color: var(--ink); font-weight: 500; }
+
+  /* ============================================================
+     COLOPHON
+     ============================================================ */
+  .colophon {
+    margin-top: 64px;
+    padding: 32px 0 12px;
+    border-top: 3px double var(--rule);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 18px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--quiet);
+  }
+  .colophon strong { color: var(--ink); font-weight: 500; }
+  .colophon .sigil {
+    font-family: var(--serif);
+    font-weight: 900;
+    font-size: 24px;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--ink);
+    font-variation-settings: "opsz" 144;
+  }
+  .colophon .sigil em { font-style: italic; color: var(--signal); }
+
+  /* ============================================================
+     ANIMATIONS
+     ============================================================ */
+  @keyframes riseIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes drawWidth {
+    from { width: 0; }
+    to { width: 100%; }
+  }
+  .reveal { animation: riseIn 0.65s cubic-bezier(0.2, 0.6, 0.2, 1) both; animation-delay: calc(var(--d, 0) * 80ms); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (max-width: 1100px) {
+    .strata { grid-template-columns: repeat(2, 1fr); }
+    .stratum:nth-child(2) { border-right: 0; }
+    .pulls { grid-template-columns: repeat(2, 1fr); }
+    .pull:nth-child(2) { border-right: 0; }
+    .lifecycle-grid { grid-template-columns: repeat(3, 1fr); gap: 24px 0; }
+    .lifecycle-grid::before { display: none; }
+  }
+  @media (max-width: 820px) {
+    .masthead { padding: 24px 24px 20px; }
+    .page { padding: 0 24px; }
+    .lead-meta-stack { grid-column: 1 / 13; flex-direction: row; flex-wrap: wrap; gap: 18px; }
+    .lead-body { grid-column: 1 / 13; font-size: 18px; }
+    .sec-head { grid-template-columns: 60px 1fr; }
+    .sec-num { font-size: 56px; }
+    .sec-head h2 { font-size: 28px; }
+    .sec-rubric { display: none; }
+    .strata, .pulls { grid-template-columns: 1fr; }
+    .stratum, .pull { border-right: 0; }
+    .rules { grid-template-columns: 1fr; }
+    .rules-col + .rules-col { border-left: 0; border-top: 1px solid var(--rule); }
+    .lifecycle-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ========================================================
+     报头
+     ======================================================== -->
+<header class="masthead reveal" style="--d:0">
+  <div class="masthead-bar">
+    <span><span class="signal-dot"></span><span class="mark">FINANCE_AGENT · 月报</span> &nbsp;·&nbsp; 卷一 &nbsp;·&nbsp; 第 01 期</span>
+    <span>2026 年 &nbsp;·&nbsp; 六月初三 &nbsp;·&nbsp; 私人版本</span>
+  </div>
+  <h1 class="nameplate">
+    知识<em>·</em>卷宗
+  </h1>
+  <p class="deck">
+    一份由语言模型亲笔编纂、由策展人代为保管、仅供私下阅读的个人金融知识库 ——
+    一本同时记录信念、矛盾，以及它们背后所有数据的私人账簿。
+  </p>
+</header>
+
+<!-- ========================================================
+     LEAD / EDITOR'S NOTE
+     ======================================================== -->
+<div class="page">
+  <section class="lead grid-12 reveal" style="--d:1">
+    <aside class="lead-meta-stack">
+      <div class="lead-meta">
+        <strong>形态</strong>
+        个人知识总集<br>markdown 文件<br>+ frontmatter 元数据
+      </div>
+      <div class="lead-meta">
+        <strong>渊源</strong>
+        承袭 A. Karpathy<br>《LLM Wiki》范式<br>金融垂类的工程化
+      </div>
+      <div class="lead-meta">
+        <strong>体量</strong>
+        四个分层 · 十三类<br>实体页面 · 三项已上线<br>受控写入技能
+      </div>
+      <div class="lead-meta">
+        <strong>权属</strong>
+        人类阅读<br>模型维护<br>契约约束
+      </div>
+    </aside>
+    <article class="lead-body">
+      <p>
+        大多数知识库是仓库 —— 文件进，文件出，每被提问一次就要从零拼装一次答案。<em>这一份不是。</em>
+        它更像一间工坊：语言模型读完你抛进来的资料，把要点归档，把交叉引用画好，把柜子安静地保持整齐。
+        wiki 本身是<strong>会复利的产物</strong>；人，是它的策展人，不是它的薄记员。
+      </p>
+      <p>
+        下文是一份工作说明书 —— 四个分层的架构、编译流水线、围绕投资论点展开的仪式，
+        以及一小撮让模型保持诚实的铁律。骨架借自一份公开提案；那些约束，
+        是允许一个模型动一份未来可能调动资金的文件，所必须付出的代价。
+      </p>
+    </article>
+  </section>
+</div>
+
+<!-- ========================================================
+     I · THE FOUR STRATA
+     ======================================================== -->
+<div class="page">
+  <header class="sec-head reveal" style="--d:2">
+    <div class="sec-num">壹</div>
+    <h2>四个分层，<em>各守其疆</em>。</h2>
+    <div class="sec-rubric">
+      总体架构<br>
+      §01 — §04
+    </div>
+  </header>
+
+  <div class="strata">
+    <div class="stratum reveal" style="--d:3">
+      <div class="stratum-num"><span class="badge">第 壹 层</span><span>只读</span></div>
+      <div class="stratum-name">raw<em>/源材料</em></div>
+      <p class="stratum-role">外部世界递到门口的不可变档案。模型只读，从不动笔。</p>
+      <ul class="stratum-list">
+        <li><span>filings</span><span>财报 10-K / Q</span></li>
+        <li><span>research</span><span>卖方研报</span></li>
+        <li><span>transcripts</span><span>电话会 · 视频</span></li>
+        <li><span>news · macro</span><span>新闻 · 宏观</span></li>
+        <li><span>products</span><span>产品 · 对账单</span></li>
+        <li><span>assets</span><span>图片附件</span></li>
+      </ul>
+    </div>
+
+    <div class="stratum reveal" style="--d:4">
+      <div class="stratum-num"><span class="badge">第 贰 层</span><span>模型亲笔</span></div>
+      <div class="stratum-name">wiki<em>/编译产物</em></div>
+      <p class="stratum-role">十三类实体页面 —— 模型读完你读过的资料之后，亲笔留下的笔记。</p>
+      <ul class="stratum-list">
+        <li><span>companies</span><span>公司画像</span></li>
+        <li><span>sectors · macro</span><span>行业 · 宏观</span></li>
+        <li><span>theses</span><span>投资论点</span></li>
+        <li><span>portfolio</span><span>持仓快照</span></li>
+        <li><span>comparisons · reports</span><span>对比 · 深研</span></li>
+        <li><span>index · log</span><span>导航 · 日志</span></li>
+      </ul>
+      <div class="stratum-stamp">已编纂</div>
+    </div>
+
+    <div class="stratum reveal" style="--d:5">
+      <div class="stratum-num"><span class="badge">第 叁 层</span><span>私密</span></div>
+      <div class="stratum-name">thoughts<em>/主观沉淀</em></div>
+      <p class="stratum-role">信念从这里萌芽，最终在这里以一条 ADR 决策被画上句点。</p>
+      <ul class="stratum-list">
+        <li><span>ideas</span><span>闪念 · 假设</span></li>
+        <li><span>questions</span><span>待查证</span></li>
+        <li><span>decisions</span><span>已 commit</span></li>
+        <li><span>reflections</span><span>周 · 月 · 季</span></li>
+        <li><span>todos</span><span>含 deadline</span></li>
+        <li><span>_inbox</span><span>48 小时归位</span></li>
+      </ul>
+    </div>
+
+    <div class="stratum reveal" style="--d:6">
+      <div class="stratum-num"><span class="badge">第 肆 层</span><span>契约</span></div>
+      <div class="stratum-name">schema<em>/契约层</em></div>
+      <p class="stratum-role">让一个聊天伙伴成为有纪律的图书管理员的那一纸盟约。</p>
+      <ul class="stratum-list">
+        <li><span>CLAUDE.md</span><span>总章程</span></li>
+        <li><span>_schema.md</span><span>校验规范</span></li>
+        <li><span>_areas-registry</span><span>归属决策</span></li>
+        <li><span>_capabilities</span><span>能力开关</span></li>
+        <li><span>ontology 图谱</span><span>类型化边</span></li>
+        <li><span>scripts · skills</span><span>工具链</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================
+     II · CARTOGRAPHY (the flow)
+     ======================================================== -->
+<div class="page">
+  <header class="sec-head reveal" style="--d:7">
+    <div class="sec-num">贰</div>
+    <h2>资料<em>摄入</em>的地图。</h2>
+    <div class="sec-rubric">
+      源 → wiki<br>
+      一份资料<br>触及十五个页面
+    </div>
+  </header>
+
+  <section class="map-area reveal" style="--d:8">
+    <div class="map-legend">
+      <span><span class="swatch"></span>实线 · 强制路径</span>
+      <span><span class="swatch swatch--dash"></span>虚线 · 引用关系</span>
+      <span><span class="swatch swatch--signal"></span>朱色 · 用户动作</span>
+    </div>
+
+    <svg class="flow-svg" viewBox="0 0 1200 420" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Knowledge_Wiki 摄入流程">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--ink)"></path>
+        </marker>
+        <marker id="arrow-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--quiet)"></path>
+        </marker>
+        <marker id="arrow-signal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--signal)"></path>
+        </marker>
+      </defs>
+
+      <!-- AXIS columns -->
+      <line class="axis-rule" x1="200" y1="20" x2="200" y2="400"></line>
+      <line class="axis-rule" x1="440" y1="20" x2="440" y2="400"></line>
+      <line class="axis-rule" x1="710" y1="20" x2="710" y2="400"></line>
+      <line class="axis-rule" x1="980" y1="20" x2="980" y2="400"></line>
+
+      <text class="axis-label" x="100" y="14" text-anchor="middle">外部世界</text>
+      <text class="axis-label" x="320" y="14" text-anchor="middle">RAW · 不可变</text>
+      <text class="axis-label" x="575" y="14" text-anchor="middle">SKILL · 受控写入</text>
+      <text class="axis-label" x="845" y="14" text-anchor="middle">WIKI · 编译产物</text>
+      <text class="axis-label" x="1090" y="14" text-anchor="middle">图谱 · 索引</text>
+
+      <!-- world: sources -->
+      <rect class="stage stage--soft" x="30" y="40" width="140" height="56" rx="2"></rect>
+      <text class="label-title" x="100" y="65" text-anchor="middle">财报</text>
+      <text class="label-meta" x="100" y="82" text-anchor="middle">10-K · 电话会 · 新闻</text>
+
+      <rect class="stage stage--soft" x="30" y="180" width="140" height="56" rx="2"></rect>
+      <text class="label-title" x="100" y="205" text-anchor="middle">策展人</text>
+      <text class="label-meta" x="100" y="222" text-anchor="middle">你 · 真正的用户</text>
+
+      <rect class="stage stage--soft" x="30" y="320" width="140" height="56" rx="2"></rect>
+      <text class="label-title" x="100" y="345" text-anchor="middle">闪念</text>
+      <text class="label-meta" x="100" y="362" text-anchor="middle">未成熟的判断</text>
+
+      <!-- raw layer -->
+      <rect class="stage" x="240" y="40" width="160" height="56" rx="2"></rect>
+      <text class="label-title" x="320" y="65" text-anchor="middle">raw/filings/</text>
+      <text class="label-meta" x="320" y="82" text-anchor="middle">SHA-256 哈希缓存</text>
+
+      <rect class="stage" x="240" y="180" width="160" height="56" rx="2"></rect>
+      <text class="label-title" x="320" y="205" text-anchor="middle">raw/transcripts/</text>
+      <text class="label-meta" x="320" y="222" text-anchor="middle">电话会 · 视频</text>
+
+      <rect class="stage" x="240" y="320" width="160" height="56" rx="2"></rect>
+      <text class="label-title" x="320" y="345" text-anchor="middle">—— 旁路 ——</text>
+      <text class="label-meta" x="320" y="362" text-anchor="middle">闪念不经 RAW</text>
+
+      <!-- skills -->
+      <rect class="stage stage--signal" x="475" y="40" width="200" height="76" rx="2"></rect>
+      <text class="label-title" x="575" y="68" text-anchor="middle">finance-ingest</text>
+      <text class="label-meta" x="575" y="86" text-anchor="middle">两步 CoT 摄入</text>
+      <text class="label-meta" x="575" y="102" text-anchor="middle">§ 02</text>
+
+      <rect class="stage" x="475" y="160" width="200" height="56" rx="2"></rect>
+      <text class="label-title" x="575" y="185" text-anchor="middle">company-page</text>
+      <text class="label-meta" x="575" y="202" text-anchor="middle">公司画像构建</text>
+
+      <rect class="stage" x="475" y="240" width="200" height="56" rx="2"></rect>
+      <text class="label-title" x="575" y="265" text-anchor="middle">thesis-archive</text>
+      <text class="label-meta" x="575" y="282" text-anchor="middle">论点归档</text>
+
+      <rect class="stage stage--soft" x="475" y="320" width="200" height="56" rx="2"></rect>
+      <text class="label-title" x="575" y="345" text-anchor="middle">thought-capture</text>
+      <text class="label-meta" x="575" y="362" text-anchor="middle">P1 规划中</text>
+
+      <!-- wiki -->
+      <rect class="stage" x="745" y="40" width="200" height="56" rx="2"></rect>
+      <text class="label-title" x="845" y="65" text-anchor="middle">filings-summary/</text>
+      <text class="label-meta" x="845" y="82" text-anchor="middle">一对一摘要</text>
+
+      <rect class="stage" x="745" y="120" width="200" height="56" rx="2"></rect>
+      <text class="label-title" x="845" y="145" text-anchor="middle">companies/</text>
+      <text class="label-meta" x="845" y="162" text-anchor="middle">公司画像</text>
+
+      <rect class="stage" x="745" y="200" width="200" height="56" rx="2"></rect>
+      <text class="label-title" x="845" y="225" text-anchor="middle">theses/</text>
+      <text class="label-meta" x="845" y="242" text-anchor="middle">stance · sources[]</text>
+
+      <rect class="stage" x="745" y="280" width="200" height="56" rx="2"></rect>
+      <text class="label-title" x="845" y="305" text-anchor="middle">portfolio/</text>
+      <text class="label-meta" x="845" y="322" text-anchor="middle">某时点快照</text>
+
+      <rect class="stage" x="745" y="360" width="200" height="40" rx="2"></rect>
+      <text class="label-title" x="845" y="385" text-anchor="middle">thoughts/ideas/</text>
+
+      <!-- index / graph -->
+      <rect class="stage" x="1015" y="80" width="160" height="56" rx="2"></rect>
+      <text class="label-title" x="1095" y="105" text-anchor="middle">_index.json</text>
+      <text class="label-meta" x="1095" y="122" text-anchor="middle">机读索引</text>
+
+      <rect class="stage" x="1015" y="160" width="160" height="56" rx="2"></rect>
+      <text class="label-title" x="1095" y="185" text-anchor="middle">log.md</text>
+      <text class="label-meta" x="1095" y="202" text-anchor="middle">时间线编年</text>
+
+      <rect class="stage" x="1015" y="240" width="160" height="56" rx="2"></rect>
+      <text class="label-title" x="1095" y="265" text-anchor="middle">graph.jsonl</text>
+      <text class="label-meta" x="1095" y="282" text-anchor="middle">类型化边集</text>
+
+      <!-- edges -->
+      <path class="edge" d="M170 68 L240 68"></path>
+      <path class="edge" d="M170 208 L240 208"></path>
+      <path class="edge edge--signal" d="M170 348 L475 348"></path>
+
+      <path class="edge" d="M400 68 L475 68"></path>
+      <path class="edge" d="M400 208 L475 188"></path>
+      <path class="edge edge--signal" d="M170 208 L475 268"></path>
+
+      <path class="edge" d="M675 78 L745 68"></path>
+      <path class="edge edge--dash" d="M675 86 L745 148"></path>
+      <path class="edge edge--dash" d="M675 94 L745 228"></path>
+      <path class="edge" d="M675 188 L745 148"></path>
+      <path class="edge" d="M675 268 L745 228"></path>
+      <path class="edge edge--dash" d="M675 268 L745 308"></path>
+      <path class="edge" d="M675 348 L745 380"></path>
+
+      <path class="edge edge--dash" d="M945 68 L1015 105"></path>
+      <path class="edge edge--dash" d="M945 148 L1015 188"></path>
+      <path class="edge edge--dash" d="M945 228 L1015 188"></path>
+      <path class="edge edge--dash" d="M945 308 L1015 268"></path>
+      <path class="edge edge--signal" d="M945 380 C 1000 380, 1000 268, 1015 268"></path>
+
+      <text class="label-edge" x="206" y="60" text-anchor="start">投入</text>
+      <text class="label-edge" x="206" y="200" text-anchor="start">投入</text>
+      <text class="label-edge" x="430" y="60" text-anchor="start">摄入</text>
+      <text class="label-edge" x="690" y="60" text-anchor="start">第二步</text>
+      <text class="label-edge" x="206" y="340" text-anchor="start">捕捉</text>
+      <text class="label-edge" x="968" y="370" text-anchor="start">提级</text>
+    </svg>
+  </section>
+</div>
+
+<!-- ========================================================
+     III · THE LEDGER (13 wiki entity types)
+     ======================================================== -->
+<div class="page">
+  <header class="sec-head reveal" style="--d:9">
+    <div class="sec-num">叁</div>
+    <h2>编译产物的<em>账册</em>。</h2>
+    <div class="sec-rubric">
+      十三类<br>
+      每份资料<br>都有一份 frontmatter
+    </div>
+  </header>
+
+  <table class="ledger reveal" style="--d:10">
+    <thead>
+      <tr>
+        <th>编号</th>
+        <th>目录</th>
+        <th>承载内容</th>
+        <th>签名字段</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="idx">01</td><td class="slug">companies/</td><td class="kind">公司画像<em>跨多份财报的稳定综合</em></td><td class="sig"><kbd>ticker</kbd> <kbd>as_of</kbd> <kbd>sources[]</kbd></td></tr>
+      <tr><td class="idx">02</td><td class="slug">sectors/</td><td class="kind">行业地图<em>产业链 · 周期 · 政策</em></td><td class="sig"><kbd>themes</kbd> <kbd>members[]</kbd></td></tr>
+      <tr><td class="idx">03</td><td class="slug">filings-summary/</td><td class="kind">一对一摘要<em>每份 raw 文档配一页</em></td><td class="sig"><kbd>source</kbd> <kbd>kind</kbd> <kbd>fiscal</kbd></td></tr>
+      <tr><td class="idx">04</td><td class="slug">theses/</td><td class="kind">投资论点<em>整本卷宗的核心 · 长形态的判断</em></td><td class="sig"><kbd>stance</kbd> <kbd>lifecycle</kbd> <kbd>supersedes</kbd></td></tr>
+      <tr><td class="idx">05</td><td class="slug">comparisons/</td><td class="kind">并排对比<em>A vs B · A vs B vs C</em></td><td class="sig"><kbd>subjects[]</kbd> <kbd>axis[]</kbd></td></tr>
+      <tr><td class="idx">06</td><td class="slug">portfolio/</td><td class="kind">持仓快照<em>定格在某个具体日期</em></td><td class="sig"><kbd>as_of</kbd> <kbd>allocation[]</kbd></td></tr>
+      <tr><td class="idx">07</td><td class="slug">macro/</td><td class="kind">宏观主题<em>利率 · 流动性 · 大宗</em></td><td class="sig"><kbd>regime</kbd> <kbd>indicators[]</kbd></td></tr>
+      <tr><td class="idx">08</td><td class="slug">products/</td><td class="kind">金融产品<em>基金 · 银行理财 · 保险</em></td><td class="sig"><kbd>issuer</kbd> <kbd>fees</kbd></td></tr>
+      <tr><td class="idx">09</td><td class="slug">indicators/</td><td class="kind">自定义指标<em>定义 · 算法 · 历史值</em></td><td class="sig"><kbd>method</kbd> <kbd>history[]</kbd></td></tr>
+      <tr><td class="idx">10</td><td class="slug">events/</td><td class="kind">事件催化<em>财报日 · FOMC · 黑天鹅</em></td><td class="sig"><kbd>date</kbd> <kbd>impacts[]</kbd></td></tr>
+      <tr><td class="idx">11</td><td class="slug">reports/</td><td class="kind">深度研究<em>finance-research 流水线产出</em></td><td class="sig"><kbd>scope</kbd> <kbd>commissioned</kbd></td></tr>
+      <tr><td class="idx">12</td><td class="slug">syntheses/</td><td class="kind">跨源综合<em>在多份资料之间画出的连接</em></td><td class="sig"><kbd>weaves[]</kbd></td></tr>
+      <tr><td class="idx">13</td><td class="slug">queries/</td><td class="kind">归档对话<em>好的答案，回填进 wiki</em></td><td class="sig"><kbd>question</kbd> <kbd>asked_on</kbd></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ========================================================
+     IV · LIFECYCLE OF A THESIS
+     ======================================================== -->
+<div class="page">
+  <header class="sec-head reveal" style="--d:11">
+    <div class="sec-num">肆</div>
+    <h2>一条<em>信念</em>的生命周期。</h2>
+    <div class="sec-rubric">
+      自闪念至成熟<br>
+      或被替代<br>或被证伪
+    </div>
+  </header>
+
+  <section class="lifecycle reveal" style="--d:12">
+    <div class="lifecycle-grid">
+      <div class="lifecycle-step">
+        <div class="lifecycle-stage">第一阶段</div>
+        <div class="lifecycle-dot"></div>
+        <div class="lifecycle-name">一个 <em>闪念</em></div>
+        <div class="lifecycle-where">thoughts/ideas/<br>≤ 8 行 · seed</div>
+      </div>
+      <div class="lifecycle-step">
+        <div class="lifecycle-stage">第二阶段</div>
+        <div class="lifecycle-dot"></div>
+        <div class="lifecycle-name">孵化</div>
+        <div class="lifecycle-where">date-slug.md<br>status: incubating</div>
+      </div>
+      <div class="lifecycle-step is-signal">
+        <div class="lifecycle-stage">第三阶段 · 提级</div>
+        <div class="lifecycle-dot"></div>
+        <div class="lifecycle-name">一个 <em>论点</em></div>
+        <div class="lifecycle-where">wiki/theses/<br>stance · sources[]</div>
+      </div>
+      <div class="lifecycle-step">
+        <div class="lifecycle-stage">第四阶段</div>
+        <div class="lifecycle-dot"></div>
+        <div class="lifecycle-name">检验</div>
+        <div class="lifecycle-where">强化<br>或被替代</div>
+      </div>
+      <div class="lifecycle-step is-end">
+        <div class="lifecycle-stage">第五阶段 · 提交</div>
+        <div class="lifecycle-dot"></div>
+        <div class="lifecycle-name">一项 <em>决策</em></div>
+        <div class="lifecycle-where">thoughts/decisions/<br>ADR · 触发由头</div>
+      </div>
+      <div class="lifecycle-step">
+        <div class="lifecycle-stage">第六阶段</div>
+        <div class="lifecycle-dot"></div>
+        <div class="lifecycle-name">复盘</div>
+        <div class="lifecycle-where">reflections/<br>反哺新的闪念</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ========================================================
+     V · RULES OF THE HOUSE
+     ======================================================== -->
+<div class="page">
+  <header class="sec-head reveal" style="--d:13">
+    <div class="sec-num">伍</div>
+    <h2>馆<em>规</em>。</h2>
+    <div class="sec-rubric">
+      左禁右行 各六条<br>
+      不留旁路<br>不开后门
+    </div>
+  </header>
+
+  <div class="rules reveal" style="--d:14">
+    <div class="rules-col forbid">
+      <div class="rules-head"><span class="glyph">禁</span><span>禁止 · 永不</span></div>
+      <ol class="rules-list">
+        <li><span class="num">01</span><span>动 <code>raw/</code> —— 那是花岗岩地基。</span></li>
+        <li><span class="num">02</span><span>手工编辑 <code>ontology/graph.jsonl</code>。</span></li>
+        <li><span class="num">03</span><span>创建任何缺失完整 frontmatter 的 wiki / thoughts 页。</span></li>
+        <li><span class="num">04</span><span>杜撰任何财务数字、仓位、产品费率。</span></li>
+        <li><span class="num">05</span><span>改动 <code>.ingest-cache/</code> 或 <code>.ingest-queue/</code>。</span></li>
+        <li><span class="num">06</span><span>替用户给论点或闪念添油加醋。</span></li>
+      </ol>
+    </div>
+    <div class="rules-col">
+      <div class="rules-head"><span class="glyph">行</span><span>必须 · 始终</span></div>
+      <ol class="rules-list">
+        <li><span class="num">01</span><span>摄入必经 <code>finance-ingest</code>，两步 CoT，不留例外。</span></li>
+        <li><span class="num">02</span><span>每一页 wiki 都带 <code>sources[]</code>；每一页 thoughts 都保持 <code>private</code>。</span></li>
+        <li><span class="num">03</span><span>维护 <code>[[wikilink]]</code> 的双向网。</span></li>
+        <li><span class="num">04</span><span>涉及 portfolio / thesis / decision 时尤其谨慎。</span></li>
+        <li><span class="num">05</span><span>写图谱只许走 <code>scripts/graph_append.py</code>。</span></li>
+        <li><span class="num">06</span><span><code>finance-research</code> 必先 Phase 0 —— 去重并确认。</span></li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================
+     VI · GIST MAPPING — pull quotes
+     ======================================================== -->
+<div class="page">
+  <header class="sec-head reveal" style="--d:15">
+    <div class="sec-num">陆</div>
+    <h2>承自<em>何处</em>，又远至<em>何方</em>。</h2>
+    <div class="sec-rubric">
+      承袭 Karpathy<br>
+      为资本场景加固
+    </div>
+  </header>
+
+  <div class="pulls reveal" style="--d:16">
+    <div class="pull">
+      <div class="pull-tag">承袭 · 一</div>
+      <div class="pull-quote">wiki 是一份会持续累积、不断复利的产物。</div>
+      <div class="pull-source"><strong>Karpathy gist</strong> · 三层结构 · index + log</div>
+    </div>
+    <div class="pull">
+      <div class="pull-tag">承袭 · 二</div>
+      <div class="pull-quote">你读，模型写，schema 让它诚实。</div>
+      <div class="pull-source"><strong>CLAUDE.md</strong> · 四份契约文件</div>
+    </div>
+    <div class="pull">
+      <div class="pull-tag">扩展 · 一</div>
+      <div class="pull-quote">为只属于你一个人的那部分工作，增设第四层。</div>
+      <div class="pull-source"><strong>thoughts/</strong> · 私密 · 主观</div>
+    </div>
+    <div class="pull">
+      <div class="pull-tag">扩展 · 二</div>
+      <div class="pull-quote">在不能容忍杜撰的领域里，每一页都必须有类型。</div>
+      <div class="pull-source"><strong>schema + ontology + review</strong></div>
+    </div>
+  </div>
+
+  <!-- 版权页 -->
+  <footer class="colophon">
+    <div>
+      <span class="sigil">F<em>·</em>A</span> &nbsp; <strong>FINANCE_AGENT</strong> &nbsp; · &nbsp; 知识·卷宗 · 编辑版
+    </div>
+    <div>排版字体：<strong>Fraunces</strong> · <strong>Noto Serif SC</strong> · <strong>JetBrains Mono</strong></div>
+    <div>浏览器即印厂 · <strong>2026 年 6 月 3 日</strong></div>
+  </footer>
+</div>
+
+</body>
+</html>

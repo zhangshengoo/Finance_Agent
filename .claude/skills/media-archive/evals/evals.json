@@ -1,0 +1,29 @@
+{
+  "skill_name": "media-archive",
+  "evals": [
+    {
+      "id": 1,
+      "name": "bilibili-single-bvid-with-subtitle",
+      "prompt": "帮我归档 B 站这个视频 BV1GJ411x7h7，要字幕。KB 路径在 Finance_Agent/Knowledge_Wiki 下。",
+      "expected_output": "脚本调用 fetch_bilibili.py --bvid BV1GJ411x7h7 --with-subtitle --kb-root <KW>，在 raw/transcripts/bilibili/<uploader-slug>_BV1GJ411x7h7.json 下落一份含 subtitle 字段的 JSON；汇总输出 written 列表非空；最后向用户提示「下一步可用 finance-ingest 摄入」。**不**自动调用 finance-ingest。",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 2,
+      "name": "bilibili-uid-dynamics-with-images",
+      "prompt": "帮我抓 UP 主 UID 1039025435 最近 5 条动态，要把图片下下来。",
+      "expected_output": "脚本调用 fetch_bilibili_dynamic.py --uid 1039025435 --count 5 --download-images --kb-root <KW>，在 raw/transcripts/bilibili/ 下落 ≤5 份 _dyn_<id>.json，图片落 raw/assets/bilibili/1039025435/。每份 JSON 含 is_ad / content_hints / image_hints 字段；local_path 字段为相对 KB_ROOT 的路径。提示用户用 finance-ingest 处理。",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 3,
+      "name": "weixin-article-archive",
+      "prompt": "把这条公众号文章存到知识库：https://mp.weixin.qq.com/s/abcdefg",
+      "expected_output": "脚本调用 fetch_weixin.py --url '...' --kb-root <KW>，在 raw/news/weixin/<account-slug>/<date>-<title-slug>.md 下落一份 Markdown，含 frontmatter (source/account/account_biz/title/published_at/url/fetched_at/images)。正文图片下到 raw/assets/weixin/<account-slug>/，文中改写为相对路径。失败时（链接 404 / 风控）退出码非 0 并提示。",
+      "files": [],
+      "assertions": []
+    }
+  ]
+}

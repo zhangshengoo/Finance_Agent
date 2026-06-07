@@ -1,0 +1,20 @@
+# --- secrets ---
+.env
+.env.*
+!.env.example
+
+# --- nested private KB ---
+# Knowledge_Wiki/ is a separate git repo holding private finance data
+# (thoughts/ forced-private, holdings, statements, large media assets).
+# It is intentionally NOT tracked by this parent repo.
+/Knowledge_Wiki/
+
+# --- python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# --- os / editor ---
+.DS_Store
+*.swp

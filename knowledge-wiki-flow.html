@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knowledge_Wiki — 流程视图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700&family=Fragment+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-body: 'Bricolage Grotesque', system-ui, sans-serif;
+    --font-mono: 'Fragment Mono', 'SF Mono', Consolas, monospace;
+
+    --bg: #f0fdfa;
+    --surface: #ffffff;
+    --surface-2: #ecfdf5;
+    --border: rgba(0, 0, 0, 0.07);
+    --border-strong: rgba(0, 0, 0, 0.14);
+    --text: #134e4a;
+    --text-dim: #5f8a85;
+
+    --raw: #b45309;
+    --raw-dim: rgba(180, 83, 9, 0.10);
+    --wiki: #0d9488;
+    --wiki-dim: rgba(13, 148, 136, 0.10);
+    --thoughts: #7c3aed00;
+    --thought: #7e22ce;
+    --thought-dim: rgba(126, 34, 206, 0.10);
+    --schema: #0369a1;
+    --schema-dim: rgba(3, 105, 161, 0.10);
+    --ops: #dc2626;
+    --ops-dim: rgba(220, 38, 38, 0.10);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #042f2e;
+      --surface: #0a3d3a;
+      --surface-2: #0f4a47;
+      --border: rgba(255, 255, 255, 0.09);
+      --border-strong: rgba(255, 255, 255, 0.18);
+      --text: #ccfbf1;
+      --text-dim: #7dd3c5;
+
+      --raw: #fbbf24;
+      --raw-dim: rgba(251, 191, 36, 0.14);
+      --wiki: #2dd4bf;
+      --wiki-dim: rgba(45, 212, 191, 0.14);
+      --thought: #d8b4fe;
+      --thought-dim: rgba(216, 180, 254, 0.14);
+      --schema: #7dd3fc;
+      --schema-dim: rgba(125, 211, 252, 0.14);
+      --ops: #fca5a5;
+      --ops-dim: rgba(252, 165, 165, 0.14);
+    }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    background-color: var(--bg);
+    background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+    background-size: 24px 24px;
+    color: var(--text);
+    font-family: var(--font-body);
+    padding: 40px 20px 80px;
+    line-height: 1.55;
+  }
+
+  .container { max-width: 1180px; margin: 0 auto; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .animate { animation: fadeUp 0.45s ease-out both; animation-delay: calc(var(--i, 0) * 0.06s); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; }
+  }
+
+  h1 { font-size: 42px; font-weight: 700; letter-spacing: -1.2px; line-height: 1.05; margin-bottom: 8px; }
+  .subtitle { color: var(--text-dim); font-family: var(--font-mono); font-size: 12px; margin-bottom: 32px; }
+  .description {
+    font-size: 15px; color: var(--text-dim);
+    margin-bottom: 36px; max-width: 760px;
+  }
+  .description code {
+    font-family: var(--font-mono); font-size: 12px;
+    background: var(--wiki-dim); color: var(--wiki);
+    padding: 1px 5px; border-radius: 3px;
+  }
+
+  /* Section ---------------------------------------- */
+  section.block { margin-bottom: 56px; }
+  .section-tag {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-dim); margin-bottom: 10px;
+  }
+  .section-tag::before {
+    content: ''; width: 24px; height: 1px; background: var(--text-dim);
+  }
+  .section-tag .num { color: var(--text); font-weight: 700; }
+  h2 { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 10px; }
+  .section-desc { color: var(--text-dim); font-size: 14.5px; max-width: 740px; margin-bottom: 22px; }
+  .section-desc code {
+    font-family: var(--font-mono); font-size: 12px;
+    background: var(--wiki-dim); color: var(--wiki);
+    padding: 1px 5px; border-radius: 3px;
+  }
+
+  /* Mermaid container (verbatim pattern) ----------- */
+  .mermaid-wrap {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    overflow: auto;
+    margin-bottom: 16px;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 420px;
+    cursor: grab;
+  }
+  .mermaid-wrap.is-panning { cursor: grabbing; user-select: none; }
+
+  .zoom-controls {
+    position: absolute; top: 10px; right: 10px;
+    display: flex; gap: 2px; z-index: 10;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 2px;
+  }
+  .zoom-controls button {
+    width: 28px; height: 28px; border: none; background: transparent;
+    color: var(--text-dim); font-family: var(--font-mono); font-size: 14px;
+    cursor: pointer; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, color 0.15s;
+  }
+  .zoom-controls button:hover { background: var(--border); color: var(--text); }
+  .zoom-label {
+    font-family: var(--font-mono); font-size: 10px;
+    color: var(--text-dim); padding: 0 6px; white-space: nowrap;
+    display: inline-flex; align-items: center;
+  }
+
+  .diagram-shell { position: relative; }
+  .diagram-shell__hint {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--text-dim); margin-bottom: 8px; opacity: 0.7;
+  }
+
+  .mermaid-viewport {
+    position: relative; overflow: hidden;
+    width: 100%; height: 100%; min-height: 360px;
+  }
+  .mermaid-canvas { position: absolute; top: 0; left: 0; }
+
+  .mermaid .nodeLabel { font-family: var(--font-body) !important; font-size: 15px !important; }
+  .mermaid .edgeLabel { font-family: var(--font-mono) !important; font-size: 12px !important; }
+  .mermaid .node rect, .mermaid .node circle, .mermaid .node polygon { stroke-width: 1.5px !important; }
+  .mermaid .cluster rect { stroke-width: 1.2px !important; rx: 12px !important; ry: 12px !important; }
+  .mermaid .cluster text { font-family: var(--font-mono) !important; font-size: 11px !important; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* Legend ----------------------------------------- */
+  .legend {
+    display: flex; gap: 18px; flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .legend-item {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--text-dim);
+  }
+  .legend-swatch {
+    width: 14px; height: 14px; border-radius: 3px;
+    border: 1.5px solid var(--c, var(--wiki));
+    background: var(--c-dim, var(--wiki-dim));
+  }
+
+  /* Layer pills ------------------------------------ */
+  .pills {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--c, var(--wiki));
+    padding: 14px 16px;
+    border-radius: 10px;
+    min-width: 0;
+  }
+  .pill__head {
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 0.12em; color: var(--c); margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  .pill__name {
+    font-family: var(--font-mono);
+    font-size: 16px; font-weight: 700; color: var(--text);
+    margin-bottom: 4px;
+  }
+  .pill__role { font-size: 12.5px; color: var(--text-dim); }
+
+  /* Callouts --------------------------------------- */
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--c, var(--wiki));
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    font-size: 13.5px;
+    color: var(--text-dim);
+    margin-top: 14px;
+  }
+  .callout strong { color: var(--text); }
+  .callout code {
+    font-family: var(--font-mono); font-size: 11.5px;
+    background: var(--wiki-dim); color: var(--wiki);
+    padding: 1px 5px; border-radius: 3px;
+  }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  @media (max-width: 900px) {
+    h1 { font-size: 30px; }
+    body { padding: 24px 14px 64px; }
+    .pills { grid-template-columns: repeat(2, 1fr); }
+    .two-col { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <h1 class="animate" style="--i:0">Knowledge_Wiki · 流程视图</h1>
+  <p class="subtitle animate" style="--i:1">raw → wiki → thoughts · ingest pipeline · query strategy · lifecycle</p>
+  <p class="description animate" style="--i:2">
+    本视图不罗列目录，而是把 <code>Knowledge_Wiki</code> 当作一条数据流来理解：
+    <b>资料如何进入</b>（ingest）·<b>知识如何编译</b>（wiki）·<b>主观判断如何沉淀</b>（thoughts）·<b>提问如何被回答</b>（query）·
+    <b>论点如何演化</b>（thesis lifecycle）。共四张流程图，可缩放拖拽。
+  </p>
+
+  <!-- ========== 0 · LAYERS ========== -->
+  <section class="block animate" style="--i:3">
+    <div class="section-tag"><span class="num">00</span> 四象</div>
+    <h2>四个分层 · 一眼看清</h2>
+    <div class="pills">
+      <div class="pill" style="--c: var(--raw);">
+        <div class="pill__head"><span>LAYER 01</span><span>READ-ONLY</span></div>
+        <div class="pill__name">raw/</div>
+        <div class="pill__role">不可变源材料 · 9 类语料</div>
+      </div>
+      <div class="pill" style="--c: var(--wiki);">
+        <div class="pill__head"><span>LAYER 02</span><span>LLM-OWNED</span></div>
+        <div class="pill__name">wiki/</div>
+        <div class="pill__role">编译产物 · 13 类 typed entity</div>
+      </div>
+      <div class="pill" style="--c: var(--thought);">
+        <div class="pill__head"><span>LAYER 03</span><span>PRIVATE</span></div>
+        <div class="pill__name">thoughts/</div>
+        <div class="pill__role">主观沉淀 · 假设 / 决策 / 复盘</div>
+      </div>
+      <div class="pill" style="--c: var(--schema);">
+        <div class="pill__head"><span>LAYER 04</span><span>CONTRACT</span></div>
+        <div class="pill__name">_schema · ontology</div>
+        <div class="pill__role">契约 + 图谱 + 工具链</div>
+      </div>
+    </div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-swatch" style="--c:var(--raw);--c-dim:var(--raw-dim);"></span> raw（源材料）</span>
+      <span class="legend-item"><span class="legend-swatch" style="--c:var(--wiki);--c-dim:var(--wiki-dim);"></span> wiki（编译产物）</span>
+      <span class="legend-item"><span class="legend-swatch" style="--c:var(--thought);--c-dim:var(--thought-dim);"></span> thoughts（主观）</span>
+      <span class="legend-item"><span class="legend-swatch" style="--c:var(--schema);--c-dim:var(--schema-dim);"></span> schema / ontology（契约）</span>
+      <span class="legend-item"><span class="legend-swatch" style="--c:var(--ops);--c-dim:var(--ops-dim);"></span> ops / 决策点</span>
+    </div>
+  </section>
+
+  <!-- ========== 1 · MASTER FLOW ========== -->
+  <section class="block animate" style="--i:4">
+    <div class="section-tag"><span class="num">01</span> 系统全景</div>
+    <h2>整体数据流</h2>
+    <p class="section-desc">
+      外部世界（财报/研报/电话会/新闻/对账单/想法）经由 <code>finance-ingest</code> 进入 raw 层，再被 LLM 编译成 wiki；
+      用户对话产出主观沉淀进入 thoughts；ontology 图谱跨层连接；查询时反向遍历回答。
+    </p>
+    <section class="diagram-shell">
+      <p class="diagram-shell__hint">Ctrl/Cmd + 滚轮缩放 · 拖拽平移 · 双击适配 · 右上 ⛶ 全屏</p>
+      <div class="mermaid-wrap">
+        <div class="zoom-controls">
+          <button data-action="zoom-in" title="放大">+</button>
+          <button data-action="zoom-out" title="缩小">&minus;</button>
+          <button data-action="zoom-fit" title="适配">&#8634;</button>
+          <button data-action="zoom-one" title="1:1">1:1</button>
+          <button data-action="zoom-expand" title="全屏">&#x26F6;</button>
+          <span class="zoom-label">Loading…</span>
+        </div>
+        <div class="mermaid-viewport"><div class="mermaid mermaid-canvas"></div></div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+graph TD
+  EXT(("外部世界<br/>财报 · 研报 · 视频 · 新闻"))
+  USR(("用户<br/>提问 · 假设 · 决策"))
+
+  subgraph RAW["RAW · 不可变源材料"]
+    R1["filings/<br/>研报 / 财报 PDF"]
+    R2["transcripts/<br/>电话会 + bilibili"]
+    R3["news / macro / data"]
+  end
+
+  subgraph SKILLS["SKILLS · 受控写入入口"]
+    S1["finance-ingest<br/>两步 CoT"]
+    S2["company-page"]
+    S3["thesis-archive"]
+    S4["thought-capture<br/>（规划中）"]
+  end
+
+  subgraph WIKI["WIKI · LLM 编译产物（13 类）"]
+    W1["filings-summary/<br/>单份摘要"]
+    W2["companies/<br/>实体画像"]
+    W3["sectors / macro"]
+    W4["theses/<br/>投资论点"]
+    W5["portfolio/<br/>持仓快照"]
+    W6["index.md + log.md"]
+  end
+
+  subgraph THOUGHTS["THOUGHTS · 主观沉淀（private）"]
+    T1["ideas/<br/>alpha 假设池"]
+    T2["questions / decisions"]
+    T3["reflections / todos"]
+  end
+
+  subgraph META["SCHEMA + ONTOLOGY · 契约层"]
+    M1["CLAUDE.md<br/>+ _schema.md"]
+    M2["ontology/graph.jsonl<br/>typed 边"]
+    M3["_index.json"]
+  end
+
+  EXT -->|"drop"| RAW
+  RAW -->|"ingest"| S1
+  S1 -->|"step 1: 分析"| W1
+  S1 -.->|"step 2: 生成"| W2
+  S1 -.->|"step 2: 生成"| W3
+  S2 --> W2
+  S3 --> W4
+  USR -->|"对话"| S3
+  USR -->|"闪念"| S4
+  S4 --> T1
+  USR -->|"复盘"| T3
+  T1 -->|"验证 promote"| W4
+  W4 --> W5
+  WIKI -.->|"维护"| W6
+  WIKI -.->|"写边"| M2
+  THOUGHTS -.->|"写边"| M2
+  M1 -->|"约束"| SKILLS
+  M3 -.->|"导航"| WIKI
+
+  classDef raw fill:#fff7ed,stroke:#b45309,color:#7c2d12;
+  classDef wiki fill:#ccfbf1,stroke:#0d9488,color:#134e4a;
+  classDef thought fill:#f3e8ff,stroke:#7e22ce,color:#581c87;
+  classDef schema fill:#e0f2fe,stroke:#0369a1,color:#0c4a6e;
+  classDef skill fill:#fef2f2,stroke:#dc2626,color:#7f1d1d;
+  classDef ext fill:#fafafa,stroke:#737373,color:#262626;
+
+  class R1,R2,R3 raw;
+  class W1,W2,W3,W4,W5,W6 wiki;
+  class T1,T2,T3 thought;
+  class M1,M2,M3 schema;
+  class S1,S2,S3,S4 skill;
+  class EXT,USR ext;
+      </script>
+    </section>
+    <div class="callout" style="--c: var(--wiki);">
+      <strong>关键约束：</strong> 实线 = 强制路径（必须经 skill 写入）；虚线 = 引用 / 索引关系。
+      <code>raw/</code> 只读 · <code>ontology/graph.jsonl</code> 只能 append · 所有 wiki 页必须有 <code>sources[]</code> frontmatter。
+    </div>
+  </section>
+
+  <!-- ========== 2 · INGEST PIPELINE ========== -->
+  <section class="block animate" style="--i:5">
+    <div class="section-tag"><span class="num">02</span> Ingest 流水线</div>
+    <h2>finance-ingest · 两步 CoT</h2>
+    <p class="section-desc">
+      gist 的"摄入"在这里被工程化：SHA256 缓存防重复 → 分析（先讨论再生成）→ 一次提交触及 10-15 个 wiki 页面 →
+      追加 ontology 边 → 写 log。<b>禁止跳过任一步直写 wiki。</b>
+    </p>
+    <section class="diagram-shell">
+      <p class="diagram-shell__hint">Ctrl/Cmd + 滚轮缩放 · 拖拽平移</p>
+      <div class="mermaid-wrap">
+        <div class="zoom-controls">
+          <button data-action="zoom-in">+</button>
+          <button data-action="zoom-out">&minus;</button>
+          <button data-action="zoom-fit">&#8634;</button>
+          <button data-action="zoom-one">1:1</button>
+          <button data-action="zoom-expand">&#x26F6;</button>
+          <span class="zoom-label">Loading…</span>
+        </div>
+        <div class="mermaid-viewport"><div class="mermaid mermaid-canvas"></div></div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+graph TD
+  START(["用户：&quot;摄入这份财报&quot;"])
+  DROP["drop 到 raw/filings/"]
+  HASH{"SHA256 已在<br/>.ingest-cache?"}
+  SKIP["跳过 · 提示 deduped"]
+  EXT["多格式提取<br/>PDF / HTML / TXT"]
+
+  subgraph STEP1["STEP 1 · 分析（不写文件）"]
+    A1["读取 raw 全文"]
+    A2["与用户讨论<br/>关键要点 / 强调方向"]
+    A3["规划：要触及哪些<br/>wiki 页面 · ontology 边"]
+  end
+
+  subgraph STEP2["STEP 2 · 生成（批量写入）"]
+    G1["写 wiki/filings-summary/<br/>新建 1:1 摘要"]
+    G2["更新 wiki/companies/&lt;TICKER&gt;<br/>追加新数据点"]
+    G3["更新 wiki/sectors / macro<br/>若涉及行业 / 宏观"]
+    G4["追加 ontology 边<br/>scripts/graph_append.py"]
+    G5["更新 wiki/index.md<br/>+ log.md（带日期前缀）"]
+    G6["build_index.py<br/>刷新 _index.json"]
+  end
+
+  CHECK{"frontmatter<br/>校验通过?"}
+  REVIEW["进入 _review/pending/<br/>等待人审"]
+  DONE(["✓ Ingest 完成<br/>SHA256 写入缓存"])
+
+  START --> DROP
+  DROP --> HASH
+  HASH -->|"是"| SKIP
+  HASH -->|"否"| EXT
+  EXT --> A1
+  A1 --> A2 --> A3
+  A3 --> G1
+  G1 --> G2
+  G1 --> G3
+  G2 --> G4
+  G3 --> G4
+  G4 --> G5
+  G5 --> G6
+  G6 --> CHECK
+  CHECK -->|"通过"| DONE
+  CHECK -->|"失败"| REVIEW
+
+  classDef start fill:#fafafa,stroke:#737373,color:#262626;
+  classDef io fill:#fff7ed,stroke:#b45309,color:#7c2d12;
+  classDef step fill:#ccfbf1,stroke:#0d9488,color:#134e4a;
+  classDef decision fill:#fef3c7,stroke:#d97706,color:#7c2d12;
+  classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d;
+
+  class START,DONE start;
+  class DROP,EXT,SKIP io;
+  class A1,A2,A3,G1,G2,G3,G4,G5,G6 step;
+  class HASH,CHECK decision;
+  class REVIEW io;
+      </script>
+    </section>
+    <div class="callout" style="--c: var(--ops);">
+      <strong>禁止：</strong> 跳过 STEP 1 直接生成 · 单步直写 wiki · 修改 raw · 直接编辑 graph.jsonl · 杜撰任何财务数字。
+    </div>
+  </section>
+
+  <!-- ========== 3 · QUERY STRATEGY ========== -->
+  <section class="block animate" style="--i:6">
+    <div class="section-tag"><span class="num">03</span> 查询策略</div>
+    <h2>5 步检索 · grep → ontology → 全文</h2>
+    <p class="section-desc">
+      默认 BM25/grep，量大时（C 类启用）才合并向量。查论点时自动过滤 <code>superseded</code> / <code>invalidated</code>，
+      除非用户明确想看历史演化。
+    </p>
+    <section class="diagram-shell">
+      <p class="diagram-shell__hint">Ctrl/Cmd + 滚轮缩放 · 拖拽平移</p>
+      <div class="mermaid-wrap">
+        <div class="zoom-controls">
+          <button data-action="zoom-in">+</button>
+          <button data-action="zoom-out">&minus;</button>
+          <button data-action="zoom-fit">&#8634;</button>
+          <button data-action="zoom-one">1:1</button>
+          <button data-action="zoom-expand">&#x26F6;</button>
+          <span class="zoom-label">Loading…</span>
+        </div>
+        <div class="mermaid-viewport"><div class="mermaid mermaid-canvas"></div></div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+graph LR
+  Q(["用户提问"])
+  S1["① grep _index.json<br/>取候选 wiki 页"]
+  S2["② ontology traverse<br/>扩展邻居节点"]
+  CAP{"C 类<br/>vector_search<br/>开启?"}
+  S3["③ 合并向量命中<br/>（lancedb）"]
+  S4["④ 过滤<br/>status: superseded<br/>/ invalidated"]
+  S5["⑤ 读全文<br/>（不分 chunk）"]
+  ANS["综合答复<br/>含引用 sources"]
+  ARC{"价值高<br/>值得复用?"}
+  FILE["归档到<br/>wiki/queries/"]
+  END(["对话结束"])
+
+  Q --> S1 --> S2 --> CAP
+  CAP -->|"否"| S4
+  CAP -->|"是"| S3 --> S4
+  S4 --> S5 --> ANS --> ARC
+  ARC -->|"是"| FILE --> END
+  ARC -->|"否"| END
+
+  classDef q fill:#fafafa,stroke:#737373,color:#262626;
+  classDef step fill:#ccfbf1,stroke:#0d9488,color:#134e4a;
+  classDef decision fill:#fef3c7,stroke:#d97706,color:#7c2d12;
+  classDef opt fill:#e0f2fe,stroke:#0369a1,color:#0c4a6e;
+  classDef done fill:#dcfce7,stroke:#16a34a,color:#14532d;
+
+  class Q,END q;
+  class S1,S2,S4,S5,ANS step;
+  class CAP,ARC decision;
+  class S3,FILE opt;
+      </script>
+    </section>
+    <div class="callout" style="--c: var(--schema);">
+      <strong>对照 karpathy_gist：</strong> 这里把 gist 中"先读 index 再 drill 进具体页"的提议 + ontology 邻居扩展 + 可选向量做成 5 步固定流程，
+      并加上"好答案归档回 wiki/queries/"的复利闭环。
+    </div>
+  </section>
+
+  <!-- ========== 4 · THESIS LIFECYCLE ========== -->
+  <section class="block animate" style="--i:7">
+    <div class="section-tag"><span class="num">04</span> Thesis 生命周期</div>
+    <h2>从闪念到论点 · 从论点到决策</h2>
+    <p class="section-desc">
+      投资论点是这个 KB 最重要的产物。它从 thoughts/ideas/ 的闪念开始孵化，验证后 promote 为 wiki/theses/，
+      可能被 supersede 或 invalidated，最终触发 thoughts/decisions/ 的 ADR。<b>全生命周期可追溯。</b>
+    </p>
+    <section class="diagram-shell">
+      <p class="diagram-shell__hint">Ctrl/Cmd + 滚轮缩放 · 拖拽平移</p>
+      <div class="mermaid-wrap">
+        <div class="zoom-controls">
+          <button data-action="zoom-in">+</button>
+          <button data-action="zoom-out">&minus;</button>
+          <button data-action="zoom-fit">&#8634;</button>
+          <button data-action="zoom-one">1:1</button>
+          <button data-action="zoom-expand">&#x26F6;</button>
+          <span class="zoom-label">Loading…</span>
+        </div>
+        <div class="mermaid-viewport"><div class="mermaid mermaid-canvas"></div></div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+graph TD
+  SPARK(["💡 闪念<br/>对话中产生的判断"])
+  POOL["thoughts/ideas/&lt;domain&gt;.md<br/>≤ 8 行 · status: seed"]
+  INCUB["thoughts/ideas/&lt;domain&gt;/<br/>&lt;date&gt;-&lt;slug&gt;.md<br/>status: incubating"]
+  Q1{"有足够数据<br/>支撑成立?"}
+  RESEARCH["调用 finance-research<br/>跨 raw 验证"]
+  THESIS["wiki/theses/&lt;slug&gt;.md<br/>stance + sources[]<br/>status: active"]
+  Q2{"新数据<br/>到来?"}
+  STRENGTH["强化<br/>追加 sources[]"]
+  SUPER["wiki/theses/&lt;new&gt;.md<br/>supersedes: &lt;old&gt;"]
+  INVAL["旧论点<br/>status: invalidated"]
+  Q3{"准备<br/>committed 行动?"}
+  DEC["thoughts/decisions/<br/>ADR：catalyst + rationale"]
+  PORT["wiki/portfolio/<br/>仓位调整"]
+  REFL["thoughts/reflections/<br/>周 / 月 / 季度复盘"]
+
+  SPARK -->|"thought-capture"| POOL
+  POOL -->|"深入孵化"| INCUB
+  INCUB --> Q1
+  Q1 -->|"否"| RESEARCH --> INCUB
+  Q1 -->|"是"| THESIS
+  THESIS --> Q2
+  Q2 -->|"印证"| STRENGTH --> THESIS
+  Q2 -->|"反向"| SUPER --> INVAL
+  THESIS --> Q3
+  Q3 -->|"是"| DEC --> PORT
+  PORT -.->|"复盘触发"| REFL
+  REFL -.->|"反哺<br/>新闪念"| SPARK
+
+  classDef spark fill:#fef9c3,stroke:#ca8a04,color:#713f12;
+  classDef thought fill:#f3e8ff,stroke:#7e22ce,color:#581c87;
+  classDef wiki fill:#ccfbf1,stroke:#0d9488,color:#134e4a;
+  classDef decision fill:#fef3c7,stroke:#d97706,color:#7c2d12;
+  classDef end_ fill:#fee2e2,stroke:#dc2626,color:#7f1d1d;
+  classDef tool fill:#e0f2fe,stroke:#0369a1,color:#0c4a6e;
+
+  class SPARK spark;
+  class POOL,INCUB,DEC,REFL thought;
+  class THESIS,STRENGTH,SUPER,PORT wiki;
+  class Q1,Q2,Q3 decision;
+  class INVAL end_;
+  class RESEARCH tool;
+      </script>
+    </section>
+    <div class="two-col" style="margin-top: 16px;">
+      <div class="callout" style="--c: var(--thought);">
+        <strong>promote 路径（关键）：</strong>
+        <code>thoughts/ideas/equity/2026-05-nvda-datacenter.md</code> 验证后 →
+        <code>wiki/theses/nvda-long-2025-datacenter.md</code>，
+        并在 idea 文件 frontmatter 写 <code>promoted_to: wiki/theses/...</code>。双向可追溯。
+      </div>
+      <div class="callout" style="--c: var(--ops);">
+        <strong>supersede 不是删除：</strong> 旧论点 <code>status: invalidated</code> 但保留全文 +
+        <code>superseded_by: wiki/theses/new.md</code>。查询时默认过滤；显式问"历史观点"时仍可读出。
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 5 · GIST MAPPING ========== -->
+  <section class="block animate" style="--i:8">
+    <div class="section-tag"><span class="num">05</span> 与 karpathy_gist 的精神映射</div>
+    <h2>4 条核心增强</h2>
+    <p class="section-desc">三层骨架完全延续；金融场景下加了 4 处工程加固，让"维护成本接近零"在零容忍杜撰数据的领域里仍能成立。</p>
+    <div class="pills" style="grid-template-columns: repeat(4, 1fr);">
+      <div class="pill" style="--c: var(--thought);">
+        <div class="pill__head"><span>EXT · 01</span><span>thoughts/</span></div>
+        <div class="pill__name">主观第四层</div>
+        <div class="pill__role">把"主观假设 / 决策 / 复盘"从 wiki 中分离，强制 private。</div>
+      </div>
+      <div class="pill" style="--c: var(--wiki);">
+        <div class="pill__head"><span>EXT · 02</span><span>schema</span></div>
+        <div class="pill__name">Typed Entity</div>
+        <div class="pill__role">13 类 wiki 模板 + 强 frontmatter 校验。stance / sources / as_of 锁死。</div>
+      </div>
+      <div class="pill" style="--c: var(--schema);">
+        <div class="pill__head"><span>EXT · 03</span><span>graph</span></div>
+        <div class="pill__name">Ontology 图谱</div>
+        <div class="pill__role">在 wikilink 之上加 typed 边集合，留 graph_insights 接口。</div>
+      </div>
+      <div class="pill" style="--c: var(--ops);">
+        <div class="pill__head"><span>EXT · 04</span><span>review</span></div>
+        <div class="pill__name">人审 Gate</div>
+        <div class="pill__role">_review/pending 队列，对涉资金类内容强制人工 review。</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  import elkLayouts from 'https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk/dist/mermaid-layout-elk.esm.min.mjs';
+
+  const config = {
+    fitPadding: 28, minHeight: 380, maxHeightPx: 1000, maxHeightVh: 0.85,
+    maxInitialZoom: 1.8, minZoom: 0.08, maxZoom: 6.5, zoomStep: 0.14, readabilityFloor: 0.55
+  };
+  const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+
+  let activeDrag = null;
+  addEventListener('mousemove', (e) => activeDrag?.onMove(e));
+  addEventListener('mouseup', () => { activeDrag?.onEnd(); activeDrag = null; });
+
+  const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+
+  mermaid.registerLayoutLoaders(elkLayouts);
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    look: 'classic',
+    layout: 'elk',
+    themeVariables: {
+      fontFamily: "'Bricolage Grotesque', system-ui, sans-serif",
+      fontSize: '15px',
+      primaryColor: isDark ? '#115e59' : '#ccfbf1',
+      primaryBorderColor: isDark ? '#2dd4bf' : '#0d9488',
+      primaryTextColor: isDark ? '#ccfbf1' : '#134e4a',
+      secondaryColor: isDark ? '#0c4a6e' : '#e0f2fe',
+      secondaryBorderColor: isDark ? '#38bdf8' : '#0369a1',
+      secondaryTextColor: isDark ? '#ccfbf1' : '#0c4a6e',
+      tertiaryColor: isDark ? '#3a2a15' : '#fef3c7',
+      tertiaryBorderColor: isDark ? '#fbbf24' : '#d97706',
+      tertiaryTextColor: isDark ? '#fef3c7' : '#7c2d12',
+      lineColor: isDark ? '#7dd3c5' : '#5f8a85',
+      clusterBkg: isDark ? 'rgba(45, 212, 191, 0.05)' : 'rgba(13, 148, 136, 0.04)',
+      clusterBorder: isDark ? 'rgba(45, 212, 191, 0.3)' : 'rgba(13, 148, 136, 0.3)',
+      noteBkgColor: isDark ? '#115e59' : '#fefce8',
+      noteTextColor: isDark ? '#ccfbf1' : '#134e4a',
+      noteBorderColor: isDark ? '#fbbf24' : '#d97706',
+    }
+  });
+
+  function initDiagram(shell) {
+    const wrap = shell.querySelector('.mermaid-wrap');
+    const viewport = shell.querySelector('.mermaid-viewport');
+    const canvas = shell.querySelector('.mermaid-canvas');
+    const source = shell.querySelector('.diagram-source');
+    const label = shell.querySelector('.zoom-label');
+    if (!wrap || !viewport || !canvas || !source || !label) return;
+
+    let zoom = 1, fitMode = 'contain', panX = 0, panY = 0, svgW = 0, svgH = 0;
+    let sx = 0, sy = 0, spx = 0, spy = 0, touchDist = 0, touchCx = 0, touchCy = 0;
+
+    function constrainPan() {
+      const vpW = viewport.clientWidth, vpH = viewport.clientHeight;
+      const rW = svgW * zoom, rH = svgH * zoom, pad = config.fitPadding;
+      panX = (rW + pad * 2 <= vpW) ? (vpW - rW) / 2 : clamp(panX, vpW - rW - pad, pad);
+      panY = (rH + pad * 2 <= vpH) ? (vpH - rH) / 2 : clamp(panY, vpH - rH - pad, pad);
+    }
+    function applyTransform() {
+      const svg = canvas.querySelector('svg');
+      if (!svg || !svgW) return;
+      constrainPan();
+      svg.style.width = (svgW * zoom) + 'px';
+      svg.style.height = (svgH * zoom) + 'px';
+      canvas.style.transform = `translate(${panX}px, ${panY}px)`;
+      label.textContent = Math.round(zoom * 100) + '% — ' + fitMode;
+    }
+    function canPan() {
+      const rW = svgW * zoom, rH = svgH * zoom;
+      return rW + config.fitPadding * 2 > viewport.clientWidth
+          || rH + config.fitPadding * 2 > viewport.clientHeight;
+    }
+    function computeSmartFit() {
+      const vpW = viewport.clientWidth, vpH = viewport.clientHeight;
+      const aW = Math.max(80, vpW - config.fitPadding * 2);
+      const aH = Math.max(80, vpH - config.fitPadding * 2);
+      const contain = Math.min(aW / svgW, aH / svgH);
+      let z = contain, mode = 'contain';
+      if (contain < config.readabilityFloor) {
+        const chartR = svgH / svgW, vpR = vpH / Math.max(vpW, 1);
+        if (chartR >= vpR) { z = aW / svgW; mode = 'width-priority'; }
+        else { z = aH / svgH; mode = 'height-priority'; }
+      }
+      return { zoom: clamp(z, config.minZoom, config.maxInitialZoom), mode };
+    }
+    function fitDiagram() {
+      if (!svgW) return;
+      const fit = computeSmartFit();
+      zoom = fit.zoom; fitMode = fit.mode;
+      panX = (viewport.clientWidth - svgW * zoom) / 2;
+      panY = (viewport.clientHeight - svgH * zoom) / 2;
+      applyTransform();
+    }
+    function setOneToOne() {
+      zoom = clamp(1, config.minZoom, config.maxZoom); fitMode = '1:1';
+      panX = (viewport.clientWidth - svgW * zoom) / 2;
+      panY = (viewport.clientHeight - svgH * zoom) / 2;
+      applyTransform();
+    }
+    function zoomAround(factor, cx, cy) {
+      const next = clamp(zoom * factor, config.minZoom, config.maxZoom);
+      const ratio = next / zoom;
+      panX = cx - ratio * (cx - panX);
+      panY = cy - ratio * (cy - panY);
+      zoom = next; fitMode = 'custom'; applyTransform();
+    }
+    function readSvgNaturalSize(svg) {
+      let w = 0, h = 0;
+      if (svg.viewBox?.baseVal?.width > 0) { w = svg.viewBox.baseVal.width; h = svg.viewBox.baseVal.height; }
+      if (!w) { w = parseFloat(svg.getAttribute('width')) || 0; h = parseFloat(svg.getAttribute('height')) || 0; }
+      if (!w) { const b = svg.getBBox(); w = b.width; h = b.height; }
+      if (!w) { const r = svg.getBoundingClientRect(); w = r.width || 1000; h = r.height || 700; }
+      if (!svg.getAttribute('viewBox')) svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      return { w, h };
+    }
+    function setAdaptiveHeight() {
+      if (!svgW) return;
+      const usableW = Math.max(280, wrap.getBoundingClientRect().width - 2);
+      const idealH = (svgH / svgW) * usableW + config.fitPadding * 2;
+      const maxVp = Math.floor(innerHeight * config.maxHeightVh);
+      const hardMax = Math.min(config.maxHeightPx, Math.max(config.minHeight + 40, maxVp));
+      wrap.style.height = Math.round(clamp(idealH, config.minHeight, hardMax)) + 'px';
+    }
+    function openInNewTab() {
+      const svg = canvas.querySelector('svg');
+      if (!svg) return;
+      const clone = svg.cloneNode(true);
+      clone.style.width = ''; clone.style.height = '';
+      const bg = isDark ? '#042f2e' : '#f0fdfa';
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Diagram</title>
+      <style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+      background:${bg};padding:40px;box-sizing:border-box}svg{max-width:100%;max-height:90vh;height:auto}</style>
+      </head><body>${clone.outerHTML}</body></html>`;
+      open(URL.createObjectURL(new Blob([html], { type: 'text/html' })), '_blank');
+    }
+    async function render() {
+      try {
+        const code = source.textContent.trim();
+        if (!code) { label.textContent = 'Empty source'; return; }
+        const id = 'd-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+        const { svg } = await mermaid.render(id, code);
+        canvas.innerHTML = svg;
+        const svgNode = canvas.querySelector('svg');
+        if (!svgNode) { label.textContent = 'No SVG'; return; }
+        const size = readSvgNaturalSize(svgNode);
+        svgW = size.w; svgH = size.h;
+        svgNode.removeAttribute('width'); svgNode.removeAttribute('height');
+        svgNode.style.maxWidth = 'none'; svgNode.style.display = 'block';
+        setAdaptiveHeight(); fitDiagram();
+      } catch (err) {
+        console.error('Mermaid render failed:', err);
+        label.textContent = 'Error: ' + (err.message || 'Render failed');
+      }
+    }
+    const actions = {
+      'zoom-in': () => zoomAround(1 + config.zoomStep, viewport.clientWidth / 2, viewport.clientHeight / 2),
+      'zoom-out': () => zoomAround(1 / (1 + config.zoomStep), viewport.clientWidth / 2, viewport.clientHeight / 2),
+      'zoom-fit': fitDiagram, 'zoom-one': setOneToOne, 'zoom-expand': openInNewTab
+    };
+    Object.entries(actions).forEach(([action, handler]) => {
+      wrap.querySelector(`[data-action="${action}"]`)?.addEventListener('click', handler);
+    });
+    viewport.addEventListener('dblclick', fitDiagram);
+    viewport.addEventListener('wheel', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const rect = viewport.getBoundingClientRect();
+        const factor = e.deltaY < 0 ? 1 + config.zoomStep : 1 / (1 + config.zoomStep);
+        zoomAround(factor, e.clientX - rect.left, e.clientY - rect.top);
+        return;
+      }
+      if (canPan()) {
+        e.preventDefault();
+        panX -= e.deltaX; panY -= e.deltaY; applyTransform();
+      }
+    }, { passive: false });
+    viewport.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.zoom-controls') || !canPan()) return;
+      wrap.classList.add('is-panning');
+      sx = e.clientX; sy = e.clientY; spx = panX; spy = panY;
+      e.preventDefault();
+      activeDrag = {
+        onMove: (ev) => { panX = spx + (ev.clientX - sx); panY = spy + (ev.clientY - sy); applyTransform(); },
+        onEnd: () => { wrap.classList.remove('is-panning'); }
+      };
+    });
+    viewport.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        sx = e.touches[0].clientX; sy = e.touches[0].clientY; spx = panX; spy = panY;
+      } else if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        touchDist = Math.sqrt(dx * dx + dy * dy);
+        const r = viewport.getBoundingClientRect();
+        touchCx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - r.left;
+        touchCy = (e.touches[0].clientY + e.touches[1].clientY) / 2 - r.top;
+      }
+    }, { passive: true });
+    viewport.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1 && canPan()) {
+        if (touchDist > 0) {
+          sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+          spx = panX; spy = panY; touchDist = 0;
+        }
+        e.preventDefault();
+        panX = spx + (e.touches[0].clientX - sx);
+        panY = spy + (e.touches[0].clientY - sy);
+        applyTransform();
+      } else if (e.touches.length === 2 && touchDist > 0) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        zoomAround(d / touchDist, touchCx, touchCy);
+        touchDist = d;
+      }
+    }, { passive: false });
+    new ResizeObserver(() => { if (svgW) { setAdaptiveHeight(); fitDiagram(); } }).observe(wrap);
+    render();
+  }
+
+  document.querySelectorAll('.diagram-shell').forEach(initDiagram);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knowledge_Wiki — Structural Blueprint</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+
+    --bg: #f4f1ea;
+    --paper: #faf7f0;
+    --surface: #ffffff;
+    --ink: #1a2740;
+    --ink-soft: #3d4e6e;
+    --ink-dim: #6b7a96;
+    --rule: rgba(26, 39, 64, 0.14);
+    --rule-strong: rgba(26, 39, 64, 0.28);
+    --grid: rgba(26, 39, 64, 0.05);
+
+    --c-raw: #8c5a2b;
+    --c-raw-dim: rgba(140, 90, 43, 0.12);
+    --c-wiki: #1e4d7a;
+    --c-wiki-dim: rgba(30, 77, 122, 0.12);
+    --c-thoughts: #6b3a6f;
+    --c-thoughts-dim: rgba(107, 58, 111, 0.12);
+    --c-schema: #2d5a3d;
+    --c-schema-dim: rgba(45, 90, 61, 0.12);
+    --c-ops: #a3431f;
+    --c-ops-dim: rgba(163, 67, 31, 0.12);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e131c;
+      --paper: #141a27;
+      --surface: #1a2230;
+      --ink: #e8eef7;
+      --ink-soft: #b8c5db;
+      --ink-dim: #7f8da6;
+      --rule: rgba(232, 238, 247, 0.10);
+      --rule-strong: rgba(232, 238, 247, 0.22);
+      --grid: rgba(232, 238, 247, 0.04);
+
+      --c-raw: #d49a5f;
+      --c-raw-dim: rgba(212, 154, 95, 0.14);
+      --c-wiki: #5fa8d8;
+      --c-wiki-dim: rgba(95, 168, 216, 0.14);
+      --c-thoughts: #c08acb;
+      --c-thoughts-dim: rgba(192, 138, 203, 0.14);
+      --c-schema: #7dc191;
+      --c-schema-dim: rgba(125, 193, 145, 0.14);
+      --c-ops: #e08962;
+      --c-ops-dim: rgba(224, 137, 98, 0.14);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    color: var(--ink);
+    background: var(--bg);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 32px 32px;
+    line-height: 1.55;
+    min-height: 100vh;
+  }
+
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 56px 40px 96px;
+  }
+
+  .sheet-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 32px;
+    align-items: end;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 28px;
+    margin-bottom: 56px;
+  }
+  .sheet-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 14px;
+  }
+  .sheet-meta .dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--c-wiki);
+    border-radius: 50%;
+    margin: 0 10px 2px 0;
+    vertical-align: middle;
+  }
+  h1 {
+    font-size: 44px;
+    line-height: 1.05;
+    margin: 0;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+  h1 .sub {
+    display: block;
+    font-size: 18px;
+    color: var(--ink-soft);
+    font-weight: 400;
+    margin-top: 8px;
+    letter-spacing: 0;
+  }
+  .stamp {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1.4;
+    color: var(--ink-dim);
+    text-align: right;
+    border-left: 1px solid var(--rule-strong);
+    padding-left: 16px;
+  }
+  .stamp strong { color: var(--ink); font-weight: 500; }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 56px 0 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section-label::before {
+    content: '';
+    width: 28px;
+    height: 1px;
+    background: var(--ink-soft);
+  }
+  .section-label .num {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  h2 {
+    font-size: 26px;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+    font-weight: 700;
+  }
+  .lede {
+    color: var(--ink-soft);
+    margin: 0 0 28px;
+    font-size: 15.5px;
+    max-width: 78ch;
+  }
+
+  .layers {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .layer {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--layer-c, var(--c-wiki));
+    padding: 20px 20px 22px;
+    position: relative;
+    min-width: 0;
+  }
+  .layer__tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--layer-c);
+    margin-bottom: 8px;
+  }
+  .layer__name {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    font-family: var(--font-mono);
+    overflow-wrap: break-word;
+  }
+  .layer__role {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0 0 14px;
+  }
+  .layer__meta {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-dim);
+    border-top: 1px dashed var(--rule);
+    padding-top: 10px;
+  }
+  .layer__meta b { color: var(--ink); font-weight: 500; }
+
+  .tree {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 28px 32px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.85;
+    color: var(--ink-soft);
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .tree .root { color: var(--ink); font-weight: 700; }
+  .tree .raw { color: var(--c-raw); font-weight: 500; }
+  .tree .wiki { color: var(--c-wiki); font-weight: 500; }
+  .tree .thoughts { color: var(--c-thoughts); font-weight: 500; }
+  .tree .schema { color: var(--c-schema); font-weight: 500; }
+  .tree .ops { color: var(--c-ops); font-weight: 500; }
+  .tree .note { color: var(--ink-dim); font-style: italic; }
+  .tree .branch { color: var(--rule-strong); }
+
+  .panel {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--p-c, var(--c-wiki));
+    padding: 22px 26px 24px;
+    margin-bottom: 16px;
+    min-width: 0;
+  }
+  .panel__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 14px;
+    border-bottom: 1px dashed var(--rule);
+    padding-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .panel__title {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--p-c, var(--c-wiki));
+    margin: 0;
+  }
+  .panel__tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .panel__desc {
+    color: var(--ink-soft);
+    margin: 0 0 14px;
+    font-size: 14.5px;
+  }
+
+  table.kv {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  table.kv th, table.kv td {
+    text-align: left;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  table.kv thead th {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    border-bottom: 1px solid var(--rule-strong);
+    background: transparent;
+  }
+  table.kv tbody td:first-child {
+    font-family: var(--font-mono);
+    color: var(--ink);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  table.kv tbody tr:hover { background: rgba(26, 39, 64, 0.025); }
+  @media (prefers-color-scheme: dark) {
+    table.kv tbody tr:hover { background: rgba(232, 238, 247, 0.03); }
+  }
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    padding: 1px 6px;
+    background: var(--c-wiki-dim);
+    color: var(--c-wiki);
+    border-radius: 2px;
+    overflow-wrap: break-word;
+  }
+
+  table.map {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+  }
+  table.map thead {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  @media (prefers-color-scheme: dark) {
+    table.map thead { background: var(--c-wiki); color: var(--ink); }
+  }
+  table.map th, table.map td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  table.map thead th {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  table.map tbody td:first-child {
+    font-family: var(--font-mono);
+    color: var(--ink);
+    font-weight: 500;
+    width: 22%;
+  }
+  table.map tbody td:nth-child(2) {
+    width: 38%;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    overflow-wrap: break-word;
+  }
+  table.map tbody tr:nth-child(even) { background: rgba(26, 39, 64, 0.025); }
+  @media (prefers-color-scheme: dark) {
+    table.map tbody tr:nth-child(even) { background: rgba(232, 238, 247, 0.03); }
+  }
+  .pill {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 2px 7px;
+    border-radius: 2px;
+    background: var(--c-schema-dim);
+    color: var(--c-schema);
+    text-transform: uppercase;
+    margin-left: 6px;
+  }
+  .pill.ext { background: var(--c-ops-dim); color: var(--c-ops); }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 920px) {
+    .layers { grid-template-columns: repeat(2, 1fr); }
+    .two-col { grid-template-columns: 1fr; }
+    .wrap { padding: 32px 20px 64px; }
+    h1 { font-size: 32px; }
+    .sheet-header { grid-template-columns: 1fr; }
+    .stamp { text-align: left; border-left: 0; padding-left: 0; border-top: 1px solid var(--rule-strong); padding-top: 12px; }
+  }
+
+  .footer-rule {
+    margin-top: 64px;
+    border-top: 2px solid var(--ink);
+    padding-top: 16px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  ul.crisp {
+    margin: 8px 0 0;
+    padding-left: 18px;
+    color: var(--ink-soft);
+    font-size: 13.5px;
+  }
+  ul.crisp li { margin-bottom: 4px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .layer, .tree, .panel {
+      opacity: 0;
+      transform: translateY(8px);
+      animation: fadeUp 0.5s ease forwards;
+    }
+    .layer:nth-child(1) { animation-delay: 0.05s; }
+    .layer:nth-child(2) { animation-delay: 0.12s; }
+    .layer:nth-child(3) { animation-delay: 0.19s; }
+    .layer:nth-child(4) { animation-delay: 0.26s; }
+    .tree { animation-delay: 0.3s; }
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="sheet-header">
+    <div>
+      <div class="sheet-meta"><span class="dot"></span>BLUEPRINT · KB-ARCH · REV 2026.06.03</div>
+      <h1>
+        Knowledge_Wiki
+        <span class="sub">金融理财垂类知识库 · 三层 + Thoughts + Ontology 工程化实例</span>
+      </h1>
+    </div>
+    <div class="stamp">
+      <strong>PROJECT</strong> &nbsp;Finance_Agent<br>
+      <strong>ROOT</strong> &nbsp;Knowledge_Wiki/<br>
+      <strong>PATTERN</strong> &nbsp;karpathy_gist · LLM Wiki<br>
+      <strong>SCALE</strong> &nbsp;3 skills · 14 templates · 9 raw types
+    </div>
+  </header>
+
+  <div class="section-label"><span class="num">01</span> 顶层分层</div>
+  <h2>四个分层 · 各司其职</h2>
+  <p class="lede">沿用 karpathy 的「Raw → Wiki → Schema」三层骨架，并在金融场景下补一层主观沉淀（Thoughts），形成 <b>不可变源</b> · <b>LLM 编译产物</b> · <b>用户主观档案</b> · <b>契约与规则</b> 四象。</p>
+
+  <div class="layers">
+    <div class="layer" style="--layer-c: var(--c-raw);">
+      <div class="layer__tag">LAYER · 01</div>
+      <div class="layer__name">raw/</div>
+      <p class="layer__role">不可变源材料。LLM 只读，永不修改。</p>
+      <div class="layer__meta">
+        <b>9</b> 子目录 · filings / research /<br>
+        transcripts / news / macro / products /<br>
+        statements / data / assets
+      </div>
+    </div>
+    <div class="layer" style="--layer-c: var(--c-wiki);">
+      <div class="layer__tag">LAYER · 02</div>
+      <div class="layer__name">wiki/</div>
+      <p class="layer__role">LLM 编译产物。Typed entity 页面，强 frontmatter。</p>
+      <div class="layer__meta">
+        <b>13</b> 类型 · companies / sectors /<br>
+        theses / filings-summary / portfolio /<br>
+        macro / comparisons / reports / …
+      </div>
+    </div>
+    <div class="layer" style="--layer-c: var(--c-thoughts);">
+      <div class="layer__tag">LAYER · 03</div>
+      <div class="layer__name">thoughts/</div>
+      <p class="layer__role">用户主观沉淀。强制 private，高频低成熟度。</p>
+      <div class="layer__meta">
+        <b>6</b> 子目录 · ideas / questions /<br>
+        decisions / reflections / todos /<br>
+        _inbox（48h 归位）
+      </div>
+    </div>
+    <div class="layer" style="--layer-c: var(--c-schema);">
+      <div class="layer__tag">LAYER · 04</div>
+      <div class="layer__name">_schema · ontology · scripts</div>
+      <p class="layer__role">契约层 + 图谱 + 工具链。让 LLM 守纪律。</p>
+      <div class="layer__meta">
+        CLAUDE.md / _schema.md /<br>
+        _areas-registry / _capabilities /<br>
+        ontology graph · scripts · skills
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label"><span class="num">02</span> 目录树</div>
+  <h2>物理布局</h2>
+  <p class="lede">每个颜色对应一个分层。<code>_</code> 前缀 = 元数据 / 索引；<code>.</code> 前缀 = 状态缓存（不入版本控制）。</p>
+
+  <div class="tree"><span class="root">Knowledge_Wiki/</span>
+<span class="branch">├──</span> <span class="schema">CLAUDE.md</span>              <span class="note"># 总入口操作手册（铁律 / 检索策略 / 禁止项）</span>
+<span class="branch">├──</span> <span class="schema">purpose.md</span>             <span class="note"># 跟踪范围 + 关注维度 + 排除清单 + 标的池</span>
+<span class="branch">├──</span> <span class="schema">_schema.md</span>             <span class="note"># frontmatter 强校验规范</span>
+<span class="branch">├──</span> <span class="schema">_areas-registry.md</span>     <span class="note"># 归属决策树：raw vs wiki vs thoughts</span>
+<span class="branch">├──</span> <span class="schema">_capabilities.yaml</span>     <span class="note"># C 类能力开关（vector / 图谱 / insights）</span>
+<span class="branch">├──</span> <span class="schema">_index.json</span>            <span class="note"># build_index.py 生成的机读索引</span>
+<span class="branch">│</span>
+<span class="branch">├──</span> <span class="raw">raw/</span>                   <span class="note"># ▌ 不可变源材料 ─────────────────</span>
+<span class="branch">│   ├──</span> <span class="raw">filings/</span>          <span class="note"># 财报 PDF</span>
+<span class="branch">│   ├──</span> <span class="raw">research/</span>         <span class="note"># 卖方 / 独立研报</span>
+<span class="branch">│   ├──</span> <span class="raw">transcripts/</span>      <span class="note"># 电话会 + 视频转录（含 bilibili/）</span>
+<span class="branch">│   ├──</span> <span class="raw">news/</span>             <span class="note"># 新闻剪藏</span>
+<span class="branch">│   ├──</span> <span class="raw">macro/</span>            <span class="note"># 宏观数据 / 央行声明</span>
+<span class="branch">│   ├──</span> <span class="raw">products/</span>         <span class="note"># 金融产品说明书</span>
+<span class="branch">│   ├──</span> <span class="raw">statements/</span>       <span class="note"># 个人对账单</span>
+<span class="branch">│   ├──</span> <span class="raw">data/</span>             <span class="note"># 行情快照 / CSV</span>
+<span class="branch">│   └──</span> <span class="raw">assets/</span>           <span class="note"># 图片附件（bilibili/）</span>
+<span class="branch">│</span>
+<span class="branch">├──</span> <span class="wiki">wiki/</span>                  <span class="note"># ▌ LLM 编译产物 ─────────────────</span>
+<span class="branch">│   ├──</span> <span class="wiki">index.md</span>          <span class="note"># 内容目录（人读）</span>
+<span class="branch">│   ├──</span> <span class="wiki">overview.md</span>       <span class="note"># 全局概要</span>
+<span class="branch">│   ├──</span> <span class="wiki">log.md</span>            <span class="note"># 时间线日志 ## [YYYY-MM-DD] op | title</span>
+<span class="branch">│   ├──</span> <span class="wiki">companies/</span>        <span class="note"># 公司画像（跨多 filings 综合）</span>
+<span class="branch">│   ├──</span> <span class="wiki">sectors/</span>          <span class="note"># 行业 / 赛道</span>
+<span class="branch">│   ├──</span> <span class="wiki">filings-summary/</span>  <span class="note"># 单份 raw 1:1 摘要</span>
+<span class="branch">│   ├──</span> <span class="wiki">theses/</span>           <span class="note"># 投资论点（stance + 生命周期）</span>
+<span class="branch">│   ├──</span> <span class="wiki">comparisons/</span>      <span class="note"># A vs B 跨标的对比</span>
+<span class="branch">│   ├──</span> <span class="wiki">portfolio/</span>        <span class="note"># 持仓快照（as_of + allocation[]）</span>
+<span class="branch">│   ├──</span> <span class="wiki">macro/</span>            <span class="note"># 宏观主题（利率 / 汇率 / 大宗）</span>
+<span class="branch">│   ├──</span> <span class="wiki">products/</span>         <span class="note"># 基金 / 理财产品</span>
+<span class="branch">│   ├──</span> <span class="wiki">indicators/</span>       <span class="note"># 自定义指标</span>
+<span class="branch">│   ├──</span> <span class="wiki">events/</span>           <span class="note"># 财报日 / 议息会议</span>
+<span class="branch">│   ├──</span> <span class="wiki">reports/</span>          <span class="note"># finance-research 深度报告</span>
+<span class="branch">│   ├──</span> <span class="wiki">syntheses/</span>        <span class="note"># 跨资料综合洞察</span>
+<span class="branch">│   └──</span> <span class="wiki">queries/</span>          <span class="note"># 保存的对话结论</span>
+<span class="branch">│</span>
+<span class="branch">├──</span> <span class="thoughts">thoughts/</span>              <span class="note"># ▌ 用户主观沉淀（private 强制）─</span>
+<span class="branch">│   ├──</span> <span class="thoughts">_MOC.md</span>           <span class="note"># Map of Content 入口</span>
+<span class="branch">│   ├──</span> <span class="thoughts">_inbox/</span>           <span class="note"># 待归位缓冲（48h SLA）</span>
+<span class="branch">│   ├──</span> <span class="thoughts">ideas/</span>            <span class="note"># alpha 假设池 → 升级为 wiki/theses/</span>
+<span class="branch">│   ├──</span> <span class="thoughts">questions/</span>        <span class="note"># 待查证开放问题</span>
+<span class="branch">│   ├──</span> <span class="thoughts">decisions/</span>        <span class="note"># ADR：已 commit 的投资决策</span>
+<span class="branch">│   ├──</span> <span class="thoughts">reflections/</span>      <span class="note"># 周 / 月 / 季度复盘</span>
+<span class="branch">│   └──</span> <span class="thoughts">todos/</span>            <span class="note"># 带 deadline 待办</span>
+<span class="branch">│</span>
+<span class="branch">├──</span> <span class="schema">ontology/</span>              <span class="note"># ▌ 知识图谱 ─────────────────────</span>
+<span class="branch">│   ├──</span> <span class="schema">schema.yaml</span>       <span class="note"># 关系类型定义</span>
+<span class="branch">│   └──</span> <span class="schema">graph.jsonl</span>       <span class="note"># 边集合（append-only · 走 graph_append.py）</span>
+<span class="branch">│</span>
+<span class="branch">├──</span> <span class="ops">scripts/</span>               <span class="note"># ▌ 工具链 ───────────────────────</span>
+<span class="branch">│   ├──</span> <span class="ops">build_index.py</span>    <span class="note"># 生成 _index.json + frontmatter 校验</span>
+<span class="branch">│   ├──</span> <span class="ops">graph_append.py</span>   <span class="note"># 图谱写入唯一入口</span>
+<span class="branch">│   └──</span> <span class="ops">ingest_cache.py</span>   <span class="note"># SHA256 增量摄入缓存</span>
+<span class="branch">│</span>
+<span class="branch">├──</span> <span class="ops">templates/</span>             <span class="note"># 14 套 frontmatter 模板 + prompts/</span>
+<span class="branch">├──</span> <span class="ops">_review/</span>               <span class="note"># pending / done / insights 审核队列</span>
+<span class="branch">├──</span> <span class="ops">.claude/skills/</span>        <span class="note"># finance-ingest · company-page · thesis-archive</span>
+<span class="branch">├──</span> <span class="ops">.obsidian/</span>             <span class="note"># Obsidian 工程配置（IDE 视图）</span>
+<span class="branch">├──</span> <span class="ops">.ingest-cache/</span>         <span class="note"># 增量摄入哈希缓存</span>
+<span class="branch">└──</span> <span class="ops">.ingest-queue/</span>         <span class="note"># 待摄入队列</span>
+  </div>
+
+  <div class="section-label"><span class="num">03</span> Wiki 编译产物清单</div>
+  <h2>13 类 typed entity</h2>
+  <p class="lede">每类页面都有专属模板与必填 frontmatter（最关键：<code>sources[]</code> 与 <code>stance</code>）。</p>
+
+  <div class="panel" style="--p-c: var(--c-wiki);">
+    <table class="kv">
+      <thead>
+        <tr><th>目录</th><th>内容形态</th><th>关键 frontmatter / 判据</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>companies/</td><td>公司基本面综合画像</td><td>跨多份 filings · 文件名 = ticker</td></tr>
+        <tr><td>sectors/</td><td>行业 / 赛道</td><td>跨多公司 · 含产业链 / 周期 / 政策</td></tr>
+        <tr><td>filings-summary/</td><td>单份财报 / 研报摘要</td><td>1:1 对应一份 raw 文件</td></tr>
+        <tr><td>theses/</td><td>投资论点</td><td><code>stance: long/short/watch/avoid</code> · 生命周期：active / superseded / invalidated</td></tr>
+        <tr><td>comparisons/</td><td>跨标的对比</td><td>A vs B / A vs B vs C</td></tr>
+        <tr><td>portfolio/</td><td>持仓快照</td><td><code>as_of</code> + <code>allocation[]</code></td></tr>
+        <tr><td>macro/</td><td>宏观主题</td><td>利率 / 汇率 / 流动性 / 通胀 / 大宗</td></tr>
+        <tr><td>products/</td><td>金融产品</td><td>基金 / 银行理财 / 保险</td></tr>
+        <tr><td>indicators/</td><td>自定义指标</td><td>口径 + 计算方法 + 历史值</td></tr>
+        <tr><td>events/</td><td>重大事件</td><td>财报日 / 议息会议 / 黑天鹅</td></tr>
+        <tr><td>reports/</td><td>深度研究报告</td><td><code>finance-research</code> 流水线产出</td></tr>
+        <tr><td>syntheses/</td><td>跨资料综合洞察</td><td>多份资料合成新认知</td></tr>
+        <tr><td>queries/</td><td>对话结论归档</td><td>价值高 · 值得复用</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-label"><span class="num">04</span> 核心操作</div>
+  <h2>Ingest · Query · Lint · Archive</h2>
+  <p class="lede">所有写入必须通过 Skills 或 scripts；禁止直接编辑 <code>raw/</code> 与 <code>ontology/graph.jsonl</code>。</p>
+
+  <div class="two-col">
+    <div class="panel" style="--p-c: var(--c-ops);">
+      <div class="panel__head">
+        <h3 class="panel__title">finance-ingest</h3>
+        <span class="panel__tag">SKILL · P0</span>
+      </div>
+      <p class="panel__desc">raw → wiki 两步 CoT（先分析后生成），含 SHA256 增量缓存与多格式提取。</p>
+      <ul class="crisp">
+        <li>触发：「摄入财报」「ingest filing」</li>
+        <li>步骤：读 raw → 讨论要点 → 写 filings-summary → 更新 companies / sectors / index / log → 追加 ontology 边</li>
+      </ul>
+    </div>
+
+    <div class="panel" style="--p-c: var(--c-wiki);">
+      <div class="panel__head">
+        <h3 class="panel__title">company-page</h3>
+        <span class="panel__tag">SKILL · P0</span>
+      </div>
+      <p class="panel__desc">模板化创建 / 更新公司画像页 → <code>wiki/companies/&lt;TICKER&gt;.md</code>。</p>
+      <ul class="crisp">
+        <li>触发：「新建公司 X」「更新公司画像」</li>
+        <li>消费 filings-summary 综合输出</li>
+      </ul>
+    </div>
+
+    <div class="panel" style="--p-c: var(--c-thoughts);">
+      <div class="panel__head">
+        <h3 class="panel__title">thesis-archive</h3>
+        <span class="panel__tag">SKILL · P0</span>
+      </div>
+      <p class="panel__desc">对话中形成的投资判断 → <code>wiki/theses/&lt;slug&gt;.md</code>，支持 supersede 旧论点。</p>
+      <ul class="crisp">
+        <li>触发：「存论点」「supersede 旧论点」</li>
+        <li>查论点时自动过滤 status: superseded / invalidated</li>
+      </ul>
+    </div>
+
+    <div class="panel" style="--p-c: var(--c-schema);">
+      <div class="panel__head">
+        <h3 class="panel__title">检索策略</h3>
+        <span class="panel__tag">QUERY · 5-STEP</span>
+      </div>
+      <p class="panel__desc">默认 BM25 / grep，量大时才打开 C 类向量。</p>
+      <ul class="crisp">
+        <li>① grep <code>_index.json</code> 找候选页</li>
+        <li>② ontology traverse 扩展邻居</li>
+        <li>③ [C 类] 合并向量命中</li>
+        <li>④ 过滤 superseded / invalidated</li>
+        <li>⑤ 全文读 · 答完询问是否归档</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-label"><span class="num">05</span> 与 karpathy_gist 对照</div>
+  <h2>Idea ↔ Implementation</h2>
+  <p class="lede">本仓库是 karpathy「LLM Wiki」模式在金融垂类的工程加固版。下表标注：<span class="pill">CORE</span> 直接复刻 · <span class="pill ext">EXT</span> 金融化扩展。</p>
+
+  <table class="map">
+    <thead>
+      <tr>
+        <th>karpathy 概念</th>
+        <th>本仓库落点</th>
+        <th>说明 / 增强</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Raw sources（不可变）<span class="pill">CORE</span></td>
+        <td>raw/{filings,research,transcripts,…}</td>
+        <td>按金融语料 typed 切 9 类 + SHA256 缓存防重复摄入</td>
+      </tr>
+      <tr>
+        <td>The Wiki（LLM 写人读）<span class="pill">CORE</span></td>
+        <td>wiki/{companies,theses,…}</td>
+        <td>不是自由 markdown，而是 13 类 typed entity，每类有模板与 frontmatter</td>
+      </tr>
+      <tr>
+        <td>Schema 配置（CLAUDE.md）<span class="pill">CORE</span></td>
+        <td>CLAUDE.md + _schema.md + _areas-registry.md + _capabilities.yaml</td>
+        <td>拆成 4 份：手册 / 校验 / 归属决策树 / 能力开关</td>
+      </tr>
+      <tr>
+        <td>Ingest 操作<span class="pill">CORE</span></td>
+        <td>finance-ingest skill</td>
+        <td>强制两步 CoT，禁止单步直写 wiki；触及 10-15 个页面</td>
+      </tr>
+      <tr>
+        <td>Query 操作<span class="pill">CORE</span></td>
+        <td>CLAUDE.md「检索策略」5 步</td>
+        <td>默认 grep + ontology；C 类启用时合并向量</td>
+      </tr>
+      <tr>
+        <td>Lint 操作<span class="pill">CORE</span></td>
+        <td>_review/{pending,done,insights} + 规划中的 lint-wiki skill</td>
+        <td>把"健康检查"工程化为审核队列 + graph_insights</td>
+      </tr>
+      <tr>
+        <td>index.md<span class="pill">CORE</span></td>
+        <td>wiki/index.md（人读）+ _index.json（机读）</td>
+        <td>双索引，机读用于 grep + frontmatter 校验</td>
+      </tr>
+      <tr>
+        <td>log.md<span class="pill">CORE</span></td>
+        <td>wiki/log.md</td>
+        <td>沿用 gist 的 <code>## [YYYY-MM-DD] op | title</code> 前缀格式</td>
+      </tr>
+      <tr>
+        <td>[[wikilink]] 双向引用<span class="pill">CORE</span></td>
+        <td>铁律之一 · 所有 wiki 页强制维护</td>
+        <td>+ ontology 图谱在 typed 关系上做结构化补充</td>
+      </tr>
+      <tr>
+        <td>Obsidian 作 IDE<span class="pill">CORE</span></td>
+        <td>.obsidian/ + git 仓库</td>
+        <td>完全延续</td>
+      </tr>
+      <tr>
+        <td>CLI 工具<span class="pill">CORE</span></td>
+        <td>scripts/ 三件套</td>
+        <td>+ _capabilities.yaml 预留 lancedb 向量后端</td>
+      </tr>
+      <tr>
+        <td>第四层 thoughts/<span class="pill ext">EXT</span></td>
+        <td>thoughts/{ideas,questions,decisions,reflections,todos,_inbox}</td>
+        <td>主观档案与客观编译产物分开 · 定义 ideas → theses promote 路径</td>
+      </tr>
+      <tr>
+        <td>Typed entity + 强 frontmatter<span class="pill ext">EXT</span></td>
+        <td>14 套模板 + _schema.md 校验</td>
+        <td>stance / sources / as_of / allocation 等字段锁死，便于后续组合分析</td>
+      </tr>
+      <tr>
+        <td>Ontology 图谱<span class="pill ext">EXT</span></td>
+        <td>ontology/graph.jsonl + schema.yaml</td>
+        <td>typed 边集合，为 community detection / graph_insights 留口子</td>
+      </tr>
+      <tr>
+        <td>Skills 化工作流<span class="pill ext">EXT</span></td>
+        <td>.claude/skills/{finance-ingest,company-page,thesis-archive}</td>
+        <td>高频动作固化为可触发 skill，保证流程不漂移</td>
+      </tr>
+      <tr>
+        <td>审核队列 _review/<span class="pill ext">EXT</span></td>
+        <td>pending / done / insights</td>
+        <td>金融场景对"杜撰数据"零容忍，引入人审 gate</td>
+      </tr>
+      <tr>
+        <td>C 类能力分级开关<span class="pill ext">EXT</span></td>
+        <td>_capabilities.yaml</td>
+        <td>vector_search / relatedness / community / graph_insights 默认 OFF，规模到了再开</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-label"><span class="num">06</span> 铁律</div>
+  <h2>禁止与必须</h2>
+  <p class="lede">维护一个对"杜撰数据"零容忍的投资决策档案，需要明确禁止清单。</p>
+
+  <div class="two-col">
+    <div class="panel" style="--p-c: var(--c-ops);">
+      <div class="panel__head">
+        <h3 class="panel__title">// FORBIDDEN</h3>
+        <span class="panel__tag">禁止 · NO BYPASS</span>
+      </div>
+      <ul class="crisp">
+        <li>修改 <code>raw/</code>（不可变）</li>
+        <li>直接编辑 <code>ontology/graph.jsonl</code></li>
+        <li>创建无 frontmatter 的 wiki / thoughts 页</li>
+        <li>杜撰财务数据 / 持仓数字 / 产品费率</li>
+        <li>修改 <code>.ingest-cache/</code> · <code>.ingest-queue/</code></li>
+        <li>thoughts/ 写 <code>visibility: public</code></li>
+        <li>替用户给 thesis / idea 添油加醋</li>
+      </ul>
+    </div>
+
+    <div class="panel" style="--p-c: var(--c-schema);">
+      <div class="panel__head">
+        <h3 class="panel__title">// REQUIRED</h3>
+        <span class="panel__tag">必须 · ENFORCED</span>
+      </div>
+      <ul class="crisp">
+        <li>摄入走 <code>finance-ingest</code> 两步 CoT</li>
+        <li>wiki / thoughts 页含完整 frontmatter（wiki 含 <code>sources[]</code>）</li>
+        <li>维护 <code>[[wikilink]]</code> 双向引用</li>
+        <li>portfolio / thesis / decision 涉及时尤其谨慎</li>
+        <li>ontology 写入走 <code>scripts/graph_append.py</code></li>
+        <li><code>finance-research</code> 先 Phase 0：KB 去重 + 提案确认</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-rule">
+    <span>SHEET 01 / 01</span>
+    <span>Knowledge_Wiki · structural blueprint</span>
+    <span>2026-06-03</span>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Finance Agent · 知识台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Serif+SC:wght@500;600&family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --void:#0f1115; --ink:#15181f; --ink-2:#1b1f28; --ink-3:#232834;
+  --line:rgba(160,170,185,.12); --line-2:rgba(70,202,189,.30); --line-cool:rgba(140,160,200,.10);
+  --accent:#46cabd; --accent-hi:#82e6db; --accent-dim:#2c655f;
+  --text:#e9ecf1; --mute:#98a0ae; --faint:#5c6472; --ghost:#39414f;
+  --c-sector:#5a9ee0; --c-company:#e0a445; --c-macro:#b483e8; --c-media:#e8806a; --c-thesis:#74c06b; --c-portfolio:#7d7ce8;
+  --warn:#e0a445;
+  --serif:'Newsreader','Noto Serif SC',Georgia,serif;
+  --sans:'Archivo','Noto Sans SC',system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',monospace;
+  --sp:clamp(20px,3vw,48px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--void); color:var(--text); font-family:var(--sans);
+  font-size:15px; line-height:1.6; letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+.bg{position:fixed; inset:0; z-index:-2; pointer-events:none;
+  background:
+    radial-gradient(900px 600px at 80% -8%, rgba(70,202,189,.06), transparent 60%),
+    radial-gradient(700px 500px at 8% 108%, rgba(125,124,232,.05), transparent 60%),
+    var(--void);
+}
+.bg::before{content:""; position:absolute; inset:0;
+  background-image:radial-gradient(rgba(160,170,185,.18) 1px, transparent 1.4px);
+  background-size:46px 46px; opacity:.16; mask-image:radial-gradient(120% 90% at 50% 30%, #000 30%, transparent 90%);
+}
+.grain{position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.04; mix-blend-mode:overlay;}
+
+::selection{background:var(--accent); color:var(--void)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--ink-3); border-radius:10px; border:2px solid var(--void)}
+a{color:inherit;text-decoration:none}
+
+.shell{display:grid; grid-template-columns:248px 1fr; min-height:100vh}
+
+/* spine */
+.spine{position:sticky; top:0; height:100vh; border-right:1px solid var(--line);
+  background:linear-gradient(180deg, var(--ink) 0%, var(--void) 100%);
+  display:flex; flex-direction:column; padding:24px 0; z-index:10}
+.brand{display:flex; gap:12px; align-items:center; padding:0 24px 22px; border-bottom:1px solid var(--line); margin-bottom:16px}
+.astro{width:34px;height:34px;flex:none}
+.astro circle,.astro line,.astro path{stroke:var(--accent); fill:none; stroke-width:1.1}
+.brand-tx h1{font-family:var(--serif); font-weight:500; font-size:20px; line-height:1; letter-spacing:.01em}
+.brand-tx span{font-family:var(--mono); font-size:9px; letter-spacing:.3em; color:var(--accent); text-transform:uppercase; display:block; margin-top:5px}
+
+.navsec{padding:0 14px; flex:1; overflow-y:auto}
+.navlabel{font-family:var(--mono); font-size:9px; letter-spacing:.24em; color:var(--faint); text-transform:uppercase; padding:14px 10px 8px}
+.nav{display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:8px; cursor:pointer; color:var(--mute);
+  font-weight:500; font-size:14px; position:relative; transition:.22s; border:1px solid transparent}
+.nav:hover{color:var(--text); background:var(--ink-2)}
+.nav.on{color:var(--text); background:linear-gradient(90deg, rgba(70,202,189,.12), transparent); border-color:var(--line-2)}
+.nav.on::before{content:""; position:absolute; left:-14px; top:50%; transform:translateY(-50%); width:3px; height:22px; background:var(--accent); border-radius:0 3px 3px 0; box-shadow:0 0 12px var(--accent)}
+.nav .dot{width:7px;height:7px;border-radius:50%;flex:none;background:currentColor;box-shadow:0 0 8px currentColor}
+.nav.soon{opacity:.5; cursor:not-allowed}
+.nav.soon:hover{background:transparent;color:var(--mute)}
+.nav .tag{margin-left:auto; font-family:var(--mono); font-size:8.5px; letter-spacing:.12em; color:var(--faint); border:1px solid var(--line); padding:2px 6px; border-radius:20px}
+.nav .ct{margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--faint)}
+
+.spine-foot{padding:14px 24px 0; border-top:1px solid var(--line); margin:12px 14px 0}
+.spine-foot .row{display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px; color:var(--mute); padding:3px 0}
+.spine-foot .row b{color:var(--accent); font-weight:500}
+.spine-foot .asof{font-family:var(--mono); font-size:9px; color:var(--faint); letter-spacing:.1em; margin-top:10px}
+
+/* main */
+.main{min-width:0}
+.masthead{padding:26px var(--sp) 20px; border-bottom:1px solid var(--line); position:relative; overflow:hidden}
+.masthead::after{content:""; position:absolute; left:0; bottom:-1px; height:1px; width:34%;
+  background:linear-gradient(90deg,var(--accent),transparent); animation:scan 7s ease-in-out infinite}
+@keyframes scan{0%,100%{transform:translateX(-10%); opacity:.4} 50%{transform:translateX(240%); opacity:1}}
+.kicker{font-family:var(--mono); font-size:10px; letter-spacing:.26em; color:var(--accent); text-transform:uppercase; display:flex; gap:10px; align-items:center}
+.kicker .pulse{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);animation:blink 2.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+.masthead h2{font-family:var(--serif); font-weight:400; font-size:clamp(28px,4vw,44px); line-height:1.05; margin:10px 0 0; letter-spacing:-.01em}
+
+.view{padding:32px var(--sp) 90px; display:none}
+.view.on{display:block; animation:rise .55s cubic-bezier(.2,.7,.2,1) both}
+@keyframes rise{from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:none}}
+.stagger>*{opacity:0; animation:rise .55s cubic-bezier(.2,.7,.2,1) forwards}
+.stagger>*:nth-child(1){animation-delay:.04s}.stagger>*:nth-child(2){animation-delay:.10s}
+.stagger>*:nth-child(3){animation-delay:.16s}.stagger>*:nth-child(4){animation-delay:.22s}
+.stagger>*:nth-child(5){animation-delay:.28s}.stagger>*:nth-child(6){animation-delay:.34s}
+
+.panel{background:var(--ink); border:1px solid var(--line); border-radius:14px}
+.section-h{display:flex; align-items:baseline; gap:14px; margin:40px 0 18px}
+.section-h:first-child{margin-top:0}
+.section-h h3{font-family:var(--serif); font-weight:500; font-size:22px; letter-spacing:.01em}
+.section-h .n{font-family:var(--mono); font-size:11px; color:var(--accent); border:1px solid var(--line-2); border-radius:20px; padding:3px 9px}
+.section-h .ln{flex:1; height:1px; background:var(--line)}
+
+.instruments{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:14px; overflow:hidden}
+.inst{background:var(--ink); padding:20px 22px; position:relative}
+.inst .lab{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; color:var(--faint); text-transform:uppercase}
+.inst .val{font-family:var(--serif); font-size:34px; line-height:1; margin-top:12px; letter-spacing:-.01em}
+.inst .val small{font-family:var(--mono); font-size:13px; color:var(--mute); letter-spacing:0}
+.inst .sub{font-family:var(--mono); font-size:11px; color:var(--mute); margin-top:8px}
+.inst.accent .val{color:var(--accent-hi)}
+
+.legend{display:flex; flex-wrap:wrap; gap:8px 18px}
+.lg{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11.5px; color:var(--mute)}
+.lg i{width:9px;height:9px;border-radius:50%;display:inline-block;box-shadow:0 0 8px currentColor}
+
+.constel{position:relative; border:1px solid var(--line); border-radius:16px; background:
+  radial-gradient(700px 400px at 60% 40%, rgba(70,202,189,.045), transparent), var(--ink); overflow:hidden}
+.constel svg{display:block; width:100%; height:auto}
+.cnode{cursor:pointer; transition:.2s}
+.cnode circle{transition:.25s}
+.cnode text{font-family:var(--mono); font-size:11px; fill:var(--mute); transition:.25s; pointer-events:none}
+.cnode:hover text{fill:var(--text)}
+.cedge{stroke:var(--ghost); stroke-width:1; transition:.25s; fill:none}
+.cedge.lead{stroke-dasharray:3 4}
+.constel.hot .cedge{opacity:.12}
+.constel.hot .cnode{opacity:.25}
+.cedge.hi{stroke:var(--accent)!important; opacity:1!important; stroke-width:1.6}
+.cnode.hi{opacity:1!important}
+.cnode.hi circle{filter:drop-shadow(0 0 10px currentColor)}
+.constel-foot{display:flex; justify-content:space-between; align-items:center; padding:14px 22px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11px; color:var(--faint); flex-wrap:wrap; gap:10px}
+
+.cov-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px}
+.cov{background:var(--ink); border:1px solid var(--line); border-radius:13px; padding:20px; position:relative; overflow:hidden; transition:.25s}
+.cov:hover{border-color:var(--line-2); transform:translateY(-3px)}
+.cov .bar{position:absolute; left:0; top:0; bottom:0; width:3px}
+.cov .top{display:flex; align-items:center; gap:9px; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute)}
+.cov .top i{width:8px;height:8px;border-radius:50%;box-shadow:0 0 8px currentColor}
+.cov .big{font-family:var(--serif); font-size:40px; margin:14px 0 4px; line-height:1}
+.cov .desc{font-size:13px; color:var(--mute); min-height:38px}
+.cov .meta{font-family:var(--mono); font-size:10.5px; color:var(--faint); margin-top:12px; border-top:1px solid var(--line); padding-top:10px}
+
+.tl{position:relative; padding-left:30px; margin-top:8px}
+.tl::before{content:""; position:absolute; left:7px; top:6px; bottom:6px; width:1px; background:linear-gradient(180deg,var(--line-2),var(--line))}
+.tl-item{position:relative; margin-bottom:14px}
+.tl-item::before{content:""; position:absolute; left:-27px; top:8px; width:11px;height:11px;border-radius:50%;
+  background:var(--ink); border:2px solid var(--accent); box-shadow:0 0 0 3px var(--void), 0 0 12px var(--accent-dim)}
+.tl-card{background:var(--ink); border:1px solid var(--line); border-radius:12px; padding:18px 20px; transition:.25s}
+.tl-card:hover{border-color:var(--line-2)}
+.tl-date{font-family:var(--mono); font-size:11px; color:var(--accent); letter-spacing:.08em}
+.tl-card h4{font-family:var(--serif); font-weight:500; font-size:18px; margin:6px 0 4px; line-height:1.25}
+
+.chips{display:flex; flex-wrap:wrap; gap:7px; margin-top:12px}
+.chip{font-family:var(--mono); font-size:10.5px; letter-spacing:.04em; padding:4px 9px; border-radius:20px; border:1px solid var(--line-2); color:var(--mute); display:inline-flex; align-items:center; gap:6px}
+.chip i{width:6px;height:6px;border-radius:50%}
+.chip.k{color:var(--void); font-weight:600; border:none}
+.chip.k.video{background:var(--c-media)} .chip.k.trade{background:var(--warn)} .chip.k.dyn{background:#c08f4e}
+
+.kp{list-style:none; margin-top:14px; display:grid; gap:9px}
+.kp li{display:flex; gap:11px; font-size:13.5px; color:#cdd2dc; line-height:1.5}
+.kp li::before{content:"›"; color:var(--accent); font-family:var(--mono); flex:none; margin-top:1px}
+.kp b{color:var(--text); font-weight:600}
+
+.vc{display:grid; gap:0; border:1px solid var(--line); border-radius:14px; overflow:hidden}
+.vc-row{display:grid; grid-template-columns:96px 1fr; border-bottom:1px solid var(--line); position:relative}
+.vc-row:last-child{border-bottom:none}
+.vc-tag{display:flex; align-items:center; justify-content:center; flex-direction:column; gap:4px; background:var(--ink-2); padding:18px 10px; border-right:1px solid var(--line)}
+.vc-tag b{font-family:var(--serif); font-size:18px} .vc-tag span{font-family:var(--mono); font-size:9px; letter-spacing:.16em; color:var(--faint)}
+.vc-cells{display:flex; flex-wrap:wrap; gap:8px; padding:16px 18px; align-content:center}
+.vc-cell{font-size:12.5px; color:#cbd0db; border:1px solid var(--line-2); background:var(--ink); border-radius:8px; padding:6px 11px}
+.vc-cell.bottle{border-color:var(--warn); color:var(--warn)}
+.vc-flow{text-align:center; color:var(--accent-dim); font-size:18px; padding:2px 0}
+
+.tbl{width:100%; border-collapse:collapse; font-size:13.5px}
+.tbl th{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); text-align:left; padding:11px 14px; border-bottom:1px solid var(--line-2)}
+.tbl td{padding:13px 14px; border-bottom:1px solid var(--line); vertical-align:top}
+.tbl tr:hover td{background:var(--ink-2)}
+.tbl .rk{font-family:var(--serif); font-size:18px; color:var(--accent); width:34px}
+.tbl .nm b{font-weight:600} .tbl .nm .code{font-family:var(--mono); font-size:11px; color:var(--mute); margin-left:7px}
+.tbl .pos{color:var(--mute); font-size:12.5px}
+.unsourced{font-family:var(--mono); font-size:10px; color:var(--faint); border:1px dashed var(--ghost); border-radius:5px; padding:2px 6px}
+
+.callout{display:flex; gap:14px; border:1px solid var(--warn); background:linear-gradient(90deg, rgba(224,164,69,.10), transparent); border-radius:12px; padding:14px 18px; margin:18px 0}
+.callout .ic{font-family:var(--mono); color:var(--warn); font-size:18px; flex:none; line-height:1.3}
+.callout .bd{font-size:13px; color:#d8d2c6}
+.callout .bd b{color:var(--warn)}
+
+.bb{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+.bb-col{border:1px solid var(--line); border-radius:13px; padding:20px; background:var(--ink)}
+.bb-col.bull{border-top:2px solid var(--c-thesis)} .bb-col.bear{border-top:2px solid var(--c-media)}
+.bb-col h5{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:9px}
+.bb-col.bull h5{color:var(--c-thesis)} .bb-col.bear h5{color:var(--c-media)}
+.bb-col ul{list-style:none; display:grid; gap:11px}
+.bb-col li{font-size:13px; color:#cbd0db; line-height:1.5; padding-left:16px; position:relative}
+.bb-col li::before{content:"—"; position:absolute; left:0; color:var(--faint)}
+
+.macro-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px}
+.mc{border:1px solid var(--line); border-radius:14px; padding:22px; background:var(--ink); position:relative; overflow:hidden; transition:.25s}
+.mc:hover{border-color:var(--line-2); transform:translateY(-3px)}
+.mc .kind{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--c-macro); display:flex; align-items:center; gap:7px}
+.mc .kind i{width:8px;height:8px;border-radius:50%;background:var(--c-macro);box-shadow:0 0 8px var(--c-macro)}
+.mc h4{font-family:var(--serif); font-weight:500; font-size:21px; margin:12px 0 6px}
+.mc .pt{font-family:var(--mono); font-size:13px; color:var(--accent-hi); margin:6px 0 12px}
+.mc .obs{font-family:var(--mono); font-size:9.5px; color:var(--faint); border:1px solid var(--line); border-radius:5px; padding:2px 7px; display:inline-block; margin-bottom:12px}
+.mc p{font-size:13px; color:var(--mute); line-height:1.55}
+.drv{margin-top:14px; padding-top:14px; border-top:1px solid var(--line)}
+.drv .dl{font-family:var(--mono); font-size:9px; letter-spacing:.14em; color:var(--faint); text-transform:uppercase; margin-bottom:9px}
+.drv .chain{display:flex; flex-wrap:wrap; align-items:center; gap:7px}
+.drv .chain span{font-size:11.5px; color:#cbd0db; border:1px solid var(--line-2); border-radius:7px; padding:4px 9px}
+.drv .chain b{color:var(--accent); font-family:var(--mono)}
+
+.sources{margin-top:24px; border-top:1px solid var(--line); padding-top:16px}
+.sources .sl{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; color:var(--faint); text-transform:uppercase; margin-bottom:10px}
+.sources ul{list-style:none; display:grid; gap:6px}
+.sources li{font-family:var(--mono); font-size:11.5px; color:var(--mute); display:flex; gap:9px}
+.sources li::before{content:"⌖"; color:var(--accent-dim)}
+
+.locked{border:1px dashed var(--line-2); border-radius:16px; padding:44px 40px; text-align:center; background:
+  repeating-linear-gradient(135deg, transparent, transparent 12px, rgba(70,202,189,.016) 12px, rgba(70,202,189,.016) 24px), var(--ink)}
+.locked .lk{font-family:var(--mono); font-size:10px; letter-spacing:.3em; color:var(--accent); text-transform:uppercase; border:1px solid var(--line-2); border-radius:20px; padding:6px 16px; display:inline-block}
+.locked h3{font-family:var(--serif); font-weight:400; font-size:28px; margin:20px 0 24px}
+.blueprint{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:12px; overflow:hidden; text-align:left; max-width:760px; margin:0 auto}
+.blueprint .bp{background:var(--ink); padding:16px 18px}
+.blueprint .bp .f{font-family:var(--mono); font-size:11px; color:var(--accent); margin-bottom:5px}
+.blueprint .bp .d{font-size:12px; color:var(--mute)}
+
+@media(max-width:920px){
+  .shell{grid-template-columns:1fr}
+  .spine{position:fixed; bottom:0; top:auto; height:auto; width:100%; flex-direction:row; padding:8px; border-right:none; border-top:1px solid var(--line); overflow-x:auto; z-index:50; background:var(--ink)}
+  .brand,.spine-foot,.navlabel{display:none}
+  .navsec{display:flex; padding:0; gap:6px}
+  .nav{flex-direction:column; gap:5px; font-size:10px; padding:8px 12px; white-space:nowrap}
+  .nav .tag,.nav .ct{display:none} .nav.on::before{display:none}
+  .bb{grid-template-columns:1fr}
+  .view{padding-bottom:120px}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<svg class="grain"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+
+<div class="shell">
+  <aside class="spine">
+    <div class="brand">
+      <svg class="astro" viewBox="0 0 40 40">
+        <circle cx="20" cy="20" r="17"/><circle cx="20" cy="20" r="11"/><circle cx="20" cy="20" r="2.2" fill="#46cabd" stroke="none"/>
+        <line x1="20" y1="3" x2="20" y2="37"/><line x1="3" y1="20" x2="37" y2="20"/>
+        <path d="M20 20 L31 11"/><circle cx="31" cy="11" r="1.8" fill="#82e6db" stroke="none"/>
+      </svg>
+      <div class="brand-tx"><h1>Finance Agent</h1><span>知识台</span></div>
+    </div>
+
+    <nav class="navsec">
+      <div class="nav on" data-v="overview"><span class="dot" style="color:var(--accent)"></span>总览</div>
+      <div class="navlabel">模块</div>
+      <div class="nav" data-v="industry"><span class="dot" style="color:var(--c-sector)"></span>行业分析<span class="ct">1</span></div>
+      <div class="nav" data-v="media"><span class="dot" style="color:var(--c-media)"></span>媒体转录<span class="ct">2</span></div>
+      <div class="nav" data-v="macro"><span class="dot" style="color:var(--c-macro)"></span>宏观主题<span class="ct">4</span></div>
+      <div class="navlabel">规划中</div>
+      <div class="nav soon" data-v="equity"><span class="dot" style="color:var(--c-company)"></span>个股分析<span class="tag">SOON</span></div>
+      <div class="nav soon" data-v="portfolio"><span class="dot" style="color:var(--c-portfolio)"></span>持仓分析<span class="tag">SOON</span></div>
+      <div class="nav soon" data-v="thesis"><span class="dot" style="color:var(--c-thesis)"></span>投资论点<span class="tag">SOON</span></div>
+    </nav>
+
+    <div class="spine-foot">
+      <div class="row"><span>文档</span><b>12</b></div>
+      <div class="row"><span>图谱节点</span><b>11</b></div>
+      <div class="row"><span>图谱关系</span><b>10</b></div>
+      <div class="asof">2026-06-07 · cn-only P0</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="masthead">
+      <div class="kicker"><span class="pulse"></span><span id="mh-k">2026-06-07 · 12 DOCS</span></div>
+      <h2 id="mh-t">总览</h2>
+    </header>
+
+    <!-- OVERVIEW -->
+    <section class="view on" id="v-overview">
+      <div class="instruments stagger">
+        <div class="inst accent"><div class="lab">文档</div><div class="val">12</div><div class="sub">wiki typed pages</div></div>
+        <div class="inst"><div class="lab">行业</div><div class="val">1<small> / 31</small></div><div class="sub">申万一级</div></div>
+        <div class="inst"><div class="lab">媒体转录</div><div class="val">2</div><div class="sub">视频 · 动态</div></div>
+        <div class="inst"><div class="lab">宏观</div><div class="val">4</div><div class="sub">金 银 油 债</div></div>
+        <div class="inst"><div class="lab">公司</div><div class="val">4</div><div class="sub">3 stub · 1 全</div></div>
+        <div class="inst"><div class="lab">关系</div><div class="val">10</div><div class="sub">graph edges</div></div>
+      </div>
+
+      <div class="section-h"><h3>知识星图</h3><span class="n">graph.jsonl</span><span class="ln"></span></div>
+      <div class="constel" id="constel">
+        <svg viewBox="0 0 980 520" id="cvg"></svg>
+        <div class="constel-foot">
+          <div class="legend">
+            <span class="lg"><i style="color:var(--c-media)"></i>媒体</span>
+            <span class="lg"><i style="color:var(--c-macro)"></i>宏观</span>
+            <span class="lg"><i style="color:var(--c-sector)"></i>行业</span>
+            <span class="lg"><i style="color:var(--c-company)"></i>公司</span>
+          </div>
+          <span>11 nodes · 10 edges</span>
+        </div>
+      </div>
+
+      <div class="section-h"><h3>覆盖</h3><span class="n">by type</span><span class="ln"></span></div>
+      <div class="cov-grid stagger">
+        <div class="cov"><div class="bar" style="background:var(--c-sector)"></div><div class="top"><i style="background:var(--c-sector)"></i>行业</div><div class="big">1</div><div class="desc">半导体（申万电子），484 成份股</div><div class="meta">+ 31 行业 taxonomy 就绪</div></div>
+        <div class="cov"><div class="bar" style="background:var(--c-media)"></div><div class="top"><i style="background:var(--c-media)"></i>媒体</div><div class="big">2</div><div class="desc">B 站宏观 UP 主：视频 + 交易动态</div><div class="meta">media-archive · finance-ingest</div></div>
+        <div class="cov"><div class="bar" style="background:var(--c-macro)"></div><div class="top"><i style="background:var(--c-macro)"></i>宏观</div><div class="big">4</div><div class="desc">金 / 银 / 原油 / 美债利率</div><div class="meta">money · rate · growth</div></div>
+        <div class="cov"><div class="bar" style="background:var(--c-company)"></div><div class="top"><i style="background:var(--c-company)"></i>公司</div><div class="big">4</div><div class="desc">NVDA 全 + 3 家 A 股龙头 stub</div><div class="meta">company-page</div></div>
+        <div class="cov"><div class="bar" style="background:var(--c-thesis)"></div><div class="top"><i style="background:var(--c-thesis)"></i>论点</div><div class="big">0</div><div class="desc">投资论点，支持 supersede</div><div class="meta">规划中</div></div>
+        <div class="cov"><div class="bar" style="background:var(--c-portfolio)"></div><div class="top"><i style="background:var(--c-portfolio)"></i>持仓</div><div class="big">0</div><div class="desc">持仓快照与归因</div><div class="meta">规划中</div></div>
+      </div>
+    </section>
+
+    <!-- INDUSTRY -->
+    <section class="view" id="v-industry">
+      <div style="display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin-bottom:6px">
+        <h3 style="font-family:var(--serif); font-weight:500; font-size:27px">半导体</h3>
+        <span class="chip" style="color:var(--c-sector); border-color:var(--c-sector)"><i style="background:var(--c-sector)"></i>SECTOR</span>
+        <span class="chip">SW:801080</span>
+        <span class="chip">CN</span>
+        <span class="chip" style="color:var(--warn); border-color:var(--warn)">partial</span>
+      </div>
+
+      <div class="callout">
+        <div class="ic">⚠</div>
+        <div class="bd"><b>partial：</b>Eastmoney 成份股接口失败，TOP 10 实时市值 / PE / 涨跌幅 与行业总市值不可用，标 <span class="unsourced">UNSOURCED</span>。估值（PE/PB/股息率）正常采集。</div>
+      </div>
+
+      <div class="instruments stagger" style="margin-top:8px">
+        <div class="inst accent"><div class="lab">PE-TTM</div><div class="val">72.79<small>×</small></div><div class="sub">排名 30 / 31</div></div>
+        <div class="inst"><div class="lab">PB</div><div class="val">7.57<small>×</small></div><div class="sub">全行业最高</div></div>
+        <div class="inst"><div class="lab">股息率</div><div class="val">0.43<small>%</small></div><div class="sub">低分红</div></div>
+        <div class="inst"><div class="lab">成份股</div><div class="val">484</div><div class="sub">沪深 + 科创</div></div>
+      </div>
+
+      <div class="section-h"><h3>产业链</h3><span class="n">value chain</span><span class="ln"></span></div>
+      <div class="vc">
+        <div class="vc-row">
+          <div class="vc-tag"><b>上游</b><span>UPSTREAM</span></div>
+          <div class="vc-cells">
+            <span class="vc-cell bottle">光刻机（EUV·ASML）</span><span class="vc-cell">刻蚀 / CVD / PVD</span>
+            <span class="vc-cell">硅片 / 光刻胶 / CMP</span><span class="vc-cell">靶材</span><span class="vc-cell bottle">EDA / IP</span>
+          </div>
+        </div>
+        <div class="vc-flow">↓</div>
+        <div class="vc-row">
+          <div class="vc-tag"><b>中游</b><span>MIDSTREAM</span></div>
+          <div class="vc-cells">
+            <span class="vc-cell">设计（Fabless / IDM）</span><span class="vc-cell bottle">制造（Foundry · 先进制程）</span><span class="vc-cell">封测（OSAT）</span>
+          </div>
+        </div>
+        <div class="vc-flow">↓</div>
+        <div class="vc-row">
+          <div class="vc-tag"><b>下游</b><span>DOWNSTREAM</span></div>
+          <div class="vc-cells">
+            <span class="vc-cell">消费电子</span><span class="vc-cell">汽车电子</span>
+            <span class="vc-cell">AI 算力（GPU / HBM）</span><span class="vc-cell">工业控制</span><span class="vc-cell">通信基站</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-h"><h3>龙头</h3><span class="n">TOP 10</span><span class="ln"></span></div>
+      <div class="panel" style="overflow:hidden">
+        <table class="tbl">
+          <thead><tr><th>#</th><th>公司</th><th>市值</th><th>PE-TTM</th><th>定位</th></tr></thead>
+          <tbody id="leaders-body"></tbody>
+        </table>
+      </div>
+
+      <div class="section-h"><h3>多空</h3><span class="n">bull / bear</span><span class="ln"></span></div>
+      <div class="bb">
+        <div class="bb-col bull">
+          <h5><span style="width:8px;height:8px;border-radius:50%;background:var(--c-thesis);box-shadow:0 0 8px var(--c-thesis)"></span>牛</h5>
+          <ul>
+            <li>国产替代空间大——设备自给率 &lt;20%，AI 周期刚起步</li>
+            <li>大基金三期持续注资，降低信用风险</li>
+            <li>成熟制程市占提升（中芯 8–12% → 15%+）</li>
+          </ul>
+        </div>
+        <div class="bb-col bear">
+          <h5><span style="width:8px;height:8px;border-radius:50%;background:var(--c-media);box-shadow:0 0 8px var(--c-media)"></span>熊</h5>
+          <ul>
+            <li>PE-TTM 72.79× 透支未来 2–3 年增长</li>
+            <li>美国制裁扩大化（BIS 实体清单）黑天鹅</li>
+            <li>成熟制程产能过剩压制晶圆价格</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="sources">
+        <div class="sl">sources</div>
+        <ul>
+          <li>raw/data/industry-snapshots/cn/sw-semiconductor-20260605.jsonl</li>
+          <li>finrobot:industry_analysis.py:overview:2026-06-05</li>
+          <li>finrobot:industry_analysis.py:detail:2026-06-05</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- MEDIA -->
+    <section class="view" id="v-media">
+      <div class="panel stagger" style="padding:22px 24px; display:flex; align-items:center; gap:20px; flex-wrap:wrap">
+        <div style="width:54px;height:54px;border-radius:50%;border:1px solid var(--c-media);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:22px;color:var(--c-media);flex:none">姜</div>
+        <div style="flex:1; min-width:200px">
+          <div style="font-family:var(--serif); font-size:21px">战国时代_姜汁汽水</div>
+          <div style="font-family:var(--mono); font-size:11.5px; color:var(--mute); margin-top:4px">bilibili · uid 1039025435</div>
+        </div>
+        <div style="display:flex; gap:26px">
+          <div><div style="font-family:var(--serif); font-size:26px; color:var(--c-media)">2</div><div style="font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; color:var(--faint)">条目</div></div>
+          <div><div style="font-family:var(--serif); font-size:26px">4</div><div style="font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; color:var(--faint)">关联宏观</div></div>
+        </div>
+      </div>
+
+      <div class="section-h"><h3>时间线</h3><span class="n">filing-summary</span><span class="ln"></span></div>
+      <div class="tl" id="media-tl"></div>
+    </section>
+
+    <!-- MACRO -->
+    <section class="view" id="v-macro">
+      <div class="macro-grid stagger" id="macro-grid"></div>
+    </section>
+
+    <!-- EQUITY -->
+    <section class="view" id="v-equity">
+      <div class="locked">
+        <span class="lk">规划中 · P1</span>
+        <h3>个股分析</h3>
+        <div class="blueprint">
+          <div class="bp"><div class="f">业务概览</div><div class="d">收入结构 / 客户 / 地理</div></div>
+          <div class="bp"><div class="f">关键财务</div><div class="d">营收 · 毛利 · FCF 时序</div></div>
+          <div class="bp"><div class="f">行业地位</div><div class="d">市占 / 护城河</div></div>
+          <div class="bp"><div class="f">风险点</div><div class="d">客户集中 · 监管 · 周期</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PORTFOLIO -->
+    <section class="view" id="v-portfolio">
+      <div class="locked">
+        <span class="lk">规划中 · P1</span>
+        <h3>持仓分析</h3>
+        <div class="blueprint">
+          <div class="bp"><div class="f">持仓快照</div><div class="d">标的 / 权重 / 成本 / 现价</div></div>
+          <div class="bp"><div class="f">收益归因</div><div class="d">行业 · 个股 · 择时</div></div>
+          <div class="bp"><div class="f">敞口分布</div><div class="d">行业 / 市场 / 资产类别</div></div>
+          <div class="bp"><div class="f">关联论点</div><div class="d">→ thesis 版本链</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- THESIS -->
+    <section class="view" id="v-thesis">
+      <div class="locked">
+        <span class="lk">规划中 · P1</span>
+        <h3>投资论点</h3>
+        <div class="blueprint">
+          <div class="bp"><div class="f">论点陈述</div><div class="d">保持原话</div></div>
+          <div class="bp"><div class="f">状态</div><div class="d">active / superseded / invalidated</div></div>
+          <div class="bp"><div class="f">证据链</div><div class="d">→ sector / macro / media</div></div>
+          <div class="bp"><div class="f">版本链</div><div class="d">SUPERSEDES</div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const NODES = [
+  {id:'src',    t:'media',   label:'姜汁汽水', x:330,y:270, r:13},
+  {id:'video',  t:'media',   label:'BV1y4VJ…(视频)', x:530,y:150, r:10},
+  {id:'dyn',    t:'media',   label:'06-02 动态', x:530,y:400, r:10},
+  {id:'gold',   t:'macro',   label:'黄金', x:780,y:110, r:11},
+  {id:'silver', t:'macro',   label:'白银', x:850,y:240, r:10},
+  {id:'crude',  t:'macro',   label:'原油', x:800,y:370, r:10},
+  {id:'tnote',  t:'macro',   label:'美债利率', x:870,y:470, r:10},
+  {id:'sector', t:'sector',  label:'半导体', x:200,y:120, r:13},
+  {id:'c688981',t:'company', label:'中芯国际', x:70,y:60,  r:9},
+  {id:'c002371',t:'company', label:'北方华创', x:60,y:200, r:9},
+  {id:'c603501',t:'company', label:'韦尔股份', x:175,y:30, r:9},
+  {id:'nvda',   t:'company', label:'NVDA', x:120,y:440, r:9},
+];
+const EDGES = [
+  {f:'video',t:'src',rel:'AUTHORED_BY'},{f:'dyn',t:'src',rel:'AUTHORED_BY'},
+  {f:'video',t:'gold',rel:'MENTIONS'},{f:'video',t:'silver',rel:'MENTIONS'},
+  {f:'video',t:'crude',rel:'MENTIONS'},{f:'video',t:'tnote',rel:'MENTIONS'},
+  {f:'dyn',t:'gold',rel:'MENTIONS'},{f:'dyn',t:'silver',rel:'MENTIONS'},
+  {f:'sector',t:'c688981',rel:'LEADER'},{f:'sector',t:'c002371',rel:'LEADER'},{f:'sector',t:'c603501',rel:'LEADER'},
+];
+const TYPECOLOR = {media:'var(--c-media)',macro:'var(--c-macro)',sector:'var(--c-sector)',company:'var(--c-company)'};
+
+const LEADERS = [
+  {r:1,n:'中芯国际',c:'688981',p:'A 股最大晶圆代工厂，28–55nm'},
+  {r:2,n:'北方华创',c:'002371',p:'半导体设备龙头，刻蚀 / CVD / ALD'},
+  {r:3,n:'韦尔股份',c:'603501',p:'CIS 设计龙头（豪威），全球前三'},
+  {r:4,n:'兆易创新',c:'603986',p:'NOR Flash + MCU 设计'},
+  {r:5,n:'华润微',c:'688396',p:'IDM 功率半导体，MOSFET / IGBT'},
+  {r:6,n:'澜起科技',c:'688008',p:'内存接口芯片，AI 服务器受益'},
+  {r:7,n:'卓胜微',c:'300782',p:'射频前端模组（PA / LNA / Switch）'},
+  {r:8,n:'圣邦股份',c:'300661',p:'模拟芯片（LDO / 运放 / DCDC）'},
+  {r:9,n:'华海清科',c:'688120',p:'CMP 抛光设备龙头'},
+  {r:10,n:'芯原股份',c:'688521',p:'芯片设计平台（IP + 定制）'},
+];
+
+const MEDIA = [
+  {date:'2026-05-31', kind:['video'], title:'金银 / 中美俄 / 美债 / AI 板块',
+   pts:['<b>金破 4600</b> 加仓；纽约金期货盘中触及 4600 USD/oz',
+        '<b>30Y 美债 5%</b> 反映美联储缩表空间为零',
+        'AI 板块轮动：<b>GPU → CPU/HBM → 光模块 → 边缘</b>'],
+   mentions:['黄金','白银','原油','美债利率']},
+  {date:'2026-06-02', kind:['dyn','trade'], title:'黄金杠杆 4480 止损 / 4549 减持',
+   pts:['黄金杠杆做多<b>止损 4480</b>；纽约金期货 <b>4549 减持</b>',
+        '白银 72 持有未动',
+        '强调『<b>不带止损不要参与</b>』'],
+   mentions:['黄金','白银']},
+];
+
+const MACRO = [
+  {name:'黄金',kind:'money',pt:'4600 USD/oz',obs:'2026-05-31 · obs',
+   desc:'非主权货币替代与避险资产，以 COMEX 纽约期货金为基准。',
+   chain:['实际利率','央行 / 海湾储备','地缘溢价']},
+  {name:'白银',kind:'money',pt:'72 · 高 beta',obs:'2026-06-02 · obs',
+   desc:'兼具货币与工业属性，黄金高 beta；金银比反映相对定价。',
+   chain:['黄金 β','工业需求','金银比']},
+  {name:'原油',kind:'growth',pt:'多因子',obs:'framework',
+   desc:'供给政策、地缘、库存周期与需求共同定价。',
+   chain:['OPEC+ 供给','霍尔木兹','全球库存','需求']},
+  {name:'美债利率',kind:'rate',pt:'30Y ≈ 5%',obs:'2026-05-31 · obs',
+   desc:'全球资产定价锚点；30Y 5% 反映缩表空间为零。',
+   chain:['外资购买力','缩表空间','AI capex 争夺']},
+];
+
+(function(){
+  const svg = document.getElementById('cvg'); const constel = document.getElementById('constel');
+  const adj = {}; NODES.forEach(n=>adj[n.id]=new Set());
+  let eHtml='';
+  EDGES.forEach((e)=>{
+    const a=NODES.find(n=>n.id===e.f), b=NODES.find(n=>n.id===e.t);
+    adj[e.f].add(e.t); adj[e.t].add(e.f);
+    eHtml+=`<line class="cedge ${e.rel==='LEADER'?'lead':''}" data-f="${e.f}" data-t="${e.t}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/>`;
+  });
+  let nHtml='';
+  NODES.forEach(n=>{
+    const col=TYPECOLOR[n.t];
+    nHtml+=`<g class="cnode" data-id="${n.id}" style="color:${col}">
+      <circle cx="${n.x}" cy="${n.y}" r="${n.r}" fill="var(--ink)" stroke="${col}" stroke-width="1.6"/>
+      <circle cx="${n.x}" cy="${n.y}" r="${Math.max(2,n.r-6)}" fill="${col}" opacity=".55" stroke="none"/>
+      <text x="${n.x+n.r+7}" y="${n.y+4}">${n.label}</text></g>`;
+  });
+  svg.innerHTML = eHtml + nHtml;
+  svg.querySelectorAll('.cnode').forEach(g=>{
+    const id=g.dataset.id;
+    g.addEventListener('mouseenter',()=>{
+      constel.classList.add('hot'); g.classList.add('hi');
+      NODES.forEach(n=>{ if(adj[id].has(n.id)) svg.querySelector(`.cnode[data-id="${n.id}"]`).classList.add('hi'); });
+      svg.querySelectorAll('.cedge').forEach(e=>{ if(e.dataset.f===id||e.dataset.t===id) e.classList.add('hi'); });
+    });
+    g.addEventListener('mouseleave',()=>{
+      constel.classList.remove('hot');
+      svg.querySelectorAll('.hi').forEach(x=>x.classList.remove('hi'));
+    });
+  });
+})();
+
+document.getElementById('leaders-body').innerHTML = LEADERS.map(l=>`
+  <tr><td class="rk">${l.r}</td>
+    <td class="nm"><b>${l.n}</b><span class="code">${l.c}</span></td>
+    <td><span class="unsourced">UNSOURCED</span></td>
+    <td><span class="unsourced">UNSOURCED</span></td>
+    <td class="pos">${l.p}</td></tr>`).join('');
+
+const KLABEL={video:'视频',dyn:'日动态',trade:'trade-log'};
+document.getElementById('media-tl').innerHTML = MEDIA.map(m=>`
+  <div class="tl-item"><div class="tl-card">
+    <div class="tl-date">${m.date}</div>
+    <h4>${m.title}</h4>
+    <div class="chips">${m.kind.map(k=>`<span class="chip k ${k}">${KLABEL[k]}</span>`).join('')}</div>
+    <ul class="kp">${m.pts.map(p=>`<li>${p}</li>`).join('')}</ul>
+    <div class="chips" style="margin-top:14px">${m.mentions.map(x=>`<span class="chip"><i style="background:var(--c-macro)"></i>${x}</span>`).join('')}</div>
+  </div></div>`).join('');
+
+const KINDLAB={money:'MONEY',rate:'RATE',growth:'GROWTH'};
+document.getElementById('macro-grid').innerHTML = MACRO.map(m=>`
+  <div class="mc">
+    <div class="kind"><i></i>${KINDLAB[m.kind]}</div>
+    <h4>${m.name}</h4>
+    <div class="pt">${m.pt}</div>
+    <span class="obs">${m.obs}</span>
+    <p>${m.desc}</p>
+    <div class="drv"><div class="dl">drivers</div>
+      <div class="chain">${m.chain.map((c,i)=>`<span>${c}</span>${i<m.chain.length-1?'<b>→</b>':''}`).join('')}</div>
+    </div>
+  </div>`).join('');
+
+const MAST={
+  overview:['2026-06-07 · 12 DOCS','总览'],
+  industry:['SECTOR · SW:801080','行业分析'],
+  media:['MEDIA · 2 ITEMS','媒体转录'],
+  macro:['MACRO · 4 TOPICS','宏观主题'],
+  equity:['规划中 · P1','个股分析'],
+  portfolio:['规划中 · P1','持仓分析'],
+  thesis:['规划中 · P1','投资论点'],
+};
+const navs=document.querySelectorAll('.nav'), views=document.querySelectorAll('.view');
+navs.forEach(n=>n.addEventListener('click',()=>{
+  const v=n.dataset.v; const tgt=document.getElementById('v-'+v); if(!tgt) return;
+  navs.forEach(x=>x.classList.remove('on')); n.classList.add('on');
+  views.forEach(x=>x.classList.remove('on')); tgt.classList.add('on');
+  const m=MAST[v]; if(m){document.getElementById('mh-k').textContent=m[0];document.getElementById('mh-t').textContent=m[1];}
+  window.scrollTo(0,0);
+}));
+</script>
+</body>
+</html>
