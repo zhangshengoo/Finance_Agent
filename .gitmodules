@@ -1,0 +1,3 @@
+[submodule "TradingAgents-CN"]
+	path = TradingAgents-CN
+	url = https://github.com/zhangshengoo/TradingAgents-CN
