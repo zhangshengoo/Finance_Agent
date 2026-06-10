@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>媒体转录 · 分层架构 — raw 锚定时间线 + wiki 选择性深度</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --serif:'Noto Serif SC',Georgia,serif;
+  --sans:'Noto Sans SC',system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+
+  --bg:#f5f1e8;
+  --paper:#fbf8f1;
+  --surface:#ffffff;
+  --ink:#23201a;
+  --ink-dim:#6f6a5e;
+  --ink-faint:#9a9384;
+  --rule:rgba(40,34,24,0.10);
+  --rule-strong:rgba(40,34,24,0.20);
+
+  --navy:#1e3a5f;          /* 知识 / 前端主色 */
+  --navy-dim:rgba(30,58,95,0.10);
+  --gold:#bf8a2c;          /* 派生 / 时间线 */
+  --gold-dim:rgba(191,138,44,0.13);
+  --clay:#a8512f;          /* raw 不可变源 */
+  --clay-dim:rgba(168,81,47,0.12);
+  --teal:#2f7d6b;          /* wiki 知识层 */
+  --teal-dim:rgba(47,125,107,0.12);
+  --slate:#5b6470;         /* 采集 */
+  --slate-dim:rgba(91,100,112,0.12);
+
+  --new:#a8512f;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#15130f;
+    --paper:#1b1813;
+    --surface:#211d17;
+    --ink:#ece6d9;
+    --ink-dim:#a59f90;
+    --ink-faint:#766f60;
+    --rule:rgba(255,255,255,0.08);
+    --rule-strong:rgba(255,255,255,0.16);
+    --navy:#7aa6d6; --navy-dim:rgba(122,166,214,0.14);
+    --gold:#e0b250; --gold-dim:rgba(224,178,80,0.15);
+    --clay:#d98a64; --clay-dim:rgba(217,138,100,0.15);
+    --teal:#5cc4a9; --teal-dim:rgba(92,196,169,0.15);
+    --slate:#9aa3b0; --slate-dim:rgba(154,163,176,0.14);
+    --new:#d98a64;
+  }
+}
+
+*{box-sizing:border-box}
+*,*::before,*::after{min-width:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  font-family:var(--sans);
+  color:var(--ink);
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(ellipse at 18% -5%, var(--gold-dim) 0%, transparent 45%),
+    radial-gradient(ellipse at 92% 8%, var(--navy-dim) 0%, transparent 42%),
+    repeating-linear-gradient(0deg, transparent, transparent 27px, var(--rule) 27px, var(--rule) 28px);
+  line-height:1.6;
+  overflow-wrap:break-word;
+  padding:48px 24px 72px;
+}
+.wrap{max-width:1080px;margin:0 auto}
+
+/* ---------- header ---------- */
+.head{margin-bottom:40px;position:relative}
+.kicker{
+  font-family:var(--mono);font-size:11px;font-weight:600;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--clay);
+  display:flex;align-items:center;gap:10px;margin-bottom:18px;
+}
+.kicker::before{content:'';width:26px;height:2px;background:var(--clay)}
+h1{
+  font-family:var(--serif);font-weight:700;
+  font-size:clamp(30px,4.6vw,46px);line-height:1.12;letter-spacing:-.01em;
+  margin:0 0 14px;color:var(--ink);
+}
+h1 .em{color:var(--clay);font-style:normal}
+h1 .em2{color:var(--navy)}
+.dek{
+  font-size:clamp(15px,1.4vw,17.5px);color:var(--ink-dim);
+  max-width:62ch;line-height:1.62;
+}
+.dek b{color:var(--ink);font-weight:600}
+
+/* KPI strip */
+.kpis{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+  margin:30px 0 8px;
+}
+.kpi{
+  background:var(--paper);border:1px solid var(--rule);
+  border-radius:11px;padding:15px 17px;position:relative;overflow:hidden;
+}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent,var(--gold))}
+.kpi.c-clay::before{background:var(--clay)} .kpi.c-gold::before{background:var(--gold)}
+.kpi.c-teal::before{background:var(--teal)} .kpi.c-navy::before{background:var(--navy)}
+.kpi .v{font-family:var(--serif);font-weight:700;font-size:26px;line-height:1;letter-spacing:-.02em}
+.kpi.c-clay .v{color:var(--clay)} .kpi.c-gold .v{color:var(--gold)}
+.kpi.c-teal .v{color:var(--teal)} .kpi.c-navy .v{color:var(--navy)}
+.kpi .l{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-top:9px}
+.kpi .s{font-size:12px;color:var(--ink-dim);margin-top:5px;line-height:1.4}
+
+/* ---------- legend ---------- */
+.legend{
+  display:flex;flex-wrap:wrap;gap:9px 18px;align-items:center;
+  margin:26px 0 30px;padding:13px 18px;
+  background:var(--paper);border:1px solid var(--rule);border-radius:10px;
+}
+.lg{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-dim)}
+.lg i{width:11px;height:11px;border-radius:3px;flex:none}
+.lg .new-pill{
+  font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.1em;
+  color:#fff;background:var(--new);padding:2px 6px;border-radius:4px;
+}
+.lg-sep{width:1px;height:14px;background:var(--rule-strong)}
+
+/* ---------- layer band ---------- */
+.stack{position:relative}
+.band{
+  background:var(--surface);border:1px solid var(--rule);
+  border-radius:14px;padding:18px 20px 20px;position:relative;
+  animation:fadeUp .5s ease-out both;animation-delay:calc(var(--i,0)*.07s);
+}
+.band--accent{box-shadow:0 3px 18px rgba(40,34,24,.05)}
+.band__rail{
+  display:flex;align-items:center;gap:11px;margin-bottom:15px;
+}
+.band__tag{
+  font-family:var(--mono);font-size:10px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;
+  padding:4px 10px;border-radius:5px;white-space:nowrap;
+}
+.band__title{font-family:var(--serif);font-weight:600;font-size:17px;color:var(--ink)}
+.band__meta{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);text-align:right;line-height:1.5}
+
+.t-slate{background:var(--slate-dim);color:var(--slate)}
+.t-clay{background:var(--clay-dim);color:var(--clay)}
+.t-gold{background:var(--gold-dim);color:var(--gold)}
+.t-teal{background:var(--teal-dim);color:var(--teal)}
+.t-navy{background:var(--navy-dim);color:var(--navy)}
+
+/* cards inside a band */
+.cards{display:grid;gap:12px}
+.cards.cols-3{grid-template-columns:repeat(3,1fr)}
+.cards.cols-2{grid-template-columns:repeat(2,1fr)}
+.unit{
+  border:1px solid var(--rule);border-radius:9px;padding:12px 14px;
+  background:var(--paper);position:relative;
+}
+.unit__h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:5px}
+.unit__name{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--ink)}
+.unit__path{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint)}
+.unit__d{font-size:12.5px;color:var(--ink-dim);line-height:1.55}
+.new-badge{
+  font-family:var(--mono);font-size:8.5px;font-weight:600;letter-spacing:.08em;
+  color:#fff;background:var(--new);padding:1.5px 6px;border-radius:4px;flex:none;
+}
+.unit--new{border-color:color-mix(in srgb,var(--new) 45%,var(--rule));background:color-mix(in srgb,var(--clay-dim) 60%,var(--paper))}
+
+/* split track wrapper */
+.tracks{display:grid;grid-template-columns:1fr 1fr;gap:18px;position:relative}
+.track{
+  border-radius:14px;padding:5px;position:relative;
+}
+.track--left{background:linear-gradient(180deg,var(--gold-dim),transparent 70%)}
+.track--right{background:linear-gradient(180deg,var(--teal-dim),transparent 70%)}
+.track__cap{
+  display:flex;align-items:center;gap:9px;padding:9px 12px 11px;flex-wrap:wrap;
+}
+.track__cap .tk{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase}
+.track--left .tk{color:var(--gold)} .track--right .tk{color:var(--teal)}
+.track__cap .cost{
+  margin-left:auto;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
+  padding:2px 8px;border-radius:20px;border:1px solid var(--rule-strong);color:var(--ink-dim);white-space:nowrap;
+}
+.track .band{border:1px solid var(--rule)}
+
+/* ---------- flow arrows ---------- */
+.flow{
+  display:flex;justify-content:center;align-items:center;gap:10px;
+  padding:9px 0;position:relative;
+}
+.flow svg{width:20px;height:24px;fill:none;stroke:var(--rule-strong);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.flow__lbl{
+  font-family:var(--mono);font-size:10.5px;color:var(--ink-dim);
+  background:var(--bg);padding:2px 11px;border:1px solid var(--rule);border-radius:20px;white-space:nowrap;
+}
+.flow__lbl.warn{color:var(--clay);border-color:color-mix(in srgb,var(--clay) 35%,var(--rule))}
+.flow__lbl.cheap{color:var(--gold);border-color:color-mix(in srgb,var(--gold) 35%,var(--rule))}
+
+.split-row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.split-row .flow{padding:7px 0}
+
+/* frontend pull annotations */
+.pull-note{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.chiprole{
+  font-family:var(--mono);font-size:10.5px;display:inline-flex;align-items:center;gap:6px;
+  padding:4px 11px;border-radius:7px;border:1px solid var(--rule);
+}
+.chiprole i{width:8px;height:8px;border-radius:50%;flex:none}
+.chiprole.primary{background:var(--gold-dim);border-color:color-mix(in srgb,var(--gold) 30%,var(--rule));color:var(--ink)}
+.chiprole.overlay{background:var(--teal-dim);border-color:color-mix(in srgb,var(--teal) 30%,var(--rule));color:var(--ink)}
+
+/* ---------- thesis callout ---------- */
+.thesis{
+  margin-top:38px;padding:30px 34px;border-radius:16px;
+  background:
+    linear-gradient(135deg,var(--navy-dim),transparent 55%),
+    var(--paper);
+  border:1px solid var(--rule);position:relative;overflow:hidden;
+}
+.thesis::before{
+  content:'“';position:absolute;top:-22px;left:18px;
+  font-family:var(--serif);font-size:120px;color:var(--navy);opacity:.12;line-height:1;
+}
+.thesis__lead{
+  font-family:var(--serif);font-weight:600;font-size:clamp(19px,2.4vw,25px);
+  line-height:1.4;color:var(--ink);margin:0 0 14px;position:relative;
+}
+.thesis__lead .hl-gold{color:var(--gold)} .thesis__lead .hl-teal{color:var(--teal)}
+.thesis__body{font-size:14px;color:var(--ink-dim);line-height:1.7;max-width:78ch;position:relative;margin:0}
+.thesis__body b{color:var(--ink);font-weight:600}
+
+/* media-archive linkage note */
+.linknote{
+  margin-top:18px;display:flex;gap:13px;align-items:flex-start;
+  padding:15px 18px;border-radius:11px;
+  border-left:4px solid var(--clay);background:var(--clay-dim);
+}
+.linknote__k{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--clay);white-space:nowrap;padding-top:2px}
+.linknote__t{font-size:13px;color:var(--ink-dim);line-height:1.6}
+.linknote__t code{font-family:var(--mono);font-size:11.5px;background:var(--surface);border:1px solid var(--rule);padding:1px 6px;border-radius:4px;color:var(--ink)}
+.linknote__t b{color:var(--ink);font-weight:600}
+
+.foot{margin-top:30px;font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);text-align:center;letter-spacing:.04em}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+@media (max-width:760px){
+  body{padding:32px 15px 56px}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .tracks,.split-row{grid-template-columns:1fr}
+  .cards.cols-3,.cards.cols-2{grid-template-columns:1fr}
+  .band__meta{display:none}
+  .split-row .flow{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="head">
+    <div class="kicker">Finance_Agent · 媒体转录 · 架构设计</div>
+    <h1>媒体转录分层架构<br><span class="em">raw 锚定时间线</span> ＋ <span class="em2">wiki 选择性深度</span></h1>
+    <p class="dek">媒体源流本质是<b>按创作者的时序材料</b>，不该被强行逐条编译进知识层。设计把它拆成两轨：一条<b>廉价、全覆盖</b>的 raw 派生时间线（前端主体），一条<b>选择性、人工 review</b> 的 wiki 深度层（点击叠加）。</p>
+
+    <div class="kpis">
+      <div class="kpi c-clay">
+        <div class="v">44</div>
+        <div class="l">raw 源 / 单 UP 主</div>
+        <div class="s">6 视频 + 38 日动态</div>
+      </div>
+      <div class="kpi c-teal">
+        <div class="v">2</div>
+        <div class="l">现 wiki 编译</div>
+        <div class="s">42 条卡在两步 CoT 门外</div>
+      </div>
+      <div class="kpi c-gold">
+        <div class="v">100%</div>
+        <div class="l">目标时间线覆盖</div>
+        <div class="s">timeline.json 自动聚合</div>
+      </div>
+      <div class="kpi c-navy">
+        <div class="v">0</div>
+        <div class="l">新增 LLM 成本</div>
+        <div class="s">复用 _previews 的 TL;DR</div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span class="lg"><i style="background:var(--slate)"></i>采集</span>
+      <span class="lg"><i style="background:var(--clay)"></i>raw 不可变源</span>
+      <span class="lg"><i style="background:var(--gold)"></i>派生 · 时间线轨</span>
+      <span class="lg"><i style="background:var(--teal)"></i>wiki 知识轨</span>
+      <span class="lg"><i style="background:var(--navy)"></i>前端</span>
+      <span class="lg-sep"></span>
+      <span class="lg"><span class="new-pill">NEW</span>本次新增组件</span>
+    </div>
+  </header>
+
+  <div class="stack">
+
+    <!-- Layer 1: 采集 -->
+    <section class="band" style="--i:0">
+      <div class="band__rail">
+        <span class="band__tag t-slate">Skill · 采集</span>
+        <span class="band__title">media-archive</span>
+        <span class="band__meta">.claude/skills/media-archive<br>抓 B 站 / 公众号</span>
+      </div>
+      <div class="cards cols-3">
+        <div class="unit">
+          <div class="unit__h"><span class="unit__name">fetch_bilibili</span></div>
+          <div class="unit__d">视频 + AI 字幕 → 单文件 JSON</div>
+        </div>
+        <div class="unit">
+          <div class="unit__h"><span class="unit__name">fetch_bilibili_dynamic</span></div>
+          <div class="unit__d">动态按日聚合 · 图片本地化</div>
+        </div>
+        <div class="unit unit--new">
+          <div class="unit__h"><span class="unit__name">Phase B+</span><span class="new-badge">NEW</span></div>
+          <div class="unit__d">抓完自动重建该 UP 主时间线 · 不写 wiki</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="flow"><svg viewBox="0 0 20 24"><path d="M10 3 L10 19 M5 14 L10 19 L15 14"/></svg><span class="flow__lbl">落 raw/（append-only）</span></div>
+
+    <!-- Layer 2: raw -->
+    <section class="band band--accent" style="--i:1">
+      <div class="band__rail">
+        <span class="band__tag t-clay">Layer · 不可变源</span>
+        <span class="band__title">raw/transcripts/bilibili/&lt;up&gt;/</span>
+        <span class="band__meta">铁律：immutable<br>永不 LLM 改写</span>
+      </div>
+      <div class="cards cols-3">
+        <div class="unit">
+          <div class="unit__h"><span class="unit__name">videos/</span></div>
+          <div class="unit__d">完整字幕（~11k 字/条）· bvid · 时长 · 发布时间</div>
+        </div>
+        <div class="unit">
+          <div class="unit__h"><span class="unit__name">dynamics/</span></div>
+          <div class="unit__d">日聚合 word / draw · 交易动作 · is_ad 标记</div>
+        </div>
+        <div class="unit">
+          <div class="unit__h"><span class="unit__name">assets/</span></div>
+          <div class="unit__d">本地化图片（反盗链）· 相对路径引用</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- split into two tracks -->
+    <div class="split-row" style="margin-top:6px">
+      <div class="flow"><svg viewBox="0 0 20 24"><path d="M10 3 L10 19 M5 14 L10 19 L15 14"/></svg><span class="flow__lbl cheap">派生 · 廉价 · 自动</span></div>
+      <div class="flow"><svg viewBox="0 0 20 24"><path d="M10 3 L10 19 M5 14 L10 19 L15 14"/></svg><span class="flow__lbl warn">finance-ingest · 两步 CoT · 人工</span></div>
+    </div>
+
+    <div class="tracks" style="--i:2">
+      <!-- LEFT: 派生时间线轨 -->
+      <div class="track track--left">
+        <div class="track__cap">
+          <span class="tk">时间线轨 · 全覆盖</span>
+          <span class="cost">成本 ≈ 0 · 随抓随更</span>
+        </div>
+        <section class="band">
+          <div class="band__rail">
+            <span class="band__tag t-gold">派生镜像</span>
+            <span class="band__title">raw/…/_previews/</span>
+          </div>
+          <div class="cards">
+            <div class="unit">
+              <div class="unit__h"><span class="unit__name">&lt;item&gt;.md</span></div>
+              <div class="unit__d">逐条 TL;DR + 操作表（raw-preview 产出）—— <b>「高度概括」已存在</b></div>
+            </div>
+            <div class="unit unit--new">
+              <div class="unit__h"><span class="unit__name">timeline.json</span><span class="new-badge">NEW</span></div>
+              <div class="unit__d">创作者时间线清单：每条 {date · kind · tldr · mentions · 动作 · has_wiki}</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- RIGHT: wiki 知识轨 -->
+      <div class="track track--right">
+        <div class="track__cap">
+          <span class="tk">知识轨 · 选择性</span>
+          <span class="cost">仅高价值条目入图谱</span>
+        </div>
+        <section class="band">
+          <div class="band__rail">
+            <span class="band__tag t-teal">wiki 知识层</span>
+            <span class="band__title">wiki/</span>
+          </div>
+          <div class="cards">
+            <div class="unit">
+              <div class="unit__h"><span class="unit__name">filings-summary/</span></div>
+              <div class="unit__d">深度摘要 · 联动 <span class="unit__path">macro/gold-bullion</span> · 入 ontology 图谱</div>
+            </div>
+            <div class="unit unit--new">
+              <div class="unit__h"><span class="unit__name">media-sources/&lt;up&gt;</span><span class="new-badge">NEW</span></div>
+              <div class="unit__d">创作者画像：风格 / 常聊主题 / 当前立场（低频更新）</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- converge to frontend -->
+    <div class="split-row">
+      <div class="flow"><svg viewBox="0 0 20 24"><path d="M10 3 L10 19 M5 14 L10 19 L15 14"/></svg><span class="flow__lbl cheap">build_timeline.py</span></div>
+      <div class="flow"><svg viewBox="0 0 20 24"><path d="M10 3 L10 19 M5 14 L10 19 L15 14"/></svg><span class="flow__lbl">build_frontend_data.py</span></div>
+    </div>
+
+    <!-- Layer 4: frontend -->
+    <section class="band band--accent" style="--i:3">
+      <div class="band__rail">
+        <span class="band__tag t-navy">前端 · 媒体转录视图</span>
+        <span class="band__title">frontend / index.html · renderMedia()</span>
+        <span class="band__meta">按 UP 主分组<br>时间线 + 深度徽标</span>
+      </div>
+      <div class="cards cols-2">
+        <div class="unit" style="border-left:3px solid var(--gold)">
+          <div class="unit__h"><span class="unit__name">时间线主体</span></div>
+          <div class="unit__d">来自 <span class="unit__path">timeline.json</span> · 全覆盖 44 条 · 每条 TL;DR + mentions chip</div>
+        </div>
+        <div class="unit" style="border-left:3px solid var(--teal)">
+          <div class="unit__h"><span class="unit__name">深度叠加</span></div>
+          <div class="unit__d"><span class="unit__path">has_wiki=true</span> → 「深度」徽标，点击进 filing-summary 详情</div>
+        </div>
+      </div>
+      <div class="pull-note">
+        <span class="chiprole primary"><i style="background:var(--gold)"></i>主：raw 时间线（廉价 · 完整）</span>
+        <span class="chiprole overlay"><i style="background:var(--teal)"></i>叠加：wiki 深度（精选 · 可点）</span>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- thesis -->
+  <div class="thesis">
+    <p class="thesis__lead">wiki 装<span class="hl-teal">结论</span>，raw + 轻量 digest 装<span class="hl-gold">流水</span>。</p>
+    <p class="thesis__body">知识层（wiki）该装的是<b>类型化、可交叉引用的实体</b>——公司 / 行业 / 宏观 / 论点；它装<b>综合判断</b>（「这位 UP 主对黄金的观点 → 关联宏观/论点」），而不是源流镜像。一个创作者每日的视频/动态，是时序源材料，自然归宿是 <b>raw + 廉价时间线 digest</b>，而非 44 个 wiki 页。两轨各取所长：时间线全覆盖、wiki 选择性深挖。</p>
+  </div>
+
+  <!-- media-archive linkage -->
+  <div class="linknote">
+    <span class="linknote__k">联动 · media-archive</span>
+    <span class="linknote__t">现状：Phase B 落 raw 后即停手，只打印 next-step。<b>改动</b>：新增 <code>Phase B+</code> —— 抓完对新条目跑 raw-preview 并重建 <code>timeline.json</code>，让时间线随每次抓取保持最新、全覆盖。<code>timeline.json</code> 与 <code>_previews</code> 同等地位（派生 · 可重建 · 不写 wiki/ontology/index），<b>既不破坏 raw 不可变铁律，也不绕过 finance-ingest 的人工 review 边界</b>。</span>
+  </div>
+
+  <p class="foot">最短落地路径：① build_timeline.py 聚合 → ③ build_frontend_data.py 接入 —— 让 42 条「沉默源」零成本在前端可见</p>
+
+</div>
+</body>
+</html>

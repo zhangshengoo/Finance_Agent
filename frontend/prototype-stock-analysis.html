@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>个股分析 · 渲染原型 · 601899</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Serif+SC:wght@500;600;700&family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --void:#eef2f0; --ink:#ffffff; --ink-2:#f3f7f5; --ink-3:#e7ece9;
+  --line:rgba(20,50,44,.13); --line-2:rgba(15,156,140,.32);
+  --accent:#0f9c8c; --accent-hi:#0b7064; --accent-dim:#a9ddd5;
+  --text:#16241f; --mute:#566159; --faint:#8c968f; --ghost:#c2ccc6;
+  --equity:#bd7a0e; --equity-dim:#f0e2c6;
+  /* 决策：A股红涨绿跌 → 买入红 / 持有灰 / 卖出绿（契约 §2b） */
+  --buy:#c2362f; --buy-bg:#fbeceb; --hold:#8a7e5f; --hold-bg:#f1ede1; --sell:#2f8f5b; --sell-bg:#e8f4ec;
+  --warn:#bd7a0e; --warn-bg:#fbf1dd; --miss:#9aa29c; --miss-bg:#eef1ef;
+  --shadow:0 1px 2px rgba(20,50,44,.06), 0 14px 40px rgba(20,50,44,.07);
+  --serif:'Newsreader','Noto Serif SC',Georgia,serif;
+  --sans:'Archivo','Noto Sans SC',system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--void); color:var(--text); font-family:var(--sans);
+  font-size:15px; line-height:1.62; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  background-image:
+    linear-gradient(var(--line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--line) 1px,transparent 1px),
+    radial-gradient(1200px 600px at 80% -10%, rgba(15,156,140,.06), transparent 60%);
+  background-size:64px 64px,64px 64px,100% 100%;
+}
+/* grain */
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E");}
+.wrap{max-width:1080px;margin:0 auto;padding:32px clamp(16px,4vw,40px) 80px;position:relative;z-index:1}
+
+/* ---- prototype banner ---- */
+.proto{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  font:500 11.5px/1.4 var(--mono);letter-spacing:.04em;color:var(--mute);
+  border:1px dashed var(--line-2);border-radius:10px;padding:9px 14px;margin-bottom:26px;background:rgba(255,255,255,.5)}
+.proto b{color:var(--accent-hi);font-weight:700}
+
+/* ---- masthead ---- */
+.mast{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:8px}
+.eyebrow{font:600 11px/1 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--equity);margin-bottom:12px;
+  display:flex;align-items:center;gap:9px}
+.eyebrow::before{content:"";width:22px;height:1px;background:var(--equity)}
+.name{font:600 40px/1.02 var(--serif);letter-spacing:-.01em}
+.name .code{font-family:var(--mono);font-size:21px;font-weight:500;color:var(--mute);margin-left:12px;letter-spacing:.02em}
+.sub{font:500 12.5px/1 var(--mono);color:var(--faint);margin-top:10px;letter-spacing:.02em;display:flex;gap:14px;flex-wrap:wrap}
+.sub .x{color:var(--ghost)}
+.quote{text-align:right}
+.px{font:500 34px/1 var(--mono);letter-spacing:-.01em}
+.chg{font:500 14px/1 var(--mono);margin-top:7px}
+.dn{color:var(--buy)} .up{color:var(--sell)}
+
+/* run toggle */
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--ink);margin:22px 0 30px;box-shadow:var(--shadow)}
+.seg button{appearance:none;border:0;background:transparent;cursor:pointer;font:600 12px/1 var(--mono);letter-spacing:.02em;
+  color:var(--mute);padding:11px 16px;display:flex;flex-direction:column;gap:5px;align-items:flex-start;transition:.18s;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button .t{font-size:13px;font-weight:700;color:var(--text)}
+.seg button small{font-weight:500;color:var(--faint);font-size:10.5px;letter-spacing:.01em}
+.seg button.on{background:var(--accent);}
+.seg button.on .t,.seg button.on small{color:#fff}
+.seg button.on small{color:rgba(255,255,255,.78)}
+
+/* ---- panels ---- */
+.panel{background:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:24px 26px;margin-bottom:18px}
+.zone-label{font:600 11px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;display:flex;align-items:center;gap:11px;margin:30px 2px 14px}
+.zone-label::after{content:"";flex:1;height:1px;background:var(--line)}
+.zone-fact{color:var(--accent-hi)} .zone-fact::before{content:"◆";color:var(--accent)}
+.zone-op{color:var(--equity)} .zone-op::before{content:"◈";color:var(--equity)}
+.op-note{font:400 12px/1.5 var(--sans);color:var(--warn);background:var(--warn-bg);border:1px solid rgba(189,122,14,.25);
+  border-radius:8px;padding:8px 12px;margin-bottom:16px;display:flex;gap:8px;align-items:center}
+.op-note b{font-weight:600}
+
+/* ---- decision hero ---- */
+.hero{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center}
+.verdict{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:148px;min-height:148px;border-radius:16px;padding:16px;position:relative;overflow:hidden}
+.verdict.buy{background:var(--buy-bg);border:1px solid rgba(194,54,47,.3)}
+.verdict.hold{background:var(--hold-bg);border:1px solid rgba(138,126,95,.32)}
+.verdict.sell{background:var(--sell-bg);border:1px solid rgba(47,143,91,.3)}
+.verdict .zh{font:700 44px/1 var(--serif);letter-spacing:.06em}
+.verdict.buy .zh{color:var(--buy)} .verdict.hold .zh{color:var(--hold)} .verdict.sell .zh{color:var(--sell)}
+.verdict .en{font:600 11px/1 var(--mono);letter-spacing:.28em;margin-top:10px;opacity:.7}
+.verdict .tp{font:500 12px/1 var(--mono);margin-top:14px;color:var(--mute)}
+.verdict .tp b{color:var(--text);font-weight:700;font-size:15px}
+.hero-r{display:flex;flex-direction:column;gap:16px;min-width:0}
+.gauges{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.gauge .gl{font:600 10.5px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--faint);display:flex;justify-content:space-between;margin-bottom:7px}
+.gauge .gl b{font-size:13px;color:var(--text)}
+.track{height:7px;border-radius:4px;background:var(--ink-3);overflow:hidden}
+.fill{height:100%;border-radius:4px;transition:width .5s cubic-bezier(.2,.7,.2,1)}
+
+/* decision chain */
+.chain{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font:500 11.5px/1.3 var(--mono)}
+.node{border:1px solid var(--line);border-radius:7px;padding:6px 10px;background:var(--ink-2);color:var(--mute)}
+.node b{color:var(--text);font-weight:700}
+.node.flip{border-color:var(--buy);background:var(--buy-bg);color:var(--buy)}
+.node.final{border-color:var(--hold);background:var(--hold-bg);color:var(--hold);font-weight:700}
+.arrow{color:var(--ghost)}
+.reason{font:400 13.5px/1.6 var(--serif);color:var(--mute);margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+
+/* status strip */
+.strip{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.strip .lab{font:600 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-right:4px}
+.chip{font:600 11.5px/1 var(--mono);letter-spacing:.01em;border-radius:20px;padding:6px 11px;border:1px solid;cursor:pointer;transition:.15s;display:inline-flex;gap:5px;align-items:center}
+.chip:hover{transform:translateY(-1px)}
+.chip.ok{color:var(--accent-hi);border-color:var(--line-2);background:rgba(15,156,140,.06)}
+.chip.degraded{color:var(--warn);border-color:rgba(189,122,14,.35);background:var(--warn-bg)}
+.chip.missing{color:var(--miss);border-color:var(--line);background:var(--miss-bg);text-decoration:line-through;text-decoration-thickness:1px}
+
+/* metrics */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1px;background:var(--line);border-radius:10px;overflow:hidden}
+.metric{background:var(--ink);padding:15px 16px}
+.metric .k{font:600 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:9px}
+.metric .v{font:500 23px/1 var(--mono);letter-spacing:-.01em}
+.metric .v small{font-size:12px;color:var(--mute);margin-left:3px}
+.metric .tag{font:600 9.5px/1 var(--mono);margin-top:8px;display:inline-block;padding:3px 6px;border-radius:5px}
+.tg-good{color:var(--sell);background:var(--sell-bg)} .tg-mid{color:var(--warn);background:var(--warn-bg)}
+
+/* technical */
+.tech{display:grid;grid-template-columns:1.1fr 1fr;gap:24px}
+@media(max-width:680px){.tech{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.verdict{width:100%}}
+.trend{display:inline-flex;align-items:center;gap:7px;font:700 12px/1 var(--mono);letter-spacing:.06em;padding:6px 11px;border-radius:7px}
+.trend.down{color:var(--buy);background:var(--buy-bg)} .trend.up{color:var(--sell);background:var(--sell-bg)}
+.maline{display:flex;align-items:center;justify-content:space-between;font:500 12.5px/1 var(--mono);padding:8px 0;border-bottom:1px dashed var(--line)}
+.maline:last-child{border:0}
+.maline .mv{color:var(--mute)} .maline .mv b{color:var(--text);font-weight:700}
+.below{font-size:10px;color:var(--buy);background:var(--buy-bg);padding:2px 5px;border-radius:4px;margin-left:7px}
+.bollwrap{margin-top:8px}
+.bollbar{position:relative;height:34px;border-radius:8px;margin:18px 0 6px;
+  background:linear-gradient(90deg,var(--sell-bg),var(--ink-3) 50%,var(--buy-bg))}
+.bollbar .mid{position:absolute;top:-6px;bottom:-6px;left:50%;width:1px;background:var(--ghost)}
+.bollbar .mk{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;background:var(--equity);border:2px solid #fff;
+  transform:translate(-50%,-50%);box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.bollbar .mk::after{content:attr(data-px);position:absolute;top:-24px;left:50%;transform:translateX(-50%);
+  font:700 11px/1 var(--mono);color:var(--equity);white-space:nowrap}
+.bollends{display:flex;justify-content:space-between;font:500 10.5px/1 var(--mono);color:var(--faint)}
+.sr{display:flex;gap:10px;margin-top:14px}
+.srbox{flex:1;border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.srbox .k{font:600 9.5px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.srbox .v{font:700 18px/1 var(--mono);margin-top:6px}
+.srbox.sup .v{color:var(--sell)} .srbox.res .v{color:var(--buy)}
+.osc{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border-radius:8px;overflow:hidden;margin-top:6px}
+.osc>div{background:var(--ink);padding:11px 12px;text-align:center}
+.osc .k{font:600 9.5px/1 var(--mono);color:var(--faint);letter-spacing:.06em}
+.osc .v{font:700 16px/1 var(--mono);margin-top:6px}
+
+/* bull/bear */
+.bb{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+@media(max-width:620px){.bb{grid-template-columns:1fr}}
+.bbcol{padding:18px 20px}
+.bbcol.bull{background:linear-gradient(180deg,var(--buy-bg),transparent 70%);border-right:1px solid var(--line)}
+.bbcol.bear{background:linear-gradient(180deg,var(--sell-bg),transparent 70%)}
+.bbh{font:700 13px/1 var(--serif);display:flex;align-items:center;gap:8px;margin-bottom:13px}
+.bbcol.bull .bbh{color:var(--buy)} .bbcol.bear .bbh{color:var(--sell)}
+.bbh .ic{font-size:17px}
+.bbcol li{list-style:none;font:400 13px/1.5 var(--sans);color:var(--text);padding:8px 0 8px 18px;position:relative;border-top:1px dashed var(--line)}
+.bbcol li:first-of-type{border-top:0}
+.bbcol li::before{content:"";position:absolute;left:2px;top:14px;width:6px;height:6px;border-radius:50%}
+.bbcol.bull li::before{background:var(--buy)} .bbcol.bear li::before{background:var(--sell)}
+
+/* tag rows */
+.tagrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.ttag{font:500 12px/1.3 var(--sans);border:1px solid var(--line);border-radius:7px;padding:7px 11px;background:var(--ink-2);color:var(--mute);display:flex;gap:7px;align-items:center}
+.ttag .d{width:5px;height:5px;border-radius:50%;flex:none}
+.ttag.cat .d{background:var(--accent)} .ttag.risk .d{background:var(--equity)}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:620px){.cols2{grid-template-columns:1fr}}
+.minihd{font:600 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:11px}
+
+/* degraded card */
+.degraded{border:1px solid rgba(189,122,14,.3);background:var(--warn-bg);border-radius:12px;padding:18px 20px}
+.degraded .dh{font:700 13.5px/1 var(--serif);color:var(--warn);display:flex;gap:8px;align-items:center;margin-bottom:9px}
+.degraded p{font:400 13px/1.6 var(--sans);color:#7a5a14}
+.missing-card{border:1px dashed var(--line-2);border-radius:12px;padding:22px;text-align:center;color:var(--miss);background:var(--miss-bg)}
+.missing-card .mi{font:700 13px/1 var(--mono);letter-spacing:.06em;margin-bottom:7px}
+.missing-card p{font:400 12.5px/1.5 var(--sans)}
+
+/* news list */
+.nlist li{list-style:none;display:flex;gap:13px;padding:13px 0;border-top:1px dashed var(--line);font:400 13.5px/1.55 var(--sans)}
+.nlist li:first-child{border-top:0}
+.nlist .ni{font:700 12px/1.4 var(--mono);color:var(--equity);flex:none;width:20px}
+
+/* dossiers / accordion */
+.acc{border:1px solid var(--line);border-radius:11px;overflow:hidden}
+.ai{border-top:1px solid var(--line)}.ai:first-child{border-top:0}
+.ah{display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;background:var(--ink);transition:.15s;user-select:none}
+.ah:hover{background:var(--ink-2)}
+.ah .sec{font:700 11px/1 var(--mono);color:var(--equity);letter-spacing:.04em;flex:none;width:28px}
+.ah .at{font:600 14px/1 var(--serif);flex:1}
+.ah .src{font:500 10px/1 var(--mono);color:var(--faint);background:var(--ink-2);border:1px solid var(--line);border-radius:5px;padding:4px 7px}
+.ah .car{color:var(--ghost);transition:transform .2s;font-size:12px}
+.ai.open .car{transform:rotate(90deg)}
+.ab{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.ai.open .ab{max-height:600px}
+.ab-in{padding:4px 18px 18px 58px;font:400 13.5px/1.7 var(--serif);color:var(--mute)}
+.badge{font:600 9.5px/1 var(--mono);border-radius:5px;padding:4px 7px;flex:none}
+.badge.ok{color:var(--accent-hi);background:rgba(15,156,140,.08)}
+.badge.degraded{color:var(--warn);background:var(--warn-bg)}
+.badge.missing{color:var(--miss);background:var(--miss-bg)}
+
+/* stagger in */
+.rise{opacity:0;transform:translateY(12px);animation:rise .6s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+
+.foot{font:500 11px/1.6 var(--mono);color:var(--faint);text-align:center;margin-top:36px;letter-spacing:.02em}
+.foot b{color:var(--mute)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="proto rise">
+    <span>个股分析 · 渲染原型 <b>RENDER PROTOTYPE</b></span>
+    <span>数据取自 <b>601899</b> run1 / run2 两份报告 · 演示 md 模块化解析 → 前端渲染（静态原型，非接入真实管线）</span>
+  </div>
+
+  <header class="mast rise">
+    <div>
+      <div class="eyebrow">个股分析 · Equity Dossier</div>
+      <div class="name">紫金矿业<span class="code">601899</span></div>
+      <div class="sub"><span>SSE 上交所</span><span class="x">/</span><span>有色金属 · 黄金</span><span class="x">/</span><span id="asof">as of 2026-06-08</span></div>
+    </div>
+    <div class="quote">
+      <div class="px">¥29.63</div>
+      <div class="chg dn">▾ 0.71 &nbsp;-2.34%</div>
+    </div>
+  </header>
+
+  <!-- 同一只票两次运行：切换观察「模块健康度」如何如实改变渲染 -->
+  <div class="seg rise" style="animation-delay:.05s">
+    <button id="b-run1" onclick="pick('run1')"><span class="t">RUN 1</span><small>NO_news · risk OK</small></button>
+    <button id="b-run2" class="on" onclick="pick('run2')"><span class="t">RUN 2</span><small>news OK · risk DEGRADED</small></button>
+  </div>
+
+  <!-- ========== 决策 hero（判断层 · 原子） ========== -->
+  <div class="panel rise" style="animation-delay:.08s" id="hero-panel"></div>
+
+  <!-- ========== 客观事实层 ========== -->
+  <div class="zone-label zone-fact rise" style="animation-delay:.12s">客观事实 · Objective</div>
+
+  <div class="panel rise" style="animation-delay:.14s">
+    <div class="minihd">关键财务 · key_metrics（基本面快照）</div>
+    <div class="mgrid">
+      <div class="metric"><div class="k">PE-TTM</div><div class="v">13.2<small>×</small></div><div class="tag tg-good">低估区间</div></div>
+      <div class="metric"><div class="k">PB</div><div class="v">1.35<small>×</small></div><div class="tag tg-good">合理偏低</div></div>
+      <div class="metric"><div class="k">ROE</div><div class="v">10.3<small>%</small></div></div>
+      <div class="metric"><div class="k">ROA</div><div class="v">6.1<small>%</small></div></div>
+      <div class="metric"><div class="k">净利率</div><div class="v">25.5<small>%</small></div><div class="tag tg-good">行业顶尖</div></div>
+      <div class="metric"><div class="k">毛利率</div><div class="v">36.3<small>%</small></div></div>
+      <div class="metric"><div class="k">资产负债率</div><div class="v">51.4<small>%</small></div><div class="tag tg-mid">适中</div></div>
+      <div class="metric"><div class="k">流动比率</div><div class="v">1.34</div></div>
+    </div>
+  </div>
+
+  <div class="panel rise" style="animation-delay:.16s">
+    <div class="minihd">技术面 · technical（市场分析师）</div>
+    <div class="tech">
+      <div>
+        <span class="trend down">▾ DOWN &nbsp;空头排列</span>
+        <div style="margin-top:16px">
+          <div class="maline"><span class="mv">MA5</span><span class="mv"><b>¥30.60</b><span class="below">价在下</span></span></div>
+          <div class="maline"><span class="mv">MA10</span><span class="mv"><b>¥31.00</b><span class="below">价在下</span></span></div>
+          <div class="maline"><span class="mv">MA20</span><span class="mv"><b>¥31.63</b><span class="below">价在下</span></span></div>
+          <div class="maline"><span class="mv">MA60</span><span class="mv"><b>¥33.00</b><span class="below">价在下</span></span></div>
+        </div>
+        <div class="sr">
+          <div class="srbox sup"><div class="k">支撑 support</div><div class="v">¥28.55</div></div>
+          <div class="srbox res"><div class="k">压力 resistance</div><div class="v">¥31.63</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="bollwrap">
+          <div class="minihd" style="margin-bottom:4px">布林带位置 · 17.5%（贴近下轨）</div>
+          <div class="bollbar"><div class="mid"></div><div class="mk" style="left:17.5%" data-px="¥29.63"></div></div>
+          <div class="bollends"><span>下轨 28.55</span><span>中轨 31.63</span><span>上轨 34.72</span></div>
+        </div>
+        <div style="margin-top:20px">
+          <div class="minihd" style="margin-bottom:8px">MACD &nbsp;DIF -0.803 · DEA -0.698</div>
+          <div class="osc">
+            <div><div class="k">MACD柱</div><div class="v dn">-0.208</div></div>
+            <div><div class="k">RSI6</div><div class="v dn">32.76</div></div>
+            <div><div class="k">RSI12</div><div class="v">36.90</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- sentiment + news 动态（随 run 改变健康度） -->
+  <div class="cols2 rise" style="animation-delay:.18s">
+    <div class="panel" id="senti-panel" style="margin:0"></div>
+    <div class="panel" id="news-panel" style="margin:0"></div>
+  </div>
+
+  <!-- ========== 模型判断层 ========== -->
+  <div class="zone-label zone-op rise" style="animation-delay:.2s">模型判断 · 非客观事实（TradingAgents-CN）</div>
+  <div class="op-note rise" style="animation-delay:.21s"><span>⚠</span><span>以下为多智能体辩论产出的<b>主观判断</b>，非市场事实。请与上方客观数据分层阅读。</span></div>
+
+  <div class="panel rise" style="animation-delay:.22s">
+    <div class="minihd" style="margin-bottom:14px">多空辩论 · debate</div>
+    <div class="bb" id="bb"></div>
+  </div>
+
+  <div class="panel rise" style="animation-delay:.24s">
+    <div class="cols2">
+      <div><div class="minihd">催化剂 · catalysts</div><div class="tagrow" id="cats"></div></div>
+      <div><div class="minihd">风险 · risks</div><div class="tagrow" id="risks"></div></div>
+    </div>
+  </div>
+
+  <!-- ========== 分析师档案（折叠 prose 模块） ========== -->
+  <div class="zone-label zone-op rise" style="animation-delay:.26s">分析师档案 · Dossiers（模块正文 + 来源）</div>
+  <div class="acc rise" style="animation-delay:.27s" id="acc"></div>
+
+  <div class="foot">
+    渲染原型 · <b>frontend/prototype-stock-analysis.html</b><br/>
+    md 模块化契约见 docs/frontend-kb-binding.md §2b · 数据 © 601899 引擎报告 2026-06-08 · 仅供本地查看
+  </div>
+</div>
+
+<script>
+/* ============ 模拟「解析 md 后」得到的数据对象 ============
+   实战中由 build_frontend_data.py：
+   ① 读 frontmatter.meta.frontend → analysis 原子
+   ② 正则切 <!-- module:x status:y --> → modules 正文 + 每模块 status        */
+const SHARED_DOSSIER_FACT = {
+  technical:{sec:'§1',title:'市场技术面',src:'Market Analyst',status:'ok',
+    prose:'均线完整空头排列（MA5<MA10<MA20<MA60），股价 ¥29.63 位于所有均线下方。MACD 死叉、柱状 -0.208，DIF/DEA 双负。RSI6 32.76 接近超卖。布林带位置 17.5% 贴近下轨 ¥28.55。结论：明确下行趋势，技术性反弹可视为减仓机会而非反转。'},
+  fundamentals:{sec:'§4',title:'基本面',src:'Fundamentals Analyst',status:'ok',
+    prose:'PE 13.2× 低于行业 15-18×，PB 1.35× 低于行业 1.5-1.8×；净利率 25.5%、毛利率 36.3% 行业顶尖；资产负债率 51.4% 适中，流动比率 1.34。评级买入，目标价 ¥34.8-35.5（中期）/ ¥38-39（长期）。安全边际充足。'}
+};
+const DATA = {
+  run1:{
+    decision:{action:'持有',en:'HOLD',cls:'hold',target:31.5,confidence:0.65,risk:0.65,
+      chain:[['交易员','持有偏谨慎'],['风险经理','持有 · 三方收敛一致','final']],
+      reason:'期望值为负（70% 胜率仅 +2.8% 对应 -3.75% 风险），技术面四线空头未反转，但 PB 1.35 提供下行缓冲。已持仓守 ¥28.50 止损；空仓可建 30% 试探底仓，余等 MACD 底背离或突破 MA20 31.63 确认。便宜＋拐点确认才是买入理由。'},
+    status:{technical:'ok',sentiment:'ok',news:'missing',fundamentals:'ok',debate:'ok',risk:'ok'},
+    sentiment:{health:'ok',score:'+0.54',idx:'7.2/10 偏积极',rank:105,weibo:'+2.33',
+      concepts:[['小金属',240],['稀缺资源',52],['机构重仓',31]]},
+    news:null,
+    bull:['PE 13.2× vs 行业 15-18×，估值洼地','净利率 25.5% 行业顶尖，抗周期','PB 1.35 下行缓冲充足','RSI 超卖＋布林下轨，反弹概率高'],
+    bear:['矿业周期顶部，盈利顶时 PE 最低（陷阱）','技术面四线空头未反转','无人能证明现在是周期底部','超卖≠必然反弹（2015 煤炭股殷鉴）'],
+    cats:['突破 MA20 ¥31.63 确认','MACD 底背离','铜价企稳'],
+    risks:['大宗商品继续走弱','周期下行非线性冲击利润','人民币汇率'],
+    dossiers:[
+      SHARED_DOSSIER_FACT.technical,
+      {sec:'§2',title:'市场情绪',src:'Social Analyst',status:'ok',prose:'综合情绪 +0.54（7.2/10 偏积极）。微博财经 +2.33 强积极，散户领先；东财人气第 105 位快速升温。小金属概念热度 240 绝对主导。格局：散户热情＋机构稳健，上升初期。'},
+      {sec:'§3',title:'新闻舆情',src:'News Analyst',status:'missing',prose:'本次运行未取到任何新闻——引擎对 Anthropic 直连不取数（需走预取路径）。模块为空，前端如实标灰，不臆造。'},
+      SHARED_DOSSIER_FACT.fundamentals,
+      {sec:'§7',title:'风险辩论',src:'Risky/Safe/Neutral',status:'ok',prose:'三位风险分析师虽被分配对立角色，却都回归对同一组数据的诚实解读，并收敛到一致结论——风险经理视此「剥离立场后的趋同」为强信号。'},
+      {sec:'§9',title:'最终裁决',src:'Risk Manager',status:'ok',prose:'持有，守纪律等确认信号，绝不在下跌趋势中盲目接刀。期望值为负＋技术未反转，故不买；PB 1.35 估值缓冲，故不卖。'}
+    ]
+  },
+  run2:{
+    decision:{action:'持有',en:'HOLD',cls:'hold',target:28.5,confidence:0.3,risk:0.8,
+      chain:[['交易员','原始方案'],['投研经理','买入 ¥34-35.5','flip'],['风控主席','持有 · 覆盖','final']],
+      reason:'本次风险辩论未真正发生——三位分析师拒绝扮演，一致质疑决策所依赖数据（2026 财报）不可验证。这恰构成选择「持有」的强论据而非和稀泥。暂停一切建仓，保留 ¥28.00 止损框架但不激活。绝不在自己无法验证的地图上规划真金白银的远征。'},
+    status:{technical:'ok',sentiment:'ok',news:'ok',fundamentals:'ok',debate:'ok',risk:'degraded'},
+    sentiment:{health:'ok',score:'-0.02',idx:'5.0/10 中性偏弱',rank:107,weibo:'无热榜',
+      concepts:[['小金属',240],['机构重仓',31],['黄金概念',28]]},
+    news:{health:'ok',tone:'冰火两重天 · 长期看好(4/5)、短期乐观(2/5)',
+      events:[
+        '紫金子公司拟 55 亿加元（约 280 亿元）现金收购 Allied Gold，核心资产为非洲三座大型金矿——年内沪市重组百亿级大单',
+        '2025 年度股东会报名爆满，从 21 楼会议室迁至紫金大酒店，扩容至 200 人',
+        '6/8 跌 5.33%、主力净流出 14.32 亿；6/4 跌 2.97%、净流出 9.94 亿；换手率 1.0-1.83% 低位'
+      ]},
+    bull:['PE 13.2/PB 1.35 对行业 15-18/1.5-1.8，是硬财报数字非预测','净利率 25.5%、毛利率 36.3% 行业顶尖','280 亿并购扩黄金储量，长期受益金价周期','黄金处历史高位＋降息预期＋央行增储'],
+    bear:['有色板块整体承压，商品周期或下行','主力连续净流出 24 亿+，最强警告信号','280 亿并购融资压力＋整合风险被低估','并购时机可能踩在周期顶部'],
+    cats:['280 亿加元收购 Allied Gold 落地','中报 8 月','黄金价格企稳','主力资金回流'],
+    risks:['大宗/黄金价格下跌','非洲金矿地缘政治','并购整合成本','加元汇率','环保监管'],
+    dossiers:[
+      SHARED_DOSSIER_FACT.technical,
+      {sec:'§2',title:'市场情绪',src:'Social Analyst',status:'ok',prose:'综合情绪 -0.02（5.0/10 中性偏弱）。微博未进热榜、散户参与度低；东财人气第 107 位。小金属概念热度仍 240，机构重仓 31。缺明显催化，区间震荡。'},
+      {sec:'§3',title:'新闻舆情',src:'News Analyst',status:'ok',prose:'280 亿元级跨境并购（非洲三金矿）＋股东会爆满显示长期信心；但 6/8、6/4 连续大额主力净流出、换手低迷，呈「战略利好与短期调整并存」。长期看好、短期谨慎。'},
+      SHARED_DOSSIER_FACT.fundamentals,
+      {sec:'§7',title:'风险辩论',src:'Risky/Safe/Neutral',status:'degraded',prose:'⚠ 模块降级：激进/中性/保守三位分析师在每一轮均拒绝扮演，反复主张「现在是 2024 年，2026 数据是虚构的」，全程无一句对 601899 的实质分析。本模块不提供有效风险论据。'},
+      {sec:'§8',title:'投研裁决',src:'Research Manager',status:'ok',prose:'买入（中性偏积极、分批建仓）：当前 29.63 距下轨 28.55 仅 3.6% 下行，向上估值修复 13-20%，非对称收益。指令：首笔 40% 仓位、止损 28.00、3-6 月目标 34-35.5。'},
+      {sec:'§9',title:'最终裁决',src:'Risk Manager',status:'degraded',prose:'风控主席覆盖投研的「买入」，改判持有：本次辩论未提供任何基于可验证数据的论据，三位分析师一致指出决策依赖数据的不可验证性——这是选持有的强论据。暂停建仓，转入数据验证程序。'}
+    ]
+  }
+};
+
+const G={ok:'✓',degraded:'⚠',missing:'✕'};
+const LAB={technical:'技术',sentiment:'情绪',news:'新闻',fundamentals:'基本面',debate:'多空',risk:'风险'};
+const pc=v=>Math.round(v*100);
+const riskColor=v=>v>=.66?'var(--buy)':v>=.4?'var(--warn)':'var(--sell)';
+
+function pick(run){
+  document.getElementById('b-run1').classList.toggle('on',run==='run1');
+  document.getElementById('b-run2').classList.toggle('on',run==='run2');
+  render(run);
+}
+
+function render(run){
+  const d=DATA[run], dec=d.decision;
+
+  /* hero */
+  const chain=dec.chain.map((n,i)=>{
+    const cls=n[2]==='flip'?'node flip':n[2]==='final'?'node final':'node';
+    const arr=i<dec.chain.length-1?'<span class="arrow">→</span>':'';
+    return `<span class="${cls}"><b>${n[0]}</b> ${n[1]}</span>${arr}`;
+  }).join('');
+  const strip=Object.entries(d.status).map(([k,s])=>
+    `<span class="chip ${s}" onclick="document.getElementById('acc').scrollIntoView({behavior:'smooth'})">${G[s]} ${LAB[k]}</span>`).join('');
+  document.getElementById('hero-panel').innerHTML=`
+    <div class="hero">
+      <div class="verdict ${dec.cls}">
+        <div class="zh">${dec.action}</div><div class="en">${dec.en}</div>
+        <div class="tp">目标价 <b>¥${dec.target}</b></div>
+      </div>
+      <div class="hero-r">
+        <div class="gauges">
+          <div class="gauge"><div class="gl">置信度 confidence <b>${dec.confidence}</b></div>
+            <div class="track"><div class="fill" style="width:${pc(dec.confidence)}%;background:var(--accent)"></div></div></div>
+          <div class="gauge"><div class="gl">风险分 risk <b>${dec.risk}</b></div>
+            <div class="track"><div class="fill" style="width:${pc(dec.risk)}%;background:${riskColor(dec.risk)}"></div></div></div>
+        </div>
+        <div><div class="minihd" style="margin-bottom:9px">决策溯源 · provenance</div><div class="chain">${chain}</div></div>
+        <div class="reason">${dec.reason}</div>
+      </div>
+    </div>
+    <div class="strip"><span class="lab">数据完整性</span>${strip}</div>`;
+
+  /* sentiment */
+  const s=d.sentiment;
+  document.getElementById('senti-panel').innerHTML=`
+    <div class="minihd">市场情绪 · sentiment <span class="badge ok" style="margin-left:6px">${G.ok} OK</span></div>
+    <div style="display:flex;gap:22px;align-items:baseline;margin:6px 0 14px">
+      <div><div class="px" style="font-size:26px;color:${s.score[0]==='+'?'var(--buy)':'var(--mute)'}">${s.score}</div>
+        <div class="sub" style="margin-top:6px">综合情绪 · ${s.idx}</div></div>
+      <div style="font:500 12px/1.7 var(--mono);color:var(--mute)">人气榜 #${s.rank}<br/>微博 ${s.weibo}</div>
+    </div>
+    <div class="tagrow">${s.concepts.map(c=>`<span class="ttag cat"><span class="d"></span>${c[0]} ${c[1]}</span>`).join('')}</div>`;
+
+  /* news（演示 missing vs ok） */
+  const np=document.getElementById('news-panel');
+  if(!d.news){
+    np.innerHTML=`<div class="minihd">新闻舆情 · news <span class="badge missing" style="margin-left:6px">${G.missing} MISSING</span></div>
+      <div class="missing-card" style="margin-top:10px"><div class="mi">本模块无数据</div>
+        <p>引擎对 Anthropic 直连不取数（需走预取）。<br/>按「缺失即缺失」铁律如实标灰，不臆造。</p></div>`;
+  }else{
+    np.innerHTML=`<div class="minihd">新闻舆情 · news <span class="badge ok" style="margin-left:6px">${G.ok} OK</span></div>
+      <div style="font:500 11.5px/1 var(--mono);color:var(--warn);margin:4px 0 10px">舆情：${d.news.tone}</div>
+      <ul class="nlist">${d.news.events.map((e,i)=>`<li><span class="ni">0${i+1}</span><span>${e}</span></li>`).join('')}</ul>`;
+  }
+
+  /* bull/bear */
+  document.getElementById('bb').innerHTML=`
+    <div class="bbcol bull"><div class="bbh"><span class="ic">🐂</span>买方 BULL</div><ul>${d.bull.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+    <div class="bbcol bear"><div class="bbh"><span class="ic">🐮</span>卖方 BEAR</div><ul>${d.bear.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
+
+  document.getElementById('cats').innerHTML=d.cats.map(c=>`<span class="ttag cat"><span class="d"></span>${c}</span>`).join('');
+  document.getElementById('risks').innerHTML=d.risks.map(r=>`<span class="ttag risk"><span class="d"></span>${r}</span>`).join('');
+
+  /* dossiers */
+  document.getElementById('acc').innerHTML=d.dossiers.map((o,i)=>{
+    const body=o.status==='degraded'
+      ? `<div class="degraded"><div class="dh">⚠ 模块降级 DEGRADED</div><p>${o.prose}</p></div>`
+      : o.status==='missing'
+      ? `<div class="missing-card"><div class="mi">${G.missing} 本模块无数据</div><p>${o.prose}</p></div>`
+      : o.prose;
+    return `<div class="ai${i===0?' open':''}">
+      <div class="ah" onclick="this.parentNode.classList.toggle('open')">
+        <span class="sec">${o.sec}</span><span class="at">${o.title}</span>
+        <span class="badge ${o.status}">${G[o.status]} ${o.status.toUpperCase()}</span>
+        <span class="src">${o.src}</span><span class="car">▸</span>
+      </div>
+      <div class="ab"><div class="ab-in">${body}</div></div>
+    </div>`;
+  }).join('');
+}
+render('run2');
+</script>
+</body>
+</html>
