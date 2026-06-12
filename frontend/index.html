@@ -392,11 +392,21 @@ a{color:inherit;text-decoration:none}
 .md-sh{display:flex; align-items:center; gap:10px; padding:11px 15px; cursor:pointer; user-select:none; transition:.15s; background:var(--ink-2)}
 .md-sh:hover{background:var(--ink-3)}
 .md-cv{color:var(--c-company); font-size:11px; transition:transform .2s; flex:none}
-.md-sec.open .md-cv{transform:rotate(90deg)}
+.md-sec.open>.md-sh .md-cv{transform:rotate(90deg)}
 .md-st{font-family:var(--serif); font-size:14.5px; font-weight:500; color:var(--text); flex:1; line-height:1.3}
 .md-sb{max-height:0; overflow:hidden; transition:max-height .3s ease}
-.md-sec.open .md-sb{max-height:none}
-.md-sb .md-body{padding:8px 17px 16px}
+.md-sec.open>.md-sb{max-height:none}
+.md-sb>.md-body:not(.md-lead){padding:8px 16px 15px}
+.md-sb>.md-secs{padding:6px 12px 11px}
+/* 嵌套层：更轻、缩进，体现层级（lv1 浅卡片 / lv2 虚线行） */
+.md-sec.lv1{border-radius:9px; background:var(--ink-2); margin-bottom:6px}
+.md-sec.lv1>.md-sh{background:transparent; padding:9px 13px}
+.md-sec.lv1>.md-sh .md-st{font-size:13px; color:var(--accent-hi)}
+.md-sec.lv1>.md-sh .md-cv{font-size:10px}
+.md-sec.lv2{border:0; border-top:1px dashed var(--line); border-radius:0; background:transparent; margin:0}
+.md-sec.lv2:first-child{border-top:0}
+.md-sec.lv2>.md-sh{background:transparent; padding:8px 6px}
+.md-sec.lv2>.md-sh .md-st{font-family:var(--mono); font-size:12px; color:var(--mute); letter-spacing:.01em}
 
 /* Markdown 排版 */
 .md-body{font-family:var(--serif); font-size:13.5px; line-height:1.72; color:var(--mute); word-break:break-word}
@@ -469,7 +479,7 @@ a{color:inherit;text-decoration:none}
       <div class="row"><span>文档</span><b id="sf-docs">·</b></div>
       <div class="row"><span>图谱节点</span><b id="sf-nodes">·</b></div>
       <div class="row"><span>图谱关系</span><b id="sf-edges">·</b></div>
-      <div class="asof">cn-only P0 · data.json</div>
+      <div class="asof">cn-only P0 · live md</div>
     </div>
   </aside>
 
@@ -577,23 +587,37 @@ a{color:inherit;text-decoration:none}
   </main>
 </div>
 
+<script src="kb-parse.js"></script>
 <script>
 const TC={media:'var(--c-media)',macro:'var(--c-macro)',sector:'var(--c-sector)',company:'var(--c-company)'};
 let KB=null;
 
-/* 注意：boot 经 queueMicrotask 延后，确保下方 let/const 全部初始化后再运行（避免 TDZ） */
-if(window.__KB__){ KB=window.__KB__; queueMicrotask(boot); }   /* 自包含 dist 构建：数据已内联 */
-else fetch('data.json',{cache:'no-store'})          /* dev：本地服务读取 data.json */
-  .then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
-  .then(d=>{KB=d;boot();})
-  .catch(()=>{
-    document.getElementById('mh-t').textContent='无法加载 data.json';
+/* live 解析：从项目根本地服务直接 fetch KB 源（md/jsonl）→ kb-parse.js 解析成 KB 对象。
+   无 data.json、无编译步骤；改任意 .md 刷新即见。源清单 manifest.json 由 serve.sh 生成。
+   渲染层（renderEquity / renderSectorIndex …）完全不变。 */
+const KB_PREFIX='/Knowledge_Wiki/';
+if(window.__KB__){ KB=window.__KB__; queueMicrotask(boot); }   /* 兼容历史内联构建（如仍存在） */
+else loadKB();
+
+async function loadKB(){
+  try{
+    const man=await (await fetch('manifest.json',{cache:'no-store'})).json();
+    const files={};
+    await Promise.all((man.files||[]).map(async rel=>{
+      try{ const r=await fetch(KB_PREFIX+rel,{cache:'no-store'}); if(r.ok) files[rel]=await r.text(); }
+      catch(e){ console.warn('[finance-kb] 源加载失败',rel,e); }
+    }));
+    KB=kbParse(files);
+    boot();
+  }catch(err){
+    console.error('[finance-kb] boot error:',err);
+    document.getElementById('mh-t').textContent='无法加载知识库源';
     document.getElementById('v-overview').innerHTML=
-      '<div class="callout"><div class="ic">⚠</div><div class="bd">未找到或无法读取 <b>data.json</b>。请先生成并通过本地服务访问：<br>'+
-      '<code style="font-family:var(--mono)">python3 Knowledge_Wiki/scripts/build_frontend_data.py</code><br>'+
-      '<code style="font-family:var(--mono)">cd frontend &amp;&amp; python3 -m http.server</code> → 打开 http://localhost:8000 。'+
+      '<div class="callout"><div class="ic">⚠</div><div class="bd">未能加载 <b>manifest.json</b> 或 KB 源（md/jsonl）。请用本地服务（从项目根）访问：<br>'+
+      '<code style="font-family:var(--mono)">./frontend/serve.sh</code> → 打开 http://localhost:8000/frontend/ 。<br>'+
       '（浏览器禁止 file:// 直接 fetch 本地文件，必须用本地服务。）</div></div>';
-  });
+  }
+}
 
 function boot(){ renderStats(); renderCoverage(); renderConstellation(); renderSectorIndex(); renderMacro(); renderMedia(); renderEquity(); initNav(); }
 
@@ -883,7 +907,7 @@ function mdInline(s){
 function mdRow(line){return line.trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(c=>c.trim());}
 function mdHtml(src){
   const lines=esc(src||'').replace(/\r\n?/g,'\n').split('\n');
-  const isBlock=l=>/^\s*$/.test(l)||/^#{1,6}\s/.test(l)||/^\s*[-*+]\s/.test(l)||/^\s*\d+\.\s/.test(l)||/^\s*>/.test(l)||/^\s*\|.*\|\s*$/.test(l)||/^\s*([-*_])\1{2,}\s*$/.test(l);
+  const isBlock=l=>/^\s*$/.test(l)||/^#{1,6}\s/.test(l)||/^\s*[-*+]\s/.test(l)||/^\s*\d+\.\s/.test(l)||/^\s*(?:&gt;|>)/.test(l)||/^\s*\|.*\|\s*$/.test(l)||/^\s*([-*_])\1{2,}\s*$/.test(l);
   let h='',i=0;
   while(i<lines.length){
     const ln=lines[i];
@@ -896,7 +920,7 @@ function mdHtml(src){
     const hm=ln.match(/^(#{1,6})\s+(.*)$/);
     if(hm){const lv=Math.min(6,hm[1].length+2);h+=`<h${lv}>${mdInline(hm[2].trim())}</h${lv}>`;i++;continue;}
     if(/^\s*([-*_])\1{2,}\s*$/.test(ln)){h+='<hr>';i++;continue;}
-    if(/^\s*>/.test(ln)){const b=[];while(i<lines.length&&/^\s*>/.test(lines[i])){b.push(lines[i].replace(/^\s*>\s?/,''));i++;}h+=`<blockquote>${mdInline(b.join('<br>'))}</blockquote>`;continue;}
+    if(/^\s*(?:&gt;|>)/.test(ln)){const b=[];while(i<lines.length&&/^\s*(?:&gt;|>)/.test(lines[i])){b.push(lines[i].replace(/^\s*(?:&gt;|>)\s?/,''));i++;}h+=`<blockquote>${mdInline(b.join('<br>'))}</blockquote>`;continue;}
     if(/^\s*[-*+]\s+/.test(ln)){const it=[];while(i<lines.length&&/^\s*[-*+]\s+/.test(lines[i])){it.push(lines[i].replace(/^\s*[-*+]\s+/,''));i++;}h+='<ul>'+it.map(t=>`<li>${mdInline(t)}</li>`).join('')+'</ul>';continue;}
     if(/^\s*\d+\.\s+/.test(ln)){const it=[];while(i<lines.length&&/^\s*\d+\.\s+/.test(lines[i])){it.push(lines[i].replace(/^\s*\d+\.\s+/,''));i++;}h+='<ol>'+it.map(t=>`<li>${mdInline(t)}</li>`).join('')+'</ol>';continue;}
     if(/^\s*$/.test(ln)){i++;continue;}
@@ -906,48 +930,50 @@ function mdHtml(src){
   }
   return h;
 }
-/* 按最浅标题层级把模块正文切成可折叠章节 + 顶部大纲；无标题则整段渲染。 */
-function mdSectioned(prose){
-  const lines=String(prose||'').replace(/\r\n?/g,'\n').split('\n');
+/* 递归切折叠：每层按「最浅且出现≥2 次」的标题切章节；章节体内若还有更小的重复标题层，
+   继续嵌套折叠（至多 3 层）。单个零散标题 / 孤立 # 文档标题 → 并入正文 lead，不强制折叠；
+   无标题 → 整段渲染。顶层（depth 0）额外给一排大纲 chips。 */
+function mdSplit(lines, depth){
   const heads=[]; lines.forEach((l,idx)=>{const m=l.match(/^(#{1,6})\s+(.*)$/);if(m)heads.push({idx,lv:m[1].length,title:m[2].trim()});});
-  if(!heads.length) return `<div class="md-doc"><div class="md-body">${mdHtml(lines.join('\n'))}</div></div>`;
-  // 切章节的层级 = 第一个出现 ≥2 次的最浅标题层（孤立的 # 文档标题归入 lead，真正的 ## 一/二/三… 成章节）
   const cnt={}; heads.forEach(h=>cnt[h.lv]=(cnt[h.lv]||0)+1);
-  let secLv=Object.keys(cnt).map(Number).sort((a,b)=>a-b).find(lv=>cnt[lv]>=2);
-  if(secLv==null) secLv=Math.min(...heads.map(h=>h.lv));
+  const secLv=Object.keys(cnt).map(Number).sort((a,b)=>a-b).find(lv=>cnt[lv]>=2);
+  if(secLv==null||depth>=3) return `<div class="md-body">${mdHtml(lines.join('\n'))}</div>`;
   const tops=heads.filter(h=>h.lv===secLv);
-  const pre=lines.slice(0,tops[0].idx).join('\n').trim();
-  let out='<div class="md-doc">';
-  if(tops.length>1) out+=`<div class="md-toc">${tops.map(h=>`<button class="md-chip" title="${esc(h.title)}">${esc(h.title)}</button>`).join('')}</div>`;
-  if(pre) out+=`<div class="md-body md-lead">${mdHtml(pre)}</div>`;
-  out+='<div class="md-secs">';
+  const pre=lines.slice(0,tops[0].idx);
+  let out='';
+  if(depth===0&&tops.length>1) out+=`<div class="md-toc">${tops.map(h=>`<button class="md-chip" title="${esc(h.title)}">${esc(h.title)}</button>`).join('')}</div>`;
+  if(pre.join('').trim()) out+=`<div class="md-body md-lead">${mdHtml(pre.join('\n'))}</div>`;
+  out+=`<div class="md-secs lv${depth}">`;
   tops.forEach((h,k)=>{
     const end=(k+1<tops.length)?tops[k+1].idx:lines.length;
-    const body=lines.slice(h.idx+1,end).join('\n').trim();
-    out+=`<div class="md-sec${k===0?' open':''}">
+    const inner=mdSplit(lines.slice(h.idx+1,end), depth+1);
+    out+=`<div class="md-sec lv${depth}${k===0?' open':''}">
       <div class="md-sh" onclick="this.parentNode.classList.toggle('open')"><span class="md-cv">▸</span><span class="md-st">${esc(h.title)}</span></div>
-      <div class="md-sb"><div class="md-body">${mdHtml(body)}</div></div></div>`;
+      <div class="md-sb">${inner}</div></div>`;
   });
-  out+='</div></div>';
-  return out;
+  return out+'</div>';
+}
+function mdSectioned(prose){
+  const lines=String(prose||'').replace(/\r\n?/g,'\n').split('\n');
+  return `<div class="md-doc">${mdSplit(lines,0)}</div>`;
 }
 /* 大纲 chip → 展开并滚到对应章节（章节折叠用内联 onclick，无需绑定）。 */
 function bindMdToc(root){
   root.querySelectorAll('.md-doc').forEach(doc=>{
-    const secs=[...doc.querySelectorAll('.md-sec')];
-    doc.querySelectorAll('.md-chip').forEach((chip,k)=>chip.addEventListener('click',()=>{
+    const secs=[...doc.querySelectorAll('.md-sec.lv0')];
+    doc.querySelectorAll('.md-toc .md-chip').forEach((chip,k)=>chip.addEventListener('click',()=>{
       const s=secs[k]; if(!s)return; s.classList.add('open'); s.scrollIntoView({behavior:'smooth',block:'center'});
     }));
   });
 }
 
 function renderEquity(){
-  const list=KB.companies||[], analyzed=list.filter(c=>c.status==='analyzed');
+  const list=KB.companies||[], analyzed=list.filter(c=>c.status==='analyzed'&&c.analysis!=null);
   const ct=document.getElementById('nav-eq-ct'); if(ct)ct.textContent=analyzed.length;
   const grid=document.getElementById('eq-grid');
   if(!list.length){grid.innerHTML='<div class="empty">暂无公司</div>';return;}
   grid.innerHTML=list.map(c=>{
-    const live=c.status==='analyzed',a=c.analysis,vcls=live?(EQ_VCLS[a.action]||'hold'):'';
+    const live=c.status==='analyzed'&&c.analysis!=null,a=c.analysis,vcls=live?(EQ_VCLS[a.action]||'hold'):'';
     const badge=live
       ?`<span class="st" style="color:${eqVCol(vcls)};border-color:currentColor">${a.action}</span>`
       :`<span class="st stub">${c.status==='stub'?'未分析':'—'}</span>`;
@@ -1017,7 +1043,7 @@ function renderAnalysisBody(vm){
     return `<div class="eq-ai${i===0?' open':''}">
       <div class="eq-ah" onclick="this.parentNode.classList.toggle('open')">
         <span class="sec">§${i+1}</span><span class="at">${md.title}</span>
-        <span class="eq-badge ${md.status}">${EQ_G[md.status]} ${md.status.toUpperCase()}</span>
+        <span class="eq-badge ${md.status}">${EQ_G[md.status]||'•'} ${String(md.status||'').toUpperCase()}</span>
         <span class="src">${md.src}</span><span class="car">▸</span></div>
       <div class="eq-ab"><div class="eq-abin">${body}</div></div></div>`;}).join('')}</div>`;
   return hero
