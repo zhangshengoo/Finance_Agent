@@ -117,6 +117,25 @@ uv run --with 'curl_cffi==0.9.0,readability-lxml==0.8.1,html2text==2024.2.26,bea
 - 同步执行即可（无 WBI 风控，但有 referer 限制）
 - 输出：一份 `raw/news/weixin/<account-slug>/<date>-<title-slug>.md`；正文图片落 `raw/assets/weixin/<account-slug>/`，文中改写为相对路径
 
+### Phase B+ — 重建创作者时间线（B 站，自动收尾）
+
+抓完 B 站源后**自动**重建该 UP 主的「创作者时间线清单」`timeline.json`。这是**廉价、纯 raw 派生**的收尾，让前端「媒体转录」视图随每次抓取保持最新、全覆盖——**不**经过 `finance-ingest`，**不**写 wiki。
+
+```bash
+python3 "${SKILL_DIR}/scripts/build_timeline.py" \
+  --kb-root "${KB_ROOT}" \
+  --up "<uploader-slug>"        # 省略 --up 则重建所有 UP 主
+```
+
+- 输出：`raw/transcripts/bilibili/<up>/_previews/timeline.json`（每个 UP 主一份）
+- 每条 item 一行高度概括：`{date, kind, id, title, tldr, mentions, up_actions, is_trade, stats, src, preview, link}`
+- 数据来源：raw JSON（权威字段）+ `_previews/*.md`（TL;DR / mentions / 操作表）。**没有 `_preview` 的源也照样进时间线**（降级：tldr 为空，仅 raw 字段）——这正是「全覆盖」的价值。
+- `has_wiki` / 深度链接**不在此处算**——那是前端构建期 `build_frontend_data.py` 读 wiki/filings-summary 叠加的事。
+
+**定位**：`timeline.json` 与 `_previews/` 同等地位——派生、可重建、随时可删，**不进** `wiki/` / `ontology/` / `_index.json`。它既不破坏 `raw/` 不可变铁律，也不绕过 `finance-ingest` 的两步 CoT 人工 review 边界。设计见 [`frontend/media-timeline-architecture.html`](../../../frontend/media-timeline-architecture.html)：**「wiki 装结论，raw + 轻量 digest 装流水」**。
+
+> 公众号文章（`raw/news/weixin/`）暂不纳入 `timeline.json`（当前仅覆盖 B 站 UP 主时间线）。
+
 ### Phase C — 报告结果 + 提示下游 skill（不自动调用）
 
 抓完后向用户报告 ≤ 20 行，按"是否含图"选择性提示 asset-describe，明确给出下游 skill 的可执行命令：
@@ -127,6 +146,8 @@ uv run --with 'curl_cffi==0.9.0,readability-lxml==0.8.1,html2text==2024.2.26,bea
 落地文件：
 - raw/transcripts/bilibili/<up>/dynamics/2026/2026-05/2026-05-28.json
 - raw/assets/bilibili/<uid>/xxx_0.png  （18 张图）
+
+✓ 已重建 raw/transcripts/bilibili/<up>/_previews/timeline.json（前端时间线已含本条，全覆盖）
 
 下一步（按需选择，本 skill 不自动调用）：
 

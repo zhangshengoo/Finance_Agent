@@ -34,8 +34,17 @@ MIXIN_KEY_ENC_TAB = [
 ]
 
 IMPERSONATE = "chrome120"
-REQUEST_INTERVAL = 0.6
+REQUEST_INTERVAL = 1.0   # API 调用基础间隔（秒），实际使用 api_sleep() 加 jitter
 HTTP_TIMEOUT = 15.0
+
+# buvid 指纹本地缓存（跨调用复用，避免频繁向 /finger/spi 取新指纹）
+_BUVID_CACHE_PATH = os.path.join(os.path.expanduser("~"), ".bilibili_buvid_cache.json")
+_BUVID_TTL_DAYS = 7
+
+
+def api_sleep(base: float = REQUEST_INTERVAL) -> None:
+    """带 ±40% jitter 的 sleep，避免固定间隔特征。"""
+    time.sleep(base * (0.6 + random.random() * 0.8))
 
 
 def get_mixin_key(img_key: str, sub_key: str) -> str:
@@ -101,11 +110,40 @@ def create_client(sessdata: str | None = None, proxy: str | None = None) -> Sess
     return Session(**kwargs)
 
 
+def _load_buvid_cache() -> tuple[str, str] | None:
+    """从本地缓存读取 buvid3/buvid4，TTL 内有效则返回 (b3, b4)，否则 None。"""
+    try:
+        with open(_BUVID_CACHE_PATH, "r") as f:
+            cache = json.load(f)
+        saved = dt.datetime.fromisoformat(cache["saved_at"])
+        age_days = (dt.datetime.now(dt.timezone.utc) - saved).days
+        if age_days < _BUVID_TTL_DAYS and cache.get("b3") and cache.get("b4"):
+            return cache["b3"], cache["b4"]
+    except (OSError, KeyError, ValueError):
+        pass
+    return None
+
+
+def _save_buvid_cache(b3: str, b4: str) -> None:
+    try:
+        with open(_BUVID_CACHE_PATH, "w") as f:
+            json.dump({"b3": b3, "b4": b4, "saved_at": dt.datetime.now(dt.timezone.utc).isoformat()}, f)
+    except OSError:
+        pass
+
+
 def init_fingerprint(client: Session, sessdata: str | None = None) -> None:
-    resp = client.get("https://api.bilibili.com/x/frontend/finger/spi")
-    data = resp.json().get("data", {})
-    b3 = data.get("b_3", "")
-    b4 = data.get("b_4", "")
+    """设置 buvid3/buvid4 cookie。优先复用本地缓存（TTL 7天），过期才请求 /finger/spi。"""
+    cached = _load_buvid_cache()
+    if cached:
+        b3, b4 = cached
+    else:
+        resp = client.get("https://api.bilibili.com/x/frontend/finger/spi")
+        data = resp.json().get("data", {})
+        b3 = data.get("b_3", "")
+        b4 = data.get("b_4", "")
+        if b3 and b4:
+            _save_buvid_cache(b3, b4)
     cookie_parts = []
     if b3:
         cookie_parts.append(f"buvid3={b3}")

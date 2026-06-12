@@ -40,6 +40,7 @@ import time
 from curl_cffi.requests import Session
 from _bilibili_common import (
     REQUEST_INTERVAL,
+    api_sleep,
     assert_kb_layout,
     atomic_write_json,
     create_client,
@@ -72,11 +73,14 @@ def get_videos(client: Session, uid: str, count: int) -> tuple[list[dict], str]:
 
     resp = client.get("https://api.bilibili.com/x/space/wbi/arc/search", params=signed)
     j = resp.json() if resp.status_code != 412 else None
-    blocked = resp.status_code == 412 or (j and j.get("code") == -412)
+    code = j.get("code") if j else None
+    blocked = resp.status_code == 412 or code in (-412, -352)
 
     if blocked:
-        for wait in (30, 60):
-            sys.stderr.write(f"[fetch_bilibili] 412 风控，等 {wait}s 重试...\n")
+        waits = (60, 120) if code == -352 else (30, 60)
+        label = "-352 环境风控" if code == -352 else "412 风控"
+        for wait in waits:
+            sys.stderr.write(f"[fetch_bilibili] {label}，等 {wait}s 重试...\n")
             sys.stderr.flush()
             time.sleep(wait)
             get_wbi_keys.cache_clear()
@@ -86,10 +90,10 @@ def get_videos(client: Session, uid: str, count: int) -> tuple[list[dict], str]:
             if resp.status_code == 412:
                 continue
             j = resp.json()
-            if j.get("code") != -412:
+            if j.get("code") not in (-412, -352):
                 break
         else:
-            raise RuntimeError("412 风控两次重试仍失败")
+            raise RuntimeError(f"{label} 两次重试仍失败")
 
     if j is None:
         j = resp.json()
@@ -251,7 +255,7 @@ def main():
                 }
                 if args.with_subtitle:
                     cid = info["cid"]
-                    time.sleep(REQUEST_INTERVAL)
+                    api_sleep()
                     sub, src = get_subtitle(client, args.bvid, cid)
                     video["subtitle"] = sub
                     video["subtitle_source"] = src
@@ -281,10 +285,10 @@ def main():
                 bvid = v["bvid"]
                 try:
                     if args.with_subtitle:
-                        time.sleep(REQUEST_INTERVAL)
+                        api_sleep()
                         info = get_video_info(client, bvid)
                         cid = info["cid"]
-                        time.sleep(REQUEST_INTERVAL)
+                        api_sleep()
                         sub, src = get_subtitle(client, bvid, cid)
                         v["subtitle"] = sub
                         v["subtitle_source"] = src

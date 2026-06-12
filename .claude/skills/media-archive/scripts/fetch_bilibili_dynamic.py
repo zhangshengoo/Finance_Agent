@@ -35,6 +35,7 @@ import time
 from curl_cffi.requests import Session
 from _bilibili_common import (
     REQUEST_INTERVAL,
+    api_sleep,
     assert_kb_layout,
     atomic_write_json,
     create_client,
@@ -107,15 +108,15 @@ def _extract_images(major):
     t = major.get("type", "")
     if t == "MAJOR_TYPE_DRAW":
         return [
-            {"url": i["src"], "width": i.get("width", 0),
-             "height": i.get("height", 0), "size_kb": i.get("size", 0)}
+            {"url": i["src"], "width": int(i.get("width") or 0),
+             "height": int(i.get("height") or 0), "size_kb": int(i.get("size") or 0)}
             for i in major.get("draw", {}).get("items", []) if i.get("src")
         ]
     if t == "MAJOR_TYPE_OPUS":
         return [
             {"url": p.get("url") or p.get("src", ""),
-             "width": p.get("width", 0), "height": p.get("height", 0),
-             "size_kb": p.get("size", 0)}
+             "width": int(p.get("width") or 0), "height": int(p.get("height") or 0),
+             "size_kb": int(p.get("size") or 0)}
             for p in major.get("opus", {}).get("pics", [])
             if p.get("url") or p.get("src")
         ]
@@ -152,7 +153,7 @@ def _is_paid_dynamic(item: dict) -> bool:
 
 
 def fetch_dynamic_detail(client: Session, dyn_id: str):
-    time.sleep(REQUEST_INTERVAL)
+    api_sleep()
     try:
         r = client.get(
             "https://api.bilibili.com/x/polymer/web-dynamic/v1/detail",
@@ -203,7 +204,7 @@ def parse_dynamic(item: dict):
 
     image_hints = []
     for img in images:
-        w, h = img.get("width", 0), img.get("height", 0)
+        w, h = int(img.get("width") or 0), int(img.get("height") or 0)
         if w and h:
             r = w / h
             if r > 1.5:
@@ -249,7 +250,7 @@ def get_dynamics(client, uid, count, types_filter, sessdata):
     for _page in range(10):
         if len(results) >= count:
             break
-        time.sleep(REQUEST_INTERVAL)
+        api_sleep()
         params = {"host_mid": uid}
         if offset:
             params["offset"] = offset
@@ -268,19 +269,23 @@ def get_dynamics(client, uid, count, types_filter, sessdata):
                 j = resp.json()
             except Exception:
                 pass
-        blocked = resp is None or resp.status_code == 412 or (j and j.get("code") == -412)
+        code = j.get("code") if j else None
+        # -352 是 IP 级环境风控（比 -412 更严重），需更长等待；-412 是请求频率风控
+        blocked = resp is None or resp.status_code == 412 or code in (-412, -352)
 
         if blocked:
             retried = False
-            for wait in (30, 60):
-                sys.stderr.write(f"[fetch_bilibili_dynamic] 412 风控，等 {wait}s 重试...\n")
+            waits = (60, 120) if code == -352 else (30, 60)
+            label = "-352 环境风控" if code == -352 else "412 风控"
+            for wait in waits:
+                sys.stderr.write(f"[fetch_bilibili_dynamic] {label}，等 {wait}s 重试...\n")
                 sys.stderr.flush()
                 time.sleep(wait)
                 try:
                     init_fingerprint(client, sessdata)
                 except Exception:
                     continue
-                time.sleep(REQUEST_INTERVAL)
+                api_sleep()
                 try:
                     resp = client.get(
                         "https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space",
@@ -294,11 +299,11 @@ def get_dynamics(client, uid, count, types_filter, sessdata):
                     j = resp.json()
                 except Exception:
                     continue
-                if j.get("code") != -412:
+                if j.get("code") not in (-412, -352):
                     retried = True
                     break
             if not retried:
-                errors["api"] = "412 风控两次重试仍失败"
+                errors["api"] = f"{label} 两次重试仍失败 (code={code})"
                 break
 
         if j is None:
@@ -340,7 +345,7 @@ def get_dynamics(client, uid, count, types_filter, sessdata):
 def download_one(client, url, dst_path):
     if url.startswith("//"):
         url = "https:" + url
-    time.sleep(0.3)
+    api_sleep(0.4)
     r = client.get(url)
     r.raise_for_status()
     with open(dst_path, "wb") as f:
