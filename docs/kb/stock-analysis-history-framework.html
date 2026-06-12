@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>历史感知个股分析框架 · History-Aware Stock Analysis</title>
+<style>
+  :root{
+    --paper:#f7f4ec; --paper2:#fffefb; --ink:#1c1a17; --mute:#6f6a60; --faint:#9a948a;
+    --line:#e4dfd2; --line2:#d8d2c2;
+    --accent:#bb4d2e;            /* burnt sienna */
+    --reuse:#2f7d4f; --reuse-bg:#e9f3ec;
+    --incr:#b9851a;  --incr-bg:#f6efdd;
+    --fresh:#c2362f; --fresh-bg:#f7e7e5;
+    --cond:#2c6db0;  --cond-bg:#e6eef7;
+    --ok:#2f7d4f; --bad:#c2362f; --warn:#b9851a;
+    --serif:"Songti SC","STSong",Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;
+    --mono:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.65;
+    font-size:15px;-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(circle at 1px 1px,rgba(0,0,0,.025) 1px,transparent 0);background-size:22px 22px;}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+  code,.mono{font-family:var(--mono);font-size:.86em}
+  .accent{color:var(--accent)}
+
+  /* ---------- hero ---------- */
+  header{padding:78px 0 46px;border-bottom:2px solid var(--ink);position:relative;overflow:hidden}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--accent);margin-bottom:22px}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(34px,5.4vw,60px);line-height:1.04;letter-spacing:-.01em;margin-bottom:8px}
+  h1 .en{display:block;font-size:.42em;letter-spacing:.04em;color:var(--mute);font-weight:500;margin-top:14px;font-family:var(--sans)}
+  .verdict{margin-top:30px;max-width:760px;font-size:18px;line-height:1.55}
+  .verdict b{background:linear-gradient(transparent 62%,rgba(187,77,46,.22) 62%);padding:0 2px}
+  .meta-row{margin-top:34px;display:flex;flex-wrap:wrap;gap:10px}
+  .pill{font-family:var(--mono);font-size:11px;letter-spacing:.04em;padding:6px 12px;border:1px solid var(--line2);
+    border-radius:100px;color:var(--mute);background:var(--paper2)}
+  .pill b{color:var(--ink)}
+
+  /* ---------- section ---------- */
+  section{padding:64px 0;border-bottom:1px solid var(--line)}
+  .shead{display:flex;align-items:baseline;gap:16px;margin-bottom:34px}
+  .snum{font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:600}
+  .shead h2{font-family:var(--serif);font-weight:600;font-size:clamp(24px,3.2vw,34px);letter-spacing:-.01em}
+  .shead .sx{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin-left:auto}
+  .lead{max-width:780px;font-size:16px;color:#33302b;margin-bottom:30px}
+
+  /* ---------- cold-rerun diagram ---------- */
+  .cold{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:8px 0 6px}
+  .day{background:var(--paper2);border:1px solid var(--line2);border-radius:13px;padding:16px 16px 14px;position:relative}
+  .day .d{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.04em;margin-bottom:10px}
+  .day ol{list-style:none;font-size:11.5px;color:var(--mute);line-height:1.5}
+  .day li{padding:2px 0;border-bottom:1px dotted var(--line)}
+  .day li:last-child{border:0}
+  .day .cut{position:absolute;top:50%;right:-11px;font-size:18px;color:var(--line2);z-index:2}
+  .coldcap{font-family:var(--mono);font-size:11px;color:var(--fresh);text-align:center;margin-top:12px;letter-spacing:.03em}
+
+  /* two-col assess */
+  .cols2{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:10px}
+  .panel{border:1px solid var(--line2);border-radius:14px;padding:22px 24px;background:var(--paper2)}
+  .panel.keep{border-top:3px solid var(--reuse)}
+  .panel.raise{border-top:3px solid var(--accent)}
+  .panel h3{font-family:var(--sans);font-size:13px;letter-spacing:.02em;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .panel.keep h3{color:var(--reuse)} .panel.raise h3{color:var(--accent)}
+  .panel .sub{font-size:12px;color:var(--faint);margin-bottom:16px}
+  .panel ul{list-style:none}
+  .panel li{font-size:13.5px;padding:11px 0;border-top:1px solid var(--line);color:#322f2a}
+  .panel li:first-child{border-top:0}
+  .panel li b{color:var(--ink)} .panel li .cite{font-family:var(--mono);font-size:10.5px;color:var(--accent);white-space:nowrap}
+
+  /* ---------- legend ---------- */
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px}
+  .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;padding:4px 10px;border-radius:6px;font-weight:600;text-transform:uppercase}
+  .t-reuse{color:var(--reuse);background:var(--reuse-bg)} .t-incr{color:var(--incr);background:var(--incr-bg)}
+  .t-fresh{color:var(--fresh);background:var(--fresh-bg)} .t-cond{color:var(--cond);background:var(--cond-bg)}
+
+  /* ---------- matrix ---------- */
+  .matrix{width:100%;border-collapse:collapse;font-size:13px;background:var(--paper2);border:1px solid var(--line2);border-radius:12px;overflow:hidden}
+  .matrix thead th{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);
+    text-align:left;padding:13px 14px;border-bottom:1.5px solid var(--line2);background:#faf8f2;font-weight:600}
+  .matrix td{padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  .matrix tr:last-child td{border-bottom:0}
+  .matrix .comp{font-weight:600;color:var(--ink);white-space:nowrap}
+  .matrix .comp small{display:block;font-family:var(--mono);font-size:10px;color:var(--faint);font-weight:400;margin-top:2px}
+  .matrix .freq{font-family:var(--mono);font-size:11px;color:var(--mute)}
+  .dots{display:inline-flex;gap:3px}.dot{width:7px;height:7px;border-radius:50%;background:var(--line2)}
+  .dot.on-h{background:var(--fresh)}.dot.on-m{background:var(--incr)}.dot.on-l{background:var(--reuse)}
+  .matrix .rec{font-size:12.5px;color:#322f2a;max-width:420px}
+
+  /* ---------- layers ---------- */
+  .layers{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .layer{border:1px solid var(--line2);border-radius:16px;padding:24px;background:var(--paper2);position:relative}
+  .layer .lnum{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:#fff;background:var(--ink);
+    padding:3px 9px;border-radius:6px;display:inline-block;margin-bottom:14px}
+  .layer.l1 .lnum{background:var(--reuse)} .layer.l2 .lnum{background:var(--cond)} .layer.l3 .lnum{background:var(--accent)}
+  .layer h3{font-family:var(--serif);font-size:20px;font-weight:600;margin-bottom:4px}
+  .layer .ltag{font-size:12px;color:var(--mute);margin-bottom:16px}
+  .layer .mlab{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:14px 0 6px}
+  .layer p{font-size:12.5px;color:#36322c;line-height:1.55}
+  .layer .reuse-note{margin-top:12px;font-size:11.5px;color:var(--reuse);border-top:1px dashed var(--line2);padding-top:10px}
+
+  /* ---------- flow ---------- */
+  .flow{position:relative;margin-left:8px;padding-left:30px;border-left:2px solid var(--line2)}
+  .step{position:relative;padding:0 0 26px}
+  .step:last-child{padding-bottom:0}
+  .step .knob{position:absolute;left:-39px;top:1px;width:16px;height:16px;border-radius:50%;background:var(--paper);border:2px solid var(--ink)}
+  .step.m-reuse .knob{border-color:var(--reuse)} .step.m-incr .knob{border-color:var(--incr)}
+  .step.m-fresh .knob{border-color:var(--fresh)} .step.m-cond .knob{border-color:var(--cond)}
+  .step .sh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:5px}
+  .step .si{font-family:var(--mono);font-size:12px;color:var(--faint)}
+  .step .st{font-weight:600;font-size:14.5px}
+  .step .sa{font-size:13px;color:#39352f;max-width:760px}
+  .step .sn{font-size:11.5px;color:var(--mute);margin-top:4px;max-width:760px;font-style:italic}
+  .branch{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:5px;background:#efe;color:var(--reuse);margin-left:4px}
+
+  /* ---------- evidence ---------- */
+  .ev{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .ecard{border:1px solid var(--line2);border-radius:12px;padding:16px 18px;background:var(--paper2);display:flex;gap:13px}
+  .ecard .badge{flex:none;width:24px;height:24px;border-radius:7px;display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff}
+  .ecard.ok .badge{background:var(--ok)} .ecard.bad .badge{background:var(--bad)} .ecard.warn .badge{background:var(--warn)}
+  .ecard .et{font-size:13px;font-weight:600;line-height:1.4;margin-bottom:4px}
+  .ecard .ed{font-size:12px;color:#403c35;line-height:1.5}
+  .ecard .cite{font-family:var(--mono);font-size:10.5px;color:var(--accent);background:#fbeee9;padding:1px 5px;border-radius:4px}
+
+  /* ---------- build-on ---------- */
+  .bo{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .bo .box{border:1px solid var(--line2);border-radius:14px;padding:22px 24px;background:var(--paper2)}
+  .bo .box.r{border-left:3px solid var(--reuse)} .bo .box.a{border-left:3px solid var(--accent)}
+  .bo h3{font-size:13px;text-transform:uppercase;letter-spacing:.03em;margin-bottom:14px}
+  .bo .box.r h3{color:var(--reuse)} .bo .box.a h3{color:var(--accent)}
+  .bo li{list-style:none;font-size:12.5px;padding:9px 0;border-top:1px solid var(--line);color:#36322c}
+  .bo li:first-child{border-top:0}
+  .bo .cite{font-family:var(--mono);font-size:10px;color:var(--accent)}
+
+  /* ---------- caveats / footer ---------- */
+  .caveats{background:#2a2722;color:#e8e2d6;border-radius:16px;padding:30px 34px}
+  .caveats h3{font-family:var(--serif);color:#fff;font-size:20px;margin-bottom:6px}
+  .caveats .csub{font-size:12px;color:#aaa291;margin-bottom:18px;font-family:var(--mono);letter-spacing:.04em}
+  .caveats ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:13px 26px}
+  .caveats li{font-size:12.5px;line-height:1.5;padding-left:18px;position:relative;color:#d9d3c5}
+  .caveats li::before{content:"▸";position:absolute;left:0;color:var(--accent)}
+  .caveats li b{color:#fff}
+  footer{padding:34px 0 60px;font-family:var(--mono);font-size:11px;color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+  /* ---------- pipeline diagram ---------- */
+  .plegend{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 22px}
+  .plegend span{font-family:var(--mono);font-size:10.5px;color:var(--mute);display:flex;align-items:center;gap:6px}
+  .swatch{width:12px;height:12px;border-radius:3px;display:inline-block;flex:none}
+  .pipe{position:relative}
+  .pstage{display:grid;grid-template-columns:150px 1fr;gap:20px;align-items:center;
+    background:var(--paper2);border:1px solid var(--line2);border-radius:14px;padding:16px 20px}
+  .plab .pn{font-family:var(--mono);font-size:11px;color:#fff;background:var(--ink);padding:2px 8px;border-radius:5px}
+  .plab .pnm{display:block;font-family:var(--serif);font-size:16px;font-weight:600;margin-top:9px;line-height:1.22}
+  .plab .pllm{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.03em;margin-top:7px;margin-right:5px;padding:2px 6px;border-radius:4px;border:1px solid var(--line2);color:var(--mute)}
+  .pllm.deep{color:var(--accent);border-color:var(--accent);background:#fbeee9}
+  .pllm.quick{color:var(--cond);border-color:#b8cde2}
+  .pllm.det{color:var(--reuse);border-color:#bcd9c4}
+  .pflow{display:flex;flex-wrap:wrap;align-items:stretch;gap:9px}
+  .pnode{flex:1 1 148px;min-width:138px;border:1px solid var(--line2);border-radius:10px;padding:11px 13px;background:#fff;position:relative}
+  .pnode.deep{border:1.5px solid var(--accent);box-shadow:0 1px 0 #f0d9d0}
+  .pnode.end{border-right:4px solid var(--ink)}
+  .pnode .pt{font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:5px;line-height:1.25}
+  .pnode .pt .star{color:var(--accent)}
+  .pnode .pd{font-size:10.5px;color:var(--mute);margin-top:4px;line-height:1.45}
+  .pnode .tool{display:inline-block;font-family:var(--mono);font-size:9px;color:var(--reuse);background:var(--reuse-bg);padding:1px 5px;border-radius:4px;margin-top:7px}
+  .pnode .out{display:block;font-family:var(--mono);font-size:9.5px;color:var(--accent);margin-top:7px;word-break:break-all}
+  .pnode .mem{position:absolute;top:9px;right:10px;font-size:9.5px;color:var(--cond);font-family:var(--mono)}
+  .parrow{align-self:center;color:var(--line2);font-size:16px;flex:none;font-weight:700}
+  .ploop{flex:none;align-self:center;font-family:var(--mono);font-size:9.5px;color:var(--cond);background:var(--cond-bg);border-radius:7px;padding:6px 9px;text-align:center;line-height:1.35}
+  .pdown{text-align:center;color:var(--line2);font-size:17px;margin:4px 0;font-family:var(--mono)}
+  .pstage.ghost{border-style:dashed;background:repeating-linear-gradient(45deg,#faf8f2,#faf8f2 10px,#f1ede3 10px,#f1ede3 20px)}
+  .pstage.ghost .pnode{background:#f7f5ef;border-style:dashed;opacity:.92}
+  .deadtag{display:inline-block;font-family:var(--mono);font-size:9.5px;color:var(--fresh);border:1px solid var(--fresh);background:var(--fresh-bg);padding:2px 6px;border-radius:4px;margin-top:8px}
+  .pstage.kb{border-left:3px solid var(--reuse)}
+  .depthbox{margin-top:18px;border:1px dashed var(--line2);border-radius:12px;padding:15px 20px;background:#faf8f2;font-size:12.5px;color:#3a362f;line-height:1.6}
+  .depthbox b{color:var(--ink)} .depthbox code{color:var(--accent);background:#fbeee9;padding:1px 5px;border-radius:4px}
+
+  /* ---------- native memory loop ---------- */
+  .nloop{margin:6px 0 4px}
+  .nband{border:1px solid var(--line2);border-radius:13px;padding:16px 18px;background:var(--paper2)}
+  .nband.b{border-left:4px solid var(--reuse)}
+  .nband.a{border-left:4px solid var(--accent)}
+  .nband.hub{border:1.5px solid var(--ink);background:#fbf8f1;position:relative}
+  .blab{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;margin-bottom:12px;display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+  .nband.b .blab{color:var(--reuse)} .nband.a .blab{color:var(--accent)} .nband.hub .blab{color:var(--ink)}
+  .blab .half{font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:0;text-transform:none}
+  .live{font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:4px;background:var(--reuse-bg);color:var(--reuse)}
+  .needs{font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:4px;background:var(--incr-bg);color:var(--incr)}
+  .nrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+  .nnode{border:1px solid var(--line2);border-radius:9px;padding:9px 12px;background:#fff;font-size:12px;font-weight:600;line-height:1.3}
+  .nnode small{display:block;font-weight:400;font-size:9.5px;color:var(--mute);margin-top:2px}
+  .nnode.hot{border:1.5px solid var(--accent)}
+  .nnode .api{font-family:var(--mono);font-size:9px;color:var(--accent);display:block;margin-top:3px}
+  .narr{color:var(--line2);font-weight:700;flex:none;font-size:15px}
+  .nconn{font-family:var(--mono);font-size:10.5px;color:var(--mute);text-align:center;padding:9px 0}
+  .nconn b{color:var(--ink)} .nconn .rd{color:var(--reuse)} .nconn .wr{color:var(--accent)}
+  .ngap{display:inline-block;font-family:var(--mono);font-size:9.5px;color:var(--fresh);border:1px solid var(--fresh);background:var(--fresh-bg);padding:1px 7px;border-radius:4px;margin:3px 4px 0 0}
+  .nback{font-family:var(--mono);font-size:11px;color:var(--cond);background:var(--cond-bg);border-radius:8px;text-align:center;padding:9px;margin-top:12px}
+  .gapline{margin-top:10px;font-size:11px;color:var(--mute)}
+
+  @media(max-width:880px){
+    .cols2,.layers,.ev,.bo,.cold{grid-template-columns:1fr}
+    .caveats ul{grid-template-columns:1fr}
+    .day .cut{display:none}
+    .matrix{display:block;overflow-x:auto;white-space:nowrap}
+    .pstage{grid-template-columns:1fr;gap:12px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">TradingAgents-CN · 个股分析链路 · 设计评审</div>
+    <h1>历史感知个股分析框架
+      <span class="en">History-Aware Individual Stock Analysis — keep the correctness floor, raise the efficiency ceiling</span>
+    </h1>
+    <p class="verdict">现状「每日独立冷跑、历史报告间零联动复用」是<b>可辩护的正确性地板</b>，却是<b>浪费的稳态策略</b>——它付全价重抓收盘冻结的历史 K 线、重导未变的季度财报、重辩几乎没动的论点，还丢掉了对人类投资者最高价值的信号：<b>「今天的判断 vs 昨天变了吗、为什么」</b>。修法不是放弃冷跑，而是让它历史感知。</p>
+    <div class="meta-row">
+      <span class="pill">引擎 <b>TradingAgents-CN</b> · LangGraph</span>
+      <span class="pill">深度档 3 ≈ <b>17 min</b> / 跑</span>
+      <span class="pill">判断核 <b>8–9 个 LLM 节点</b> · 含 2 个 deep_thinking 热点</span>
+      <span class="pill">分析依据 <b>17 子代理 · 代码级核实</b></span>
+      <span class="pill">键粒度 <b>日 (YYYY-MM-DD)</b></span>
+    </div>
+  </div>
+</header>
+
+<!-- 1 引擎完整链路过程图 -->
+<section>
+  <div class="wrap">
+    <div class="shead"><span class="snum">01</span><h2>引擎完整链路过程图</h2><span class="sx">TradingAgents-CN · LangGraph pipeline</span></div>
+    <p class="lead">一次个股分析从触发到落盘的完整节点流（代码级核实）。<b><span class="accent">★</span> = deep_thinking_llm 热点</b>(~45-60s)，<b>◆</b> = quick_thinking_llm，<b>🔧</b> = ToolNode 确定性取数，<b>⟲</b> = 条件辩论循环(轮数由档位定)，<b>⟸mem</b> = 每轮读 memory，<b>虚线灰块</b> = 已 ship 但从不调用的死路。</p>
+    <div class="plegend">
+      <span><i class="swatch" style="background:#fff;border:1.5px solid var(--accent)"></i>deep_thinking ★</span>
+      <span><i class="swatch" style="background:#fff;border:1px solid var(--line2)"></i>quick_thinking ◆</span>
+      <span><i class="swatch" style="background:var(--reuse-bg)"></i>ToolNode 🔧</span>
+      <span><i class="swatch" style="background:var(--cond-bg)"></i>辩论循环 ⟲</span>
+      <span><i class="swatch" style="background:#f1ede3;border:1px dashed var(--line2)"></i>死路 · 定义未调用</span>
+    </div>
+
+    <div class="pipe">
+      <div class="pstage">
+        <div class="plab"><span class="pn">0</span><span class="pnm">触发 / 配置</span><span class="pllm det">deterministic</span></div>
+        <div class="pflow">
+          <div class="pnode"><div class="pt">run_stock_analysis.py</div><div class="pd">档位 depth → <b>DEPTH_MAP</b> → (多空轮, 风险轮, memory 开关)</div><span class="out">config</span></div>
+          <span class="parrow">→</span>
+          <div class="pnode"><div class="pt">propagate(ticker, date)</div><div class="pd">create_initial_state：market / fundamentals / news / sentiment <b>4 报告槽置空</b></div><span class="out">initial state</span></div>
+        </div>
+      </div>
+      <div class="pdown">↓</div>
+
+      <div class="pstage">
+        <div class="plab"><span class="pn">1</span><span class="pnm">分析师管线</span><span class="pllm quick">◆ quick ×4</span><span class="pllm det">🔧 tools</span></div>
+        <div class="pflow">
+          <div class="pnode"><div class="pt">Market ◆</div><div class="pd">MA/MACD/RSI/BOLL</div><span class="tool">🔧 china_stocks · ≤3 tool</span><span class="out">market_report</span></div>
+          <span class="parrow">→</span>
+          <div class="pnode"><div class="pt">Fundamentals ◆</div><div class="pd">PE/PB/ROE · 财报</div><span class="tool">🔧 china_fundamentals · ≤1 tool</span><span class="out">fundamentals_report</span></div>
+          <span class="parrow">→</span>
+          <div class="pnode"><div class="pt">News ◆</div><div class="pd">AKShare + Google · Anthropic 预取注入</div><span class="tool">🔧 news · ≤3 tool</span><span class="out">news_report</span></div>
+          <span class="parrow">→</span>
+          <div class="pnode"><div class="pt">Social ◆</div><div class="pd">东财人气 + 微博情绪</div><span class="tool">🔧 sentiment_em · ≤3 tool</span><span class="out">sentiment_report</span></div>
+        </div>
+      </div>
+      <div class="pdown">↓</div>
+
+      <div class="pstage">
+        <div class="plab"><span class="pn">2</span><span class="pnm">多空辩论</span><span class="pllm quick">◆ 辩手</span><span class="pllm deep">★ 裁决</span></div>
+        <div class="pflow">
+          <div class="pnode"><div class="pt">Bull ◆</div><span class="mem">⟸mem</span><div class="pd">看涨论证 · get_memories(n=2)</div><span class="out">bull_history</span></div>
+          <div class="ploop">⟲<br>交替<br>2×N 轮</div>
+          <div class="pnode"><div class="pt">Bear ◆</div><span class="mem">⟸mem</span><div class="pd">看跌论证 · get_memories(n=2)</div><span class="out">bear_history</span></div>
+          <span class="parrow">→</span>
+          <div class="pnode deep"><div class="pt"><span class="star">★</span>Research Manager</div><div class="pd">deep_thinking · 投研经理综合裁决</div><span class="out">investment_plan</span></div>
+        </div>
+      </div>
+      <div class="pdown">↓</div>
+
+      <div class="pstage">
+        <div class="plab"><span class="pn">3</span><span class="pnm">交易决策</span><span class="pllm quick">◆ quick</span></div>
+        <div class="pflow">
+          <div class="pnode" style="flex:0 1 320px"><div class="pt">Trader ◆</div><span class="mem">⟸mem</span><div class="pd">投资计划 → 操作建议 · get_memories(n=2)</div><span class="out">trader_investment_plan</span></div>
+        </div>
+      </div>
+      <div class="pdown">↓</div>
+
+      <div class="pstage">
+        <div class="plab"><span class="pn">4</span><span class="pnm">风险辩论</span><span class="pllm quick">◆ 3 辩手</span><span class="pllm deep">★ 终裁</span></div>
+        <div class="pflow">
+          <div class="pnode"><div class="pt">Risky ◆</div><div class="pd">激进视角</div></div>
+          <div class="ploop">⟲<br>三方<br>3×M 轮</div>
+          <div class="pnode"><div class="pt">Safe ◆</div><div class="pd">保守视角</div></div>
+          <div class="pnode"><div class="pt">Neutral ◆</div><div class="pd">中立视角</div></div>
+          <span class="parrow">→</span>
+          <div class="pnode deep end"><div class="pt"><span class="star">★</span>Risk Manager · END</div><div class="pd">deep_thinking · 风控主席最终裁决</div><span class="out">final_trade_decision</span></div>
+        </div>
+      </div>
+      <div class="pdown">↓</div>
+
+      <div class="pstage">
+        <div class="plab"><span class="pn">5</span><span class="pnm">信号抽取</span><span class="pllm quick">◆ + 正则兜底</span></div>
+        <div class="pflow">
+          <div class="pnode" style="flex:0 1 480px"><div class="pt">Signal Processor</div><div class="pd">从裁决文本抽结构化字段（LLM + regex fallback）</div><span class="out">{ action, target_price, confidence, risk_score }</span></div>
+        </div>
+      </div>
+      <div class="pdown" style="color:var(--fresh)">↓ 设计意图存在、却从不接通 ↓</div>
+
+      <div class="pstage ghost">
+        <div class="plab"><span class="pn" style="background:var(--faint)">6</span><span class="pnm">反思 / 学习环</span><span class="deadtag">写侧死 · 读侧空转</span></div>
+        <div class="pflow">
+          <div class="pnode"><div class="pt">reflect_and_remember()</div><div class="pd"><b>trading_graph.py:1165</b> 定义，全库零调用（main.py:26 仅注释）</div></div>
+          <span class="parrow">⤳</span>
+          <div class="pnode"><div class="pt">Reflector → ChromaDB</div><div class="pd">is_persistent=False ×6 · 仅 RAM、不落盘</div></div>
+          <span class="parrow">⤳</span>
+          <div class="pnode"><div class="pt">get_memories 读路（活）</div><div class="pd">stage 2/3 每轮读，但写侧死 → 库恒空 → <b>跨日连续半接线</b></div></div>
+        </div>
+      </div>
+      <div class="pdown">↓</div>
+
+      <div class="pstage kb">
+        <div class="plab"><span class="pn" style="background:var(--reuse)">7</span><span class="pnm">落盘 / KB 链路</span><span class="pllm det">skill 外层</span></div>
+        <div class="pflow">
+          <div class="pnode"><div class="pt">_serialize</div><div class="pd">run_stock_analysis.py:79-128 块序列化</div><span class="out">snapshot · reports/debates/decision</span></div>
+          <span class="parrow">→</span>
+          <div class="pnode"><div class="pt">raw-intake</div><div class="pd">sha256 幂等 · raw 不可变</div><span class="out">raw/analysis/stocks/&lt;t&gt;-&lt;date&gt;.md</span></div>
+          <span class="parrow">→</span>
+          <div class="pnode"><div class="pt">finance-ingest</div><div class="pd">两步 CoT 蒸馏（Gap A 手动）</div><span class="out">wiki/companies/&lt;T&gt;.md</span></div>
+          <span class="parrow">→</span>
+          <div class="pnode"><div class="pt">kb-parse.js</div><div class="pd">浏览器 live 解析</div><span class="out">前端 研究报告 ⇄ wiki</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="depthbox">
+      <b>档位 DEPTH_MAP</b>（run_stock_analysis.py:31 · 元组 = 多空轮 / 风险轮 / memory）：
+      <code>1 快速</code> (1,1,关) ·
+      <code>3 标准</code> (1,2,开) ·
+      <code>5 深度</code> (3,3,开)。
+      档位越高 → stage 2/4 的 <b>⟲ 循环轮数越多</b>（辩论 count=2×多空轮、风险 count=3×风险轮；深度档实测 6 / 9）→ 两个 <span class="accent">★</span> deep_thinking 热点反复触发 → <b>~17min 里约 10min 花在 stage 2–4 的辩论与裁决</b>，这正是后文「条件重跑」要省的部分。
+    </div>
+  </div>
+</section>
+
+<!-- 2 现状 -->
+<section>
+  <div class="wrap">
+    <div class="shead"><span class="snum">02</span><h2>现状：每日独立冷跑</h2><span class="sx">cold rerun model</span></div>
+    <p class="lead">每次运行是 <code>(ticker, date, depth)</code> 的纯函数——辩论 state 每次 fresh init，无隐藏跨 run 状态。连续多日分析同一只票，<b>各日完全独立</b>：相同的稳定数据被反复抓取、几乎相同的多空/风险辩论被从零重导，历史之间没有任何复用或联动。</p>
+
+    <div class="cold">
+      <div class="day"><div class="d">DAY T-1 · 冷跑</div><ol>
+        <li>抓行情/财报/新闻/情绪</li><li>4 分析师 LLM</li><li>多空辩论 ×N</li><li>风险辩论 ×M</li><li>裁决 → 快照 T-1</li></ol><span class="cut">✕</span></div>
+      <div class="day"><div class="d">DAY T · 冷跑（全重来）</div><ol>
+        <li>又抓行情/财报/新闻/情绪</li><li>4 分析师 LLM（重跑）</li><li>多空辩论 ×N（重导）</li><li>风险辩论 ×M（重导）</li><li>裁决 → 快照 T</li></ol><span class="cut">✕</span></div>
+      <div class="day"><div class="d">DAY T+1 · 冷跑（再全重来）</div><ol>
+        <li>再抓一遍稳定数据</li><li>4 分析师 LLM（再跑）</li><li>多空辩论 ×N（再导）</li><li>风险辩论 ×M（再导）</li><li>裁决 → 快照 T+1</li></ol></div>
+    </div>
+    <div class="coldcap">↑ 历史报告间无 fingerprint、无 memory、无 delta —— 每个箭头都付全价 LLM，且大部分冗余</div>
+
+    <div class="cols2" style="margin-top:36px">
+      <div class="panel keep">
+        <h3>● 合理面 — 该保住的地板</h3>
+        <div class="sub">correctness floor — keep</div>
+        <ul>
+          <li><b>可复现 / 可审计</b>：纯函数、无隐藏跨 run 状态，历史分析永远可重导，无陈旧判断悄悄漂移。</li>
+          <li><b>与 KB 不可变契约对齐</b>：冷跑 ↔ <code>raw/</code> 按日不可变；同日 sha256 撞 = <b>正确的幂等边界</b>，不是 bug。</li>
+          <li><b>波动层保鲜正确</b>：情绪 (intraday)、实时行情<b>本就该每日重算</b>，盲缓存会出陈旧信号。</li>
+          <li><b>数据缓存结构骨架对</b>：行情 vs 财报已分目录 + 分 collection + 分 TTL（12h / 1h）。</li>
+          <li><b>无错误学习</b>：memory 在 RAM、reflect 从不调用 → 不会用未验证反思污染未来决策。<span class="cite">"坏掉的学习环"反成安全特性</span></li>
+        </ul>
+      </div>
+      <div class="panel raise">
+        <h3>● 浪费面 — 该抬的天花板</h3>
+        <div class="sub">steady-state waste — raise</div>
+        <ul>
+          <li><b>重复抓稳定数据</b>：财报(季度) + &gt;7d 历史 K 线(收盘冻结)每次重抓——缓存 KEY 嵌了滚动起止日期，换天=新 MD5=必 miss；1h/12h TTL 还过夜删昨日缓存。<span class="cite">file_cache.py:176-185</span></li>
+          <li><b>重辩几乎不变的论点</b>：8–9 个 LLM 辩论/裁决节点（含 2 个 deep_thinking 热点 ~45-60s）每天从零重跑，即使基本面+历史新闻字节相同、只有情绪/盘中价动了。<span class="cite">~17min 里约 10min 主成本，多为冗余</span></li>
+          <li><b>丢失论点演化</b>：每日是孤立快照，<b>「今天 vs 昨天变没变、为什么」从不计算</b>；day-over-day diff + 多空论点延续被丢弃，尽管 KB 已存每日报告。</li>
+          <li><b>学习机器空转</b>：引擎 ship 了完整 reflection→ChromaDB→get_memories 环，却半接线——读路活、写+持久从不触发。<span class="cite">reflect_and_remember 从不调用</span></li>
+          <li><b>memory 检索仅语义、无 ticker/date 过滤</b>：即便持久化，匹配的是含每日变动 market_report 的拼接 embedding，"昨天同票"不保证 top match。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 复用矩阵 -->
+<section>
+  <div class="wrap">
+    <div class="shead"><span class="snum">03</span><h2>复用矩阵</h2><span class="sx">component × change × cost × reuse</span></div>
+    <p class="lead">逐组件判断「变化频率 × 成本 × 跨日复用潜力 → 策略」。颜色即策略：</p>
+    <div class="legend">
+      <span class="tag t-reuse">REUSE 复用</span>
+      <span class="tag t-incr">INCREMENTAL 增量</span>
+      <span class="tag t-fresh">FRESH 全刷</span>
+      <span class="tag t-cond">CONDITIONAL 条件重算</span>
+    </div>
+    <table class="matrix">
+      <thead><tr><th>组件</th><th>变化频率</th><th>成本</th><th>复用潜力</th><th>策略 · 建议</th></tr></thead>
+      <tbody>
+        <tr><td class="comp">技术面<small>Market Analyst</small></td><td class="freq">intraday</td><td><span class="dots"><i class="dot on-h"></i><i class="dot on-h"></i><i class="dot"></i></span></td><td><span class="tag t-incr">增量</span></td>
+          <td class="rec">历史 bar 原子缓存、只取最新 bar；价偏移 &gt;θ_price(收盘 &gt;1% 或新交易日) 才重跑 LLM。</td></tr>
+        <tr><td class="comp">基本面<small>Fundamentals</small></td><td class="freq">quarterly</td><td><span class="dots"><i class="dot on-h"></i><i class="dot on-h"></i><i class="dot"></i></span></td><td><span class="tag t-reuse">复用</span></td>
+          <td class="rec">按 <code>{code6}_{report_period}</code> 键、几乎无 TTL；report_period 不变就复用整份报告，只刷 current-price，<b>跳过 LLM</b>。</td></tr>
+        <tr><td class="comp">新闻<small>News Analyst</small></td><td class="freq">daily · 7d 滚动</td><td><span class="dots"><i class="dot on-h"></i><i class="dot on-h"></i><i class="dot"></i></span></td><td><span class="tag t-incr">增量</span></td>
+          <td class="rec">只抓当日新文、复用旧 news_report；增量指纹变才重跑 LLM。已有 Anthropic 预取注入点可复用。<span class="cite">news_analyst.py:207-225</span></td></tr>
+        <tr><td class="comp">情绪<small>Social · sentiment_em</small></td><td class="freq">daily / intraday</td><td><span class="dots"><i class="dot on-h"></i><i class="dot on-h"></i><i class="dot"></i></span></td><td><span class="tag t-fresh">全刷</span></td>
+          <td class="rec"><b>每日无条件重算、永不跨日复用</b>——这层让日跑诚实、防陈旧信号。</td></tr>
+        <tr><td class="comp">多空辩论<small>Bull+Bear+ResearchMgr</small></td><td class="freq">per-run</td><td><span class="dots"><i class="dot on-h"></i><i class="dot on-h"></i><i class="dot on-h"></i></span></td><td><span class="tag t-cond">条件</span></td>
+          <td class="rec">4 份上游报告任一越阈才重跑整链；否则复用 investment_plan。重跑时 <b>delta 模式</b>(注昨日论点为 past_memory_str)。含 deep_thinking 热点。</td></tr>
+        <tr><td class="comp">风险辩论<small>Risky+Safe+Neutral+RiskMgr</small></td><td class="freq">per-run</td><td><span class="dots"><i class="dot on-h"></i><i class="dot on-h"></i><i class="dot on-h"></i></span></td><td><span class="tag t-cond">条件</span></td>
+          <td class="rec">同门控；investment_plan 稳则复用 final_trade_decision；否则 delta 重跑锚昨日。第二个 deep_thinking 热点。</td></tr>
+        <tr><td class="comp">裁决<small>Trader + SignalProcessor</small></td><td class="freq">per-run</td><td><span class="dots"><i class="dot on-m"></i><i class="dot on-m"></i><i class="dot"></i></span></td><td><span class="tag t-cond">条件</span></td>
+          <td class="rec">Trader 随辩论链重跑；Signal Processor 仅 final_trade_decision 文本变才重抽结构化字段。</td></tr>
+        <tr><td class="comp">数据缓存层<small>file_cache + Mongo</small></td><td class="freq">static（键设计）</td><td><span class="dots"><i class="dot on-l"></i><i class="dot"></i><i class="dot"></i></span></td><td><span class="tag t-incr">增量</span></td>
+          <td class="rec"><b>改 KEY 不改存储</b>：行情键去掉 start/end、存原子 per-day bar、查询时聚合；分层 TTL(历史&gt;7d 近永久 / 最新 1h / 财报按 report_period 永久)。</td></tr>
+        <tr><td class="comp">记忆与反思<small>ChromaDB + Reflector</small></td><td class="freq">写意图 / 持久(当前禁)</td><td><span class="dots"><i class="dot on-l"></i><i class="dot"></i><i class="dot"></i></span></td><td><span class="tag t-cond">条件 / 增量</span></td>
+          <td class="rec">翻 <code>is_persistent=True</code>(全 6 处) + persist_directory 按 ticker；runner 里真正调 <code>reflect_and_remember()</code>；预种昨日决策让 get_memories 锚对。</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 3 三层框架 -->
+<section>
+  <div class="wrap">
+    <div class="shead"><span class="snum">04</span><h2>三层历史感知框架</h2><span class="sx">recommended framework</span></div>
+    <p class="lead">保冷跑为安全默认，把昂贵判断链<b>门控在可验证的变化信号</b>上，再把引擎里<b>已 ship 却空转的 memory/reflection 环</b>接成跨日连续层。博采三方案之长。</p>
+    <div class="layers">
+      <div class="layer l1">
+        <span class="lnum">L1 · 事实层</span>
+        <h3>每日廉价刷新 + 冻结复用</h3>
+        <div class="ltag">Facts — daily cheap refresh / frozen reuse</div>
+        <div class="mlab">机制</div>
+        <p>行情缓存重键为<b>原子 per-day bar</b>(去掉滚动 start/end)、查询时范围聚合只取缺的最新日；财报按 report_period 无 TTL；情绪无条件每日重算；快照里发 <code>fingerprints{}</code>——对<b>结构化 DATA payload</b> 做 sha256（不是 LLM prose）。</p>
+        <div class="reuse-note">复用：现有 china_stocks / china_fundamentals 目录分离 + collection 分离 + report_period 键（mongo）。</div>
+      </div>
+      <div class="layer l2">
+        <span class="lnum">L2 · 判断层</span>
+        <h3>条件重跑 · delta 模式</h3>
+        <div class="ltag">Judgment — fingerprint-gated, delta-anchored</div>
+        <div class="mlab">机制</div>
+        <p>runner orchestrator 比对今日 vs 昨日快照的 per-layer 指纹。<b>全稳 → 整体 skip propagate()</b> 复用昨日 investment_plan/final_trade_decision（引擎级短路）；<b>任一越 θ → 重跑但注昨日决策</b>为 past_memory_str + 给 Research/Risk Manager 追加 delta 指令（"复述昨日 call、列变了什么、是否改评级"）。门控基于结构化报告指纹、非缓存辩论文本。</p>
+        <div class="reuse-note">复用：propagation.py:48-51 空报告槽 + 已活的 get_memories 读路 + past_memory_str 槽。</div>
+      </div>
+      <div class="layer l3">
+        <span class="lnum">L3 · 记忆与演化层</span>
+        <h3>持久 + KB 演化时间线</h3>
+        <div class="ltag">Memory &amp; Evolution — persist + KB timeline</div>
+        <div class="mlab">机制</div>
+        <p>翻 <code>is_persistent=True</code>(全 6 处) + persist_directory 按 ticker；runner post-propagate 调 <code>reflect_and_remember()</code>；预种昨日决策；纯 Python <code>compute_delta()</code>(diff action/target/confidence/risk) 写进快照；KB：raw-intake 带 evolution_delta、finance-ingest 给公司页 append <b>「## 演化链」</b>、kb-parse.js 在 reports[] 下拉旁渲染 day-over-day 时间线。</p>
+        <div class="reuse-note">复用：整条 reflection.py + memory.py 逻辑不动只接线；KB 侧整链不变。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 执行流程 -->
+<section>
+  <div class="wrap">
+    <div class="shead"><span class="snum">05</span><h2>执行流程</h2><span class="sx">8 steps · same-day + cross-day</span></div>
+    <p class="lead">覆盖<b>同日重跑</b>(引擎级短路互补 KB 的 sha256 幂等) 与<b>跨日增量</b>(指纹门控 + delta 模式 + 演化链)。每步标模式。</p>
+    <div class="legend">
+      <span class="tag t-reuse">REUSE</span><span class="tag t-incr">INCREMENTAL</span><span class="tag t-fresh">FRESH</span><span class="tag t-cond">CONDITIONAL</span>
+    </div>
+    <div class="flow">
+      <div class="step m-reuse"><span class="knob"></span><div class="sh"><span class="si">0</span><span class="st">载入昨日快照与指纹</span><span class="tag t-reuse">reuse</span></div>
+        <div class="sa">读最近一个<b>有快照的交易日</b> <code>&lt;ticker&gt;-&lt;prevtradingday&gt;.json</code> 的 fingerprints/reports/decision。</div>
+        <div class="sn">纯读、零引擎成本；"昨天"= 上个有快照的交易日(非日历昨天，处理周末/停牌)；首跑/新票 → baseline=true 优雅降级为全 fresh。</div></div>
+      <div class="step m-cond"><span class="knob"></span><div class="sh"><span class="si">1</span><span class="st">同日重跑守卫</span><span class="tag t-cond">conditional</span></div>
+        <div class="sa">若 <code>&lt;ticker&gt;-&lt;today&gt;</code> 已有快照且输入指纹一致 → <b>秒级短路</b>返回既有结果。</div>
+        <div class="sn">镜像并互补 KB 的 raw 不可变 sha256；盘中指纹变(价/情绪动)则继续，delta 锚仍取<b>上个交易日</b>(不基于同日半成品)。</div></div>
+      <div class="step m-incr"><span class="knob"></span><div class="sh"><span class="si">2</span><span class="st">事实层刷新 (L1)</span><span class="tag t-incr">incremental</span></div>
+        <div class="sa">原子缓存取数：复用冻结历史 bar + 季度财报；只抓最新 bar + 新闻增量；情绪无条件重算。算今日 per-layer DATA 指纹。</div>
+        <div class="sn">情绪子步 = <span class="branch" style="background:var(--fresh-bg);color:var(--fresh)">fresh</span> 永不复用；财报子步 = <span class="branch">reuse</span> report_period 不变时。</div></div>
+      <div class="step m-cond"><span class="knob"></span><div class="sh"><span class="si">3</span><span class="st">指纹门控</span><span class="tag t-cond">conditional</span></div>
+        <div class="sa">逐层比对今日 vs 昨日指纹，按阈值分类 stable/changed（θ_price=收盘&gt;1% 或新交易日；θ_news=新文&gt;0；情绪恒变；财报仅 report_period 进位才变）。</div>
+        <div class="sn">默认全保守(宁重算不错复用)；主开关 <code>TA_HISTORY_AWARE</code> 默认 OFF；指纹逻辑可对存档快照离线测试，<b>不必重跑 17min 引擎</b>。</div></div>
+      <div class="step m-reuse"><span class="knob"></span><div class="sh"><span class="si">4a</span><span class="st">判断复用路径（4 层全稳）</span><span class="tag t-reuse">reuse</span></div>
+        <div class="sa"><b>整体 skip propagate()</b>。复用昨日 investment_plan / trader_plan / final_trade_decision + 结构化决策字段(Signal Processor 不重跑)。</div>
+        <div class="sn">这里省下约 10min 辩论/裁决成本(含 2 个 deep_thinking 节点)；输出与昨日 call 一致——合理，因无实质输入变动。</div></div>
+      <div class="step m-incr"><span class="knob"></span><div class="sh"><span class="si">4b</span><span class="st">判断 delta 重跑路径（任一变）</span><span class="tag t-incr">incremental</span></div>
+        <div class="sa">把 L1 报告注入空 state 槽跑 propagate()；注昨日决策为 past_memory_str；给 Research/Risk Manager 追加 delta 指令；Signal Processor 仅重抽变化的决策文本。</div>
+        <div class="sn">delta 模式让 deep-LLM 做"相对昨日变了什么"而非"从零合成"，省 token/延迟；防锚定偏差：强制改评级规则(关键指标越带必 re-rate)。</div></div>
+      <div class="step m-incr"><span class="knob"></span><div class="sh"><span class="si">5</span><span class="st">持久 memory + 反思</span><span class="tag t-incr">incremental</span></div>
+        <div class="sa">调 <code>reflect_and_remember()</code>；ChromaDB 落盘持久；预种今日决策供明日 get_memories 锚。</div>
+        <div class="sn">标注限制：这是"论点连续"而非"已验证 P&amp;L 学习"(returns_losses 当前是 placeholder)，直到接真实收益指标；需 prune/TTL 策略(引擎无 memory 维护)。</div></div>
+      <div class="step m-incr"><span class="knob"></span><div class="sh"><span class="si">6–7</span><span class="st">确定性 delta + KB 演化链 + 前端时间线</span><span class="tag t-incr">incremental</span></div>
+        <div class="sa">纯 Python compute_delta(今,昨) → evolution_delta 写快照；raw-intake 带过(sha256 幂等)；finance-ingest 给 wiki/companies append「## 演化链」(最新视图字段仍 merge-latest)；kb-parse.js 在 reports[] 下拉旁渲染 day-over-day 时间线。</div>
+        <div class="sn">零 LLM、全可审计；日键 = 每日一个演化节点；复用整条 raw→wiki→前端链；严格 localhost(不上公网)。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 代码级证据 -->
+<section>
+  <div class="wrap">
+    <div class="shead"><span class="snum">06</span><h2>代码级证据与修正</h2><span class="sx">adversarially verified</span></div>
+    <p class="lead">本框架的关键依赖均回代码对抗式核实——<b>对抗验证当场修正了若干初稿声明</b>，下面如实标注 ✔ 证实 / ✗ 修正 / ⚠ 未决。</p>
+    <div class="ev">
+      <div class="ecard ok"><div class="badge">✔</div><div><div class="et">学习环「写半边」是死的</div><div class="ed"><code class="cite">reflect_and_remember()</code> 定义于 trading_graph.py:1165，但全代码库零调用(main.py:26 仅注释)。引擎 ship 了完整学习环却从不触发写侧——L3 接线是低风险高回报。</div></div></div>
+      <div class="ecard ok"><div class="badge">✔</div><div><div class="et">辩论节点每 run 确实读 memory</div><div class="ed"><code class="cite">get_memories(curr_situation, n_matches=2)</code> @ bull:91 / bear:80 / trader:44，注入 past_memory_str。<b>读路活、只写+持久坏</b>——跨日连续是"半接线"，接上即得。</div></div></div>
+      <div class="ecard ok"><div class="badge">✔</div><div><div class="et">缓存键嵌滚动日期 → 换天必 miss</div><div class="ed"><code class="cite">file_cache.py:176-185</code> MD5 全 kwargs 含 start/end；实测 end_date 差一天即不同 key。L1 原子 per-day 重键是正确修法位点。</div></div></div>
+      <div class="ecard ok"><div class="badge">✔</div><div><div class="et">指纹应键于结构化 DATA、非 LLM prose</div><div class="ed">报告是 LLM 散文、措辞/时间戳会 drift；代码缓存已正确按结构化元数据(symbol/date/source)做键。<b>L2 门控必须指纹数据输入、不可指纹报告文本。</b></div></div></div>
+      <div class="ecard bad"><div class="badge">✗</div><div><div class="et">修正：memory 持久需翻 6 处、非 5</div><div class="ed">chromadb_config.py ×5 (46/61/77/92/119) <b>+ memory.py:59</b> 第 6 处；且 persist_directory=None 已存在(非"缺失")。跨平台 Win10/Win11/Unix/fallback 全需翻。</div></div></div>
+      <div class="ecard bad"><div class="badge">✗</div><div><div class="et">修正：file_cache 财报<b>按日键</b>、非 report_period</div><div class="ed">report_period 键只在 <code class="cite">mongodb_cache_adapter.py:241</code>；file_cache 财报用 <code>date=now()</code>(line 472)。季度复用<b>不只是松 TTL</b>，还要在 file_cache 重键。</div></div></div>
+      <div class="ecard warn"><div class="badge">⚠</div><div><div class="et">未决：跳过分析师的「judge-only 重入」拓扑</div><div class="ed">空报告槽 propagation.py:48-51 确认可注入；但分析师节点返回 partial state、LangGraph 重入合并语义<b>纯读码无法确认</b>，需 runtime 验证。<b>这是 L2 条件重跑的最大实现风险</b>——退路：仍跑分析师(便宜 quick-LLM)、只省辩论链。</div></div></div>
+      <div class="ecard ok"><div class="badge">✔</div><div><div class="et">集成缝 = skill 的 run_stock_analysis.py</div><div class="ed">该 runner 已块序列化 <code class="cite">_serialize:79-128</code> reports{}/debates{}/decision{} + <code>DEPTH_MAP:31</code>。加 fingerprints{} 块 + 读昨日快照 + post-propagate reflect + compute_delta，均为此处局部改动。</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 复用原生的 A/B 引入 -->
+<section>
+  <div class="wrap">
+    <div class="shead"><span class="snum">07</span><h2>复用原生的 A/B 记忆环引入</h2><span class="sx">reuse native memory loop</span></div>
+    <p class="lead">关键认知:在 TradingAgents-CN 里 <b>A 和 B 不是两套系统,而是同一条原生记忆环的「写半边」与「读半边」</b>——共用一套 <code>FinancialSituationMemory</code>(ChromaDB)。<b>A(reflect 写)正是填充 B(get_memories 读)的那个库</b>。引入 = 接通这条原生环的三处沉睡点,<b>零另起炉灶</b>。</p>
+
+    <div class="nloop">
+      <div class="nband b">
+        <div class="blab">B · 读半边 <span class="half">现有分析内 · 连续分析</span> <span class="live">已活</span></div>
+        <div class="nrow">
+          <div class="nnode">现场 propagate<small>当日分析</small></div>
+          <span class="narr">→</span>
+          <div class="nnode">多空 / 风险辩论<small>带历史教训演化<span class="api">get_memories @ bull:91 / bear:80 / trader:44</span></small></div>
+          <span class="narr">→</span>
+          <div class="nnode">出决策<small>action / target / …</small></div>
+          <span class="narr">→</span>
+          <div class="nnode">落每日快照<small>raw/data/stock-snapshots</small></div>
+        </div>
+      </div>
+
+      <div class="nconn"><span class="rd">▲ 读</span> &nbsp;<b>get_memories</b>:原生记忆库 ⟶ 现场辩论&nbsp; <span class="rd">(已在分析流里,无需新建)</span></div>
+
+      <div class="nband hub">
+        <div class="blab">HUB · 原生共享记忆库 <span class="half">FinancialSituationMemory ×5 · 单例 ChromaDB</span></div>
+        <div class="nrow">
+          <div class="nnode">bull_memory</div><div class="nnode">bear_memory</div><div class="nnode">trader_memory</div><div class="nnode">invest_judge_memory</div><div class="nnode">risk_manager_memory</div>
+        </div>
+        <div class="gapline">三处沉睡待开启(都是「开原生」非抽离):
+          <span class="ngap">① 持久化硬编码 False ×6 · 无配置钩子</span>
+          <span class="ngap">② 集合仅按角色命名 · 未按 ticker 锚定</span>
+          <span class="ngap">③ 无真实收益 / 回测驱动(仓库明说交调用方)</span>
+        </div>
+      </div>
+
+      <div class="nconn"><span class="wr">▲ 写</span> &nbsp;<b>reflect_and_remember(returns)</b> → reflect_×5 → <b>add_situations</b>:回测 ⟶ 原生记忆库&nbsp; <span class="wr">(memory.py:559 · 原生公有 API)</span></div>
+
+      <div class="nband a">
+        <div class="blab">A · 写半边 <span class="half">单独回测</span> <span class="needs">需驱动</span></div>
+        <div class="nrow">
+          <div class="nnode">快照 = 决策日志<small>复用已攒的 &lt;ticker&gt;-&lt;date&gt;.json</small></div>
+          <span class="narr">→</span>
+          <div class="nnode hot">算真实收益<small><b>唯一真新代码</b> · 确定性 · akshare 秒级</small></div>
+          <span class="narr">→</span>
+          <div class="nnode hot">reflect_and_remember(真实return)<small>原生 · trading_graph.py:1165<span class="api">五角色复盘 → add_situations</span></small></div>
+        </div>
+      </div>
+
+      <div class="nback">↺ A 写的库 = B 读的库 → 持久化后,明日现场分析 get_memories 自动捞到回测沉淀的真实教训(跨日复用)</div>
+    </div>
+
+    <div class="cols2" style="margin-top:34px">
+      <div class="panel keep">
+        <h3>● 引入 B — 现场连续(复用原生读 + seed)</h3>
+        <div class="sub">in existing analysis · reuse get_memories</div>
+        <ul>
+          <li><b>B-读 已免费</b>:<code>get_memories</code> 已在辩论/交易节点活着,前提是 <code>memory_enabled</code>(depth≥2) + 持久化打开 + 库非空。</li>
+          <li><b>B-seed 用原生 API</b>:Skill 运行器跑后调引擎自己的对象 <code>ta.bull_memory.add_situations([(情形, 今日决策)])</code>——非另建存储,明日同票辩论即在昨日论点上演化。</li>
+          <li><b>seam = run_stock_analysis.py</b>:它本就 <code>ta=TradingAgentsGraph(config); ta.propagate()</code>,只多传 persist 配置 + 跑后 seed,几行。</li>
+        </ul>
+      </div>
+      <div class="panel raise">
+        <h3>● 引入 A — 单独回测(复用原生 reflect)</h3>
+        <div class="sub">separate backtest · reuse reflect_and_remember</div>
+        <ul>
+          <li><b>决策日志复用快照</b>:枚举已攒的 <code>&lt;ticker&gt;-&lt;date&gt;.json</code>(已含 decision + entry price),不必为历史重跑引擎。</li>
+          <li><b>唯一新代码 = 收益计算</b>:对到期决策算"照报告操作的名义收益"(确定性、akshare)——正是 main.py:26 注释里"由调用方提供 position returns"那部分。</li>
+          <li><b>写回走原生</b>:调 <code>ta.reflect_and_remember(真实return)</code> → 原生五角色复盘 → 同一持久化、按票锚定的库;审计落原生 <code>eval_results/&lt;ticker&gt;/</code>。</li>
+        </ul>
+      </div>
+    </div>
+
+    <table class="matrix" style="margin-top:24px">
+      <thead><tr><th>层</th><th>改动</th><th>性质</th></tr></thead>
+      <tbody>
+        <tr><td class="comp">引擎<small>TradingAgents-CN</small></td><td class="rec"><code>chromadb_config</code> 的 <code>is_persistent</code>/<code>persist_directory</code> 改为读 <code>config["memory_persist_dir"]</code> 且按 ticker 分目录(~10 行)。</td><td><span class="tag t-reuse">开启沉睡原生</span></td></tr>
+        <tr><td class="comp">Skill 运行器<small>run_stock_analysis.py</small></td><td class="rec">传 persist 配置 + ticker;跑后 <code>ta.&lt;role&gt;_memory.add_situations(...)</code>(B);若有收益则 <code>ta.reflect_and_remember</code>(A)。</td><td><span class="tag t-incr">原生 API · 几行</span></td></tr>
+        <tr><td class="comp">Skill 回测器<small>A 的新入口</small></td><td class="rec">新 driver:扫到期快照 → 算真实收益 → 调原生 reflect;落 <code>eval_results</code>。</td><td><span class="tag t-cond">新入口 · 驱动原生</span></td></tr>
+      </tbody>
+    </table>
+    <p class="lead" style="margin-top:22px;margin-bottom:0"><b>没有</b>独立 ChromaDB、独立记忆库、独立学习系统——全骑在 <code>FinancialSituationMemory + reflect_and_remember + get_memories</code> 上。引入 A/B = <b>接通三处沉睡点 + 运行器加几行 seed/reflect</b>。</p>
+  </div>
+</section>
+
+<!-- 8 建立在已有之上 -->
+<section style="border-bottom:none">
+  <div class="wrap">
+    <div class="shead"><span class="snum">08</span><h2>建立在已有之上</h2><span class="sx">reuse, don't rebuild</span></div>
+    <p class="lead">核心原则：<b>接断头、不另起炉灶</b>。框架几乎全部复用引擎与 KB 既有结构，新增面极小。</p>
+    <div class="bo">
+      <div class="box r">
+        <h3>● 复用既有（不重写）</h3>
+        <ul>
+          <li>引擎缓存：china_stocks / china_fundamentals 目录 + collection 分离 + report_period(mongo) <span class="cite">file_cache.py:41-45</span></li>
+          <li>引擎 memory：完整 Reflector + add/get_memories + 已活 past_memory_str 读槽，只接 2 个断头(翻 is_persistent + 调 reflect)</li>
+          <li>引擎 state：create_initial_state 空报告槽做事实注入 <span class="cite">propagation.py:48-51</span> + 预取先例 <span class="cite">news_analyst.py:207-225</span></li>
+          <li>runner 缝：DEPTH_MAP→config→propagate 链不变，块序列化已就位 <span class="cite">run_stock_analysis.py</span></li>
+          <li>KB+前端整链：raw 直写→raw-intake(幂等/不可变)→finance-ingest→wiki 单页→kb-parse.js 倒序下拉</li>
+        </ul>
+      </div>
+      <div class="box a">
+        <h3>● 新增（最小面）</h3>
+        <ul>
+          <li><code>fingerprints{}</code> 块：对结构化 DATA payload 的 sha256，写进快照</li>
+          <li><code>compute_delta()</code>：纯 Python diff(action/target/confidence/risk)，零 LLM</li>
+          <li>wiki <b>「## 演化链」</b> append 段（最新视图字段仍 merge-latest-wins）</li>
+          <li>前端 day-over-day 时间线渲染（kb-parse.js，紧邻 reports[] 下拉）</li>
+          <li>主开关 <code>TA_HISTORY_AWARE</code>（默认 OFF，temp KB 离线先验）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- caveats -->
+<section style="border-bottom:none;padding-top:8px">
+  <div class="wrap">
+    <div class="caveats">
+      <h3>诚实清单 · 落地前必读</h3>
+      <div class="csub">honest caveats — defaults conservative, validate offline</div>
+      <ul>
+        <li><b>默认 OFF</b>：主开关关；指纹门控逻辑先在 temp KB 对存档快照离线验证，遵守"别为验证重跑 17min 引擎"。</li>
+        <li><b>judge-only 重入未验证</b>：L2 最大风险；先用"仍跑廉价分析师、只省辩论链"作安全退路，runtime 验证后再上全短路。</li>
+        <li><b>指纹键于数据非 prose</b>：LLM 报告文本会 drift，门控必须对缓存层结构化 payload 取指纹。</li>
+        <li><b>memory 是论点连续、非 P&amp;L 学习</b>：returns_losses 仍是 placeholder；接真实收益前不要宣称"已验证学习"。</li>
+        <li><b>持久化要翻 6 处 + 加 prune/TTL</b>：引擎无 memory 维护，长期需淘汰策略防 ChromaDB 膨胀。</li>
+        <li><b>同日 vs 跨日分治</b>：同日靠引擎短路 + KB sha256 幂等；跨日靠指纹门控 + delta + 演化链；delta 永远锚上个交易日。</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="display:flex;justify-content:space-between;width:100%;flex-wrap:wrap;gap:10px">
+    <span>Finance_Agent · docs/stock-analysis-history-framework.html</span>
+    <span>17 子代理 · 代码级核实 · 仅本地查看 · 不上公网</span>
+  </div>
+</footer>
+
+</body>
+</html>

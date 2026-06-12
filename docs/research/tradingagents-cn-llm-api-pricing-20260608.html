@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradingAgents-CN LLM API 费用 / 订阅 / 购买渠道对比 · 2026-06-08</title>
+<style>
+  :root{
+    --navy:#003d5c; --navy2:#0a5274; --ink:#1a2228;
+    --mut:#5b6770; --line:#e2e6ea; --bg:#f6f8fa; --card:#ffffff;
+    --warn:#9a3412; --warnbg:#fff4ed; --ok:#0f5132; --okbg:#eafaf0; --free:#0f7a3d;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,Roboto,sans-serif;
+    background:var(--bg);color:var(--ink);font-size:14px;line-height:1.6;padding:28px 18px}
+  .wrap{max-width:1180px;margin:0 auto}
+  header{background:var(--navy);color:#fff;padding:24px 28px;margin-bottom:18px}
+  header h1{font-size:22px;font-weight:700;letter-spacing:.2px}
+  header .sub{font-size:13px;opacity:.85;margin-top:6px}
+  .meta{display:flex;gap:22px;flex-wrap:wrap;margin-top:14px;font-size:12.5px}
+  .meta div{border-left:3px solid var(--navy2);padding-left:10px}
+  .meta b{display:block;font-size:17px;font-weight:700}
+  section{background:var(--card);border:1px solid var(--line);padding:20px 24px;margin-bottom:16px}
+  h2{font-size:17px;color:var(--navy);border-bottom:2px solid var(--navy);padding-bottom:8px;margin-bottom:14px}
+  h3{font-size:14.5px;color:var(--navy2);margin:18px 0 8px}
+  p{margin:8px 0}
+  ul{margin:8px 0 8px 20px}
+  li{margin:4px 0}
+  table{width:100%;border-collapse:collapse;margin:10px 0 6px;font-size:13px}
+  th{background:var(--navy);color:#fff;text-align:left;padding:8px 10px;font-weight:600;font-size:12.5px}
+  td{border-bottom:1px solid var(--line);padding:7px 10px;vertical-align:top}
+  tr:nth-child(even) td{background:#fafbfc}
+  code{background:#eef1f4;padding:1px 5px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;color:var(--navy2)}
+  .free{color:var(--free);font-weight:700}
+  .dep{color:var(--warn);font-weight:600}
+  .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:2px;font-weight:600}
+  .tag.no{background:#fdecec;color:#9a1c1c}
+  .tag.yes{background:var(--okbg);color:var(--ok)}
+  .callout{background:var(--warnbg);border-left:4px solid var(--warn);padding:12px 16px;margin:12px 0;font-size:13px}
+  .callout b{color:var(--warn)}
+  .tl{background:var(--okbg);border-left:4px solid var(--ok);padding:12px 16px;margin:12px 0;font-size:13px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:10px 0}
+  .kpi{background:var(--navy);color:#fff;padding:14px 16px}
+  .kpi .n{font-size:20px;font-weight:700}
+  .kpi .l{font-size:12px;opacity:.85;margin-top:3px}
+  .foot{font-size:11.5px;color:var(--mut);line-height:1.7}
+  .foot a{color:var(--navy2);word-break:break-all}
+  small{color:var(--mut)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>TradingAgents-CN 可用 LLM API：费用 · 订阅 · 购买渠道深度对比</h1>
+  <div class="sub">基于 v1.0.1 <code>model_catalog.py</code> / <code>.env.example</code> 实际支持的 provider · 研究日期 2026-06-08 · 国产=¥/百万tok，海外=$/百万tok</div>
+  <div class="meta">
+    <div><b>6</b>模型厂商</div>
+    <div><b>6</b>购买/聚合渠道</div>
+    <div><b>¥0</b>最低起步(GLM-4-Flash)</div>
+    <div><b>0</b>海外厂商提供 API 订阅</div>
+  </div>
+</header>
+
+<section>
+  <h2>0 · 结论速览</h2>
+  <div class="tl">
+    <b>最省钱组合</b>：智谱 <code>GLM-4-Flash</code>（<span class="free">免费</span>）→ DeepSeek <code>deepseek-chat</code>（¥1/¥2）→ 通义 <code>qwen-turbo</code>（¥0.3/¥0.6）。国产模型性价比远超海外。<br>
+    <b>国内首选渠道</b>：要 Claude/GPT 又只有人民币 → <b>AIHubMix</b>（项目官方推荐/赞助，支付宝充值、OpenAI 兼容）；只用国产 → <b>硅基流动</b>或<b>百度千帆</b>。<br>
+    <b>订阅误区</b>：OpenAI/Anthropic/Google 的 API <b>都没有"订阅"</b>，纯按量付费。ChatGPT&nbsp;Plus / Claude&nbsp;Pro 是网页聊天，<b>不能</b>驱动本项目。
+  </div>
+</section>
+
+<section>
+  <h2>1 · ⚠️ 模型 ID 失效提醒（比价格更紧迫）</h2>
+  <p>项目 catalog 固定的不少模型 ID 到 2026 年中已改名 / 弃用 / 下线，直接照搬会近期报错。</p>
+  <table>
+    <thead><tr><th>项目中的模型 ID</th><th>状态（2026-06）</th><th>现行替代 / 说明</th></tr></thead>
+    <tbody>
+      <tr><td><code>deepseek-chat</code> / <code>deepseek-reasoner</code></td><td class="dep">别名，2026-07-24 后停用</td><td>迁移到 <code>deepseek-v4-flash</code>（或 <code>-pro</code>）</td></tr>
+      <tr><td><code>qwen-max-longcontext</code></td><td class="dep">未确认为在售 SKU</td><td>由 <code>qwen-long</code> 取代（¥0.5/¥2）</td></tr>
+      <tr><td><code>glm-4-long</code></td><td class="dep">官方表未确认</td><td>转 GLM-4.5/4.6 长文模型</td></tr>
+      <tr><td><code>claude-3-5-haiku</code></td><td class="dep">一方 API 已退役</td><td>Haiku 4.5（$1/$5）</td></tr>
+      <tr><td><code>claude-3-5-sonnet</code> / <code>claude-3-7-sonnet</code></td><td class="dep">已下价目表</td><td>Sonnet 4.6（$3/$15）</td></tr>
+      <tr><td><code>claude-sonnet-4</code> / <code>claude-opus-4</code></td><td class="dep">已弃用（仍可调）</td><td>Sonnet 4.6 / Opus 4.5+（新 Opus 仅 $5/$25）</td></tr>
+      <tr><td><code>gpt-4o</code> / <code>gpt-4o-mini</code></td><td class="dep">遗留 grandfathered</td><td>GPT-4.1 / GPT-5.x</td></tr>
+      <tr><td><code>gpt-4.1-mini</code> / <code>gpt-4.1-nano</code></td><td>仍在售</td><td>可继续用</td></tr>
+      <tr><td><code>gemini-2.0-flash</code></td><td class="dep">2026-06-01 已弃用</td><td><code>gemini-2.5-flash-lite</code></td></tr>
+      <tr><td><code>gemini-2.5-flash</code> / <code>flash-lite</code> / <code>2.5-pro</code></td><td>仍在售</td><td>可继续用</td></tr>
+    </tbody>
+  </table>
+  <div class="callout"><b>建议</b>：把这些 ID 当"出厂默认值"，在 Web 配置页用 "Custom model ID" 覆盖为现行 ID，或升级 model_catalog。</div>
+</section>
+
+<section>
+  <h2>2 · 国产模型 API 价格（¥/百万 tokens，输入/输出分列）</h2>
+
+  <h3>2.1 DeepSeek &nbsp;<span class="tag no">无订阅</span></h3>
+  <table>
+    <thead><tr><th>模型</th><th>输入(缓存命中)</th><th>输入(未命中)</th><th>输出</th><th>备注</th><th>来源</th></tr></thead>
+    <tbody>
+      <tr><td><code>deepseek-chat</code> →v4-flash</td><td>¥0.02</td><td>¥1</td><td>¥2</td><td class="dep">2026-07-24 弃用</td><td><a href="https://api-docs.deepseek.com/zh-cn/quick_start/pricing">官方定价</a></td></tr>
+      <tr><td><code>deepseek-reasoner</code> →v4-flash</td><td>¥0.02</td><td>¥1</td><td>¥2</td><td class="dep">别名，同价</td><td><a href="https://api-docs.deepseek.com/zh-cn/quick_start/pricing">官方定价</a></td></tr>
+      <tr><td><code>deepseek-v4-flash</code></td><td>¥0.02</td><td>¥1</td><td>¥2</td><td>现行经济款</td><td><a href="https://api-docs.deepseek.com/zh-cn/quick_start/pricing">官方定价</a></td></tr>
+      <tr><td><code>deepseek-v4-pro</code></td><td>¥0.025</td><td>¥3</td><td>¥6</td><td>旗舰推理/代码</td><td><a href="https://api-docs.deepseek.com/quick_start/pricing-details-usd">USD页</a></td></tr>
+    </tbody>
+  </table>
+  <p><small>订阅 ❌ 纯按量 · 充值需实名 · 新用户送 500 万 token · 缓存命中省 ~98%，官方已无错峰折扣。</small></p>
+
+  <h3>2.2 通义千问 Qwen / 阿里云百炼 &nbsp;<span class="tag yes">有订阅</span></h3>
+  <table>
+    <thead><tr><th>模型</th><th>输入</th><th>输出</th><th>备注</th><th>来源</th></tr></thead>
+    <tbody>
+      <tr><td><code>qwen-turbo</code></td><td>¥0.3</td><td>¥0.6</td><td>扁平价</td><td><a href="https://help.aliyun.com/zh/model-studio/model-pricing">百炼定价</a></td></tr>
+      <tr><td><code>qwen-plus</code></td><td>¥0.8</td><td>¥4.8</td><td>按上下文分档</td><td><a href="https://help.aliyun.com/zh/model-studio/model-pricing">百炼定价</a></td></tr>
+      <tr><td><code>qwen-max</code> ≈qwen3-max</td><td>¥2.5(≤32K)</td><td>¥10(≤32K)</td><td>分档</td><td><a href="https://help.aliyun.com/zh/model-studio/model-pricing">百炼定价</a></td></tr>
+      <tr><td><code>qwen3-max</code></td><td>¥2.5 / ¥4(32–128K)</td><td>¥10 / ¥16(32–128K)</td><td>按长度分档</td><td><a href="https://developer.aliyun.com/article/1714977">阿里云社区</a></td></tr>
+      <tr><td><code>qwen-long</code></td><td>¥0.5</td><td>¥2</td><td>替代 longcontext</td><td><a href="https://help.aliyun.com/zh/model-studio/model-pricing">百炼定价</a></td></tr>
+    </tbody>
+  </table>
+  <p><small>订阅 ✅ 节省计划(最高~53%off)+Token资源包+Batch 5折 · 新户>7000万token赠送(每模型100万/90天) · 阿里云实名充值。</small></p>
+
+  <h3>2.3 智谱 GLM / BigModel &nbsp;<span class="tag yes">有订阅</span></h3>
+  <table>
+    <thead><tr><th>模型</th><th>输入</th><th>输出</th><th>备注</th><th>来源</th></tr></thead>
+    <tbody>
+      <tr><td><code>glm-4-flash</code></td><td class="free">¥0 免费</td><td class="free">¥0 免费</td><td>智谱首个免费 API</td><td><a href="https://docs.bigmodel.cn/cn/guide/models/free/glm-4.7-flash">免费模型文档</a></td></tr>
+      <tr><td><code>glm-4-flashx</code></td><td>¥0.1</td><td>¥0.1</td><td>每亿 token 10 元</td><td><a href="https://hub.baai.ac.cn/view/37676">智源社区</a></td></tr>
+      <tr><td><code>glm-4-air</code></td><td>¥1</td><td>¥1</td><td>输入=输出</td><td><a href="https://www.oschina.net/news/346496">OSChina</a></td></tr>
+      <tr><td><code>glm-4-plus</code></td><td>¥5</td><td>¥5</td><td>从 ¥50 降 90%</td><td><a href="https://www.oschina.net/news/346496">OSChina</a></td></tr>
+      <tr><td><code>glm-4-long</code></td><td colspan="2">未确认</td><td class="dep">按弃用处理</td><td><a href="https://open.bigmodel.cn/pricing">智谱定价</a></td></tr>
+    </tbody>
+  </table>
+  <p><small>订阅 ✅ GLM Coding Plan 包月/季/年(Lite¥49 / Pro¥149 / Max¥469 月)+资源包 · Flash 系免费 · 新户可领 2000万~2亿 token · 微信/支付宝实名。</small></p>
+</section>
+
+<section>
+  <h2>3 · 海外模型 API 价格（$/百万 tokens，输入/输出分列）</h2>
+
+  <h3>3.1 OpenAI &nbsp;<span class="tag no">API 无订阅</span></h3>
+  <table>
+    <thead><tr><th>模型</th><th>输入</th><th>输出</th><th>缓存输入</th><th>备注</th><th>来源</th></tr></thead>
+    <tbody>
+      <tr><td><code>gpt-4o</code></td><td>$2.50</td><td>$10.00</td><td>$1.25</td><td class="dep">遗留</td><td><a href="https://openai.com/api/pricing/">OpenAI 定价</a></td></tr>
+      <tr><td><code>gpt-4o-mini</code></td><td>$0.15</td><td>$0.60</td><td>$0.075</td><td class="dep">遗留</td><td><a href="https://openai.com/api/pricing/">OpenAI 定价</a></td></tr>
+      <tr><td><code>gpt-4.1-mini</code></td><td>$0.40</td><td>$1.60</td><td>$0.10</td><td>在售</td><td><a href="https://openai.com/api/pricing/">OpenAI 定价</a></td></tr>
+      <tr><td><code>gpt-4.1-nano</code></td><td>$0.10</td><td>$0.40</td><td>$0.025</td><td>最便宜文本款</td><td><a href="https://openai.com/api/pricing/">OpenAI 定价</a></td></tr>
+    </tbody>
+  </table>
+  <p><small>ChatGPT Plus $20/月、Pro $200/月 ≠ API · 大陆需海外卡，普遍走聚合中转。</small></p>
+
+  <h3>3.2 Anthropic Claude &nbsp;<span class="tag no">API 无订阅</span></h3>
+  <table>
+    <thead><tr><th>模型</th><th>输入</th><th>输出</th><th>缓存读取</th><th>备注</th><th>来源</th></tr></thead>
+    <tbody>
+      <tr><td><code>claude-3-5-haiku</code></td><td>$0.80</td><td>$4.00</td><td>$0.08</td><td class="dep">一方 API 已退役</td><td><a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude 官方定价</a></td></tr>
+      <tr><td><code>claude-3-5-sonnet</code></td><td>—</td><td>—</td><td>—</td><td class="dep">已下表(原$3/$15)</td><td><a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude 官方定价</a></td></tr>
+      <tr><td><code>claude-3-7-sonnet</code></td><td>—</td><td>—</td><td>—</td><td class="dep">已下表</td><td><a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude 官方定价</a></td></tr>
+      <tr><td><code>claude-sonnet-4</code></td><td>$3.00</td><td>$15.00</td><td>$0.30</td><td class="dep">已弃用仍可调</td><td><a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude 官方定价</a></td></tr>
+      <tr><td><code>claude-opus-4</code></td><td>$15.00</td><td>$75.00</td><td>$1.50</td><td class="dep">新 Opus 4.5+ 仅 $5/$25</td><td><a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude 官方定价</a></td></tr>
+    </tbody>
+  </table>
+  <p><small>缓存命中读 0.1×(省90%) · Batch 5折 · Claude.ai Pro $20 / Max $100+ ≠ API · 大陆走中转。</small></p>
+
+  <h3>3.3 Google Gemini API &nbsp;<span class="tag no">API 无订阅(有免费层)</span></h3>
+  <table>
+    <thead><tr><th>模型</th><th>输入</th><th>输出</th><th>缓存输入</th><th>备注</th><th>来源</th></tr></thead>
+    <tbody>
+      <tr><td><code>gemini-2.5-flash</code></td><td>$0.30</td><td>$2.50</td><td>~$0.03</td><td class="dep">⚠官方一处显示 $0.50/$2.00，需核对</td><td><a href="https://ai.google.dev/gemini-api/docs/pricing">Gemini 定价</a> · <a href="https://costgoat.com/pricing/gemini-api">校验</a></td></tr>
+      <tr><td><code>gemini-2.5-flash-lite</code></td><td>$0.10</td><td>$0.40</td><td>~$0.01</td><td>GA 已确认</td><td><a href="https://ai.google.dev/gemini-api/docs/pricing">Gemini 定价</a></td></tr>
+      <tr><td><code>gemini-2.0-flash</code></td><td>$0.10</td><td>$0.40</td><td>~$0.01</td><td class="dep">2026-06-01 已弃用</td><td><a href="https://ai.google.dev/gemini-api/docs/pricing">Gemini 定价</a></td></tr>
+      <tr><td><code>gemini-2.5-pro</code></td><td>$1.25 / $2.50(&gt;200K)</td><td>$10 / $15(&gt;200K)</td><td>$0.125 / $0.25</td><td>按上下文分档</td><td><a href="https://ai.google.dev/gemini-api/docs/pricing">Gemini 定价</a></td></tr>
+    </tbody>
+  </table>
+  <p><small>免费层覆盖 Flash/Flash-Lite(免信用卡) · 2026-04-01 起 Pro 退出免费层 · 大陆走中转。</small></p>
+</section>
+
+<section>
+  <h2>4 · 订阅方式一览</h2>
+  <table>
+    <thead><tr><th>Provider</th><th>API 是否有订阅</th><th>订阅/资源包形态</th><th>消费级订阅（≠API）</th><th>来源</th></tr></thead>
+    <tbody>
+      <tr><td>DeepSeek</td><td><span class="tag no">无</span></td><td>纯按量付费</td><td>—</td><td><a href="https://api-docs.deepseek.com/zh-cn/quick_start/pricing">定价</a></td></tr>
+      <tr><td>通义千问</td><td><span class="tag yes">有</span></td><td>节省计划(~53%off)+Token资源包+Batch5折</td><td>—</td><td><a href="https://help.aliyun.com/zh/model-studio/savings-plan-and-resource-package">节省计划</a></td></tr>
+      <tr><td>智谱 GLM</td><td><span class="tag yes">有</span></td><td>GLM Coding Plan 月/季/年(¥49/¥149/¥469)+资源包</td><td>—</td><td><a href="https://docs.bigmodel.cn/cn/coding-plan/overview">Coding Plan</a></td></tr>
+      <tr><td>OpenAI</td><td><span class="tag no">无</span></td><td>预付费 credits 按量</td><td>ChatGPT Plus $20 / Pro $200</td><td><a href="https://openai.com/api/pricing/">API 定价</a></td></tr>
+      <tr><td>Anthropic</td><td><span class="tag no">无</span></td><td>按量 credits(+缓存/批量折扣)</td><td>Claude Pro $20 / Max $100+</td><td><a href="https://www.cloudzero.com/blog/claude-api-pricing/">API vs 订阅</a></td></tr>
+      <tr><td>Google Gemini</td><td><span class="tag no">无(有免费层)</span></td><td>按量付费</td><td>Google AI Pro / Ultra</td><td><a href="https://ai.google.dev/gemini-api/docs/pricing">定价</a></td></tr>
+    </tbody>
+  </table>
+  <div class="callout"><b>一句话</b>：海外三家"想订阅省钱"是误区——订阅买的是网页聊天，跑 TradingAgents-CN 必须 API 按量付费。国产里只有通义、智谱提供 API 侧预付费/折扣计划。</div>
+</section>
+
+<section>
+  <h2>5 · 购买渠道 / 聚合平台对比</h2>
+  <table>
+    <thead><tr><th>渠道</th><th>海外闭源<br>GPT/Claude/Gemini</th><th>国产/开源</th><th>计费</th><th>折扣 vs 官方</th><th>大陆支付</th><th>订阅</th><th>来源/官网</th></tr></thead>
+    <tbody>
+      <tr><td><b>硅基流动</b></td><td>❌</td><td>✅源站</td><td>按量+送¥14</td><td>源站价</td><td>✅直连</td><td>无</td><td><a href="https://docs.siliconflow.com/cn/faqs/billing-rules">计费规则</a> · <a href="https://cloud.siliconflow.cn">官网</a></td></tr>
+      <tr><td><b>AIHubMix</b><br><small>项目推荐</small></td><td>✅</td><td>✅</td><td>按量</td><td>约86折/新人首充¥3.5*¹</td><td>✅支付宝/Stripe</td><td>无</td><td><a href="https://docs.aihubmix.com/cn">文档</a> · <a href="https://aihubmix.com">官网</a></td></tr>
+      <tr><td><b>302.AI</b></td><td>✅</td><td>✅</td><td>PTC积分 $1=1PTC 最低$5</td><td>无明显折扣</td><td>✅充值*²</td><td>无</td><td><a href="https://302ai.cn/pricing/">定价</a> · <a href="https://302.ai">官网</a></td></tr>
+      <tr><td><b>OpenRouter</b></td><td>✅</td><td>✅</td><td>credits，推理不加价+5.5%手续费</td><td>推理=官方价</td><td>⚠️国际卡/crypto*²</td><td>无</td><td><a href="https://openrouter.ai/pricing">定价</a> · <a href="https://openrouter.ai/docs/faq">FAQ</a></td></tr>
+      <tr><td><b>百度千帆</b></td><td>❌</td><td>✅ERNIE+第三方</td><td>后付费/量包/TPM</td><td>量包多85折</td><td>✅完全友好</td><td>✅资源包/TPM</td><td><a href="https://cloud.baidu.com/doc/qianfan/s/wmh4sv6ya">计费</a> · <a href="https://cloud.baidu.com/doc/qianfan/s/Imi2rpirg">免费额度</a></td></tr>
+      <tr><td><b>OneAPI/New-API</b></td><td>取决上游</td><td>取决上游</td><td>开源自部署，只付上游</td><td>n/a</td><td>n/a</td><td>n/a</td><td><a href="https://github.com/songquanpeng/one-api">one-api</a> · <a href="https://github.com/QuantumNous/new-api">new-api</a></td></tr>
+    </tbody>
+  </table>
+  <p class="foot">*¹ AIHubMix 充值折扣来自第三方教程而非官方原文，以充值页实时为准。&nbsp; *² 302.AI/OpenRouter 支付宝可用性来自第三方资料，官方未明确承诺。</p>
+  <ul>
+    <li><b>硅基流动</b>：国内自营开源模型推理云，OpenAI 兼容，送 ¥14(约2000万token)，约8个免费小模型；拿不到 GPT/Claude。</li>
+    <li><b>AIHubMix</b>（项目官方推荐/赞助）：一个 key 覆盖 GPT+Claude+Gemini+国产，OpenAI 兼容零改码，支付宝充值——国内跑 Claude/GPT 最省心。</li>
+    <li><b>302.AI</b>：企业级聚合，PTC 积分($1=1PTC，余额永久)，含图像/视频，适合 LLM+多模态。</li>
+    <li><b>OpenRouter</b>：海外网关，模型最全、推理不加价(充值5.5%手续费)；门槛国际卡+科学上网。</li>
+    <li><b>百度千帆</b>：文心 ERNIE+DeepSeek/Qwen/Kimi 第三方，ERNIE-3.5-8K 永久免费，发票合规；无海外闭源。</li>
+    <li><b>OneAPI/New-API</b>：开源自部署网关，多上游统一成 OpenAI 兼容，软件免费只付上游；适合已有多家 key 本地统一管理。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>6 · 给 TradingAgents-CN 用户的配置建议</h2>
+  <ul>
+    <li><b>零成本起步</b>：<code>GLM-4-Flash</code>(免费)或硅基流动免费模型先跑通多智能体流水线。</li>
+    <li><b>低成本主力(国内直连)</b>：DeepSeek <code>deepseek-v4-flash</code>(别再写 deepseek-chat，7-24后失效) ¥1/¥2，或 <code>qwen-plus</code>；深度推理用 <code>deepseek-v4-pro</code>/<code>qwen3-max</code>。</li>
+    <li><b>要用 Claude/GPT</b>：走 AIHubMix，<code>.env</code> 填 <code>AIHUBMIX_API_KEY</code> + <code>AIHUBMIX_BASE_URL=https://aihubmix.com/v1</code>，支付宝充值免海外卡。</li>
+    <li><b>成本控制</b>：开缓存(命中省90%+)、大批量用 Batch 5折；订阅只对重度高频的智谱 Coding Plan 才划算。</li>
+    <li><b>别买消费级订阅当 API</b>：ChatGPT Plus / Claude Pro 不能驱动本项目。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>7 · 局限与数据来源</h2>
+  <p class="foot">
+    <b>局限</b>：价格频繁变动，本表为 2026-06-08 快照；部分官方页 JS 渲染或对自动抓取返回 403（bigmodel.cn、aliyun model-pricing、openai.com、ai.google.dev、302ai.cn），相关数字以官方帮助中心 + 2 个以上二手源交叉验证并逐项标注"未确认"；聚合平台折扣/支付宝可用性多来自第三方教程，充值前以平台实时页为准；Gemini 2.5 Flash 价格存在 $0.30/$2.50 与 $0.50/$2.00 冲突待核对。
+  </p>
+  <p class="foot">
+    <b>来源（国产）</b>
+    <a href="https://api-docs.deepseek.com/zh-cn/quick_start/pricing">DeepSeek定价</a> ·
+    <a href="https://help.aliyun.com/zh/model-studio/model-pricing">百炼定价</a> ·
+    <a href="https://help.aliyun.com/zh/model-studio/savings-plan-and-resource-package">节省计划</a> ·
+    <a href="https://open.bigmodel.cn/pricing">智谱定价</a> ·
+    <a href="https://docs.bigmodel.cn/cn/coding-plan/overview">GLM Coding Plan</a><br>
+    <b>来源（海外）</b>
+    <a href="https://openai.com/api/pricing/">OpenAI</a> ·
+    <a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude官方</a> ·
+    <a href="https://ai.google.dev/gemini-api/docs/pricing">Gemini</a> ·
+    <a href="https://costgoat.com/pricing/gemini-api">Gemini校验</a><br>
+    <b>来源（渠道）</b>
+    <a href="https://docs.siliconflow.com/cn/faqs/billing-rules">硅基流动</a> ·
+    <a href="https://docs.aihubmix.com/cn">AIHubMix</a> ·
+    <a href="https://302ai.cn/pricing/">302.AI</a> ·
+    <a href="https://openrouter.ai/pricing">OpenRouter</a> ·
+    <a href="https://cloud.baidu.com/doc/qianfan/s/wmh4sv6ya">百度千帆</a> ·
+    <a href="https://github.com/songquanpeng/one-api">One-API</a> ·
+    <a href="https://github.com/QuantumNous/new-api">New-API</a>
+  </p>
+</section>
+
+<p class="foot" style="text-align:center;margin-top:8px">本地报告 · 仅供研究学习 · TradingAgents-CN 定位为学习/研究平台，不构成投资建议</p>
+</div>
+</body>
+</html>

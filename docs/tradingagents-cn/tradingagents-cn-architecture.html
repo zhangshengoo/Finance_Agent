@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradingAgents-CN · 前后端功能与架构全景</title>
+<style>
+  :root{
+    --bg:#f6f7fb; --card:#ffffff; --ink:#1b2330; --muted:#64708a; --line:#e4e8f0;
+    --fe:#3b6df0; --fe-bg:#eaf0ff;       /* frontend  蓝 */
+    --be:#0fa37f; --be-bg:#e6f7f1;       /* backend服务 绿 */
+    --eng:#e08a17; --eng-bg:#fdf2dd;     /* 引擎/AI  琥珀 */
+    --data:#8a4fd6; --data-bg:#f2eafc;   /* 数据/存储 紫 */
+    --infra:#5b6b86; --infra-bg:#eef1f6; /* 基础设施 灰蓝 */
+    --rt:#d6457f; --rt-bg:#fde9f1;       /* 实时推送 玫红 */
+    --shadow:0 1px 2px rgba(20,30,60,.05),0 6px 20px rgba(20,30,60,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.55;font-size:15px}
+  code,.mono{font-family:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-size:.86em}
+  a{color:var(--fe);text-decoration:none}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px 90px}
+
+  /* header */
+  header{background:linear-gradient(135deg,#1b2330,#26344e);color:#fff;padding:46px 0 40px;margin-bottom:30px}
+  header .wrap{padding-top:0;padding-bottom:0}
+  header h1{margin:0 0 8px;font-size:30px;letter-spacing:.5px}
+  header p{margin:0;color:#b9c4da;max-width:760px}
+  .stack{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+  .stack span{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
+    padding:5px 12px;border-radius:30px;font-size:12.5px;color:#e7edf8}
+
+  /* sticky nav */
+  nav{position:sticky;top:0;z-index:30;background:rgba(246,247,251,.92);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);margin-bottom:26px}
+  nav .wrap{display:flex;gap:4px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+  nav a{color:var(--muted);font-size:13.5px;padding:6px 12px;border-radius:8px;font-weight:600}
+  nav a:hover{background:var(--fe-bg);color:var(--fe)}
+
+  section{margin:0 0 46px;scroll-margin-top:62px}
+  h2{font-size:22px;margin:0 0 6px;display:flex;align-items:center;gap:10px}
+  h2 .tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;letter-spacing:.3px}
+  .sub{color:var(--muted);margin:0 0 20px;font-size:14px}
+  h3{font-size:16.5px;margin:26px 0 12px;padding-left:11px;border-left:4px solid var(--fe)}
+  h3.be{border-color:var(--be)} h3.eng{border-color:var(--eng)} h3.data{border-color:var(--data)} h3.rt{border-color:var(--rt)}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;box-shadow:var(--shadow)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:860px){.grid2,.grid3{grid-template-columns:1fr}}
+
+  table{width:100%;border-collapse:collapse;font-size:13.3px;margin:6px 0}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+  tr:hover td{background:#fbfcfe}
+  td code{background:#f1f3f8;padding:1px 6px;border-radius:5px}
+
+  .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:700;white-space:nowrap}
+  .p-fe{background:var(--fe-bg);color:var(--fe)} .p-be{background:var(--be-bg);color:var(--be)}
+  .p-eng{background:var(--eng-bg);color:var(--eng)} .p-data{background:var(--data-bg);color:var(--data)}
+  .p-rt{background:var(--rt-bg);color:var(--rt)} .p-infra{background:var(--infra-bg);color:var(--infra)}
+  .m-get{background:#e6f7f1;color:#0fa37f}.m-post{background:#eaf0ff;color:#3b6df0}
+  .m-del{background:#fdeaea;color:#d64545}.m-ws{background:#fde9f1;color:#d6457f}.m-put{background:#fdf2dd;color:#e08a17}
+
+  /* layered architecture diagram */
+  .layer{border-radius:12px;padding:14px 16px;margin:0 0 12px;border:1px solid var(--line);position:relative}
+  .layer .lbl{position:absolute;left:-1px;top:-1px;font-size:10.5px;font-weight:800;letter-spacing:.5px;
+    padding:3px 10px;border-radius:11px 0 11px 0;color:#fff}
+  .layer-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .node{background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:12.8px;font-weight:600;box-shadow:var(--shadow)}
+  .node small{display:block;font-weight:400;color:var(--muted);font-size:11px;margin-top:2px}
+  .L-fe{background:var(--fe-bg)} .L-fe .lbl{background:var(--fe)}
+  .L-be{background:var(--be-bg)} .L-be .lbl{background:var(--be)}
+  .L-eng{background:var(--eng-bg)} .L-eng .lbl{background:var(--eng)}
+  .L-data{background:var(--data-bg)} .L-data .lbl{background:var(--data)}
+  .L-infra{background:var(--infra-bg)} .L-infra .lbl{background:var(--infra)}
+  .flowdown{text-align:center;color:var(--muted);font-size:20px;line-height:.6;margin:-4px 0 6px}
+
+  /* horizontal pipeline */
+  .pipe{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin:10px 0}
+  .step{flex:1;min-width:128px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 12px;position:relative;box-shadow:var(--shadow)}
+  .step b{font-size:13px}.step small{display:block;color:var(--muted);font-size:11.4px;margin-top:3px}
+  .arrow{display:flex;align-items:center;color:var(--eng);font-size:18px;font-weight:800;padding:0 7px}
+  .stagebar{display:flex;gap:10px;flex-wrap:wrap}
+  .stage{flex:1;min-width:180px;border:1px dashed var(--eng);border-radius:11px;padding:12px;background:var(--eng-bg)}
+  .stage h4{margin:0 0 8px;font-size:13.5px;color:var(--eng);display:flex;align-items:center;gap:6px}
+  .agentbox{background:#fff;border:1px solid #f0dcb4;border-radius:8px;padding:6px 10px;font-size:12.4px;margin:5px 0}
+
+  ul.tight{margin:6px 0;padding-left:20px} ul.tight li{margin:3px 0;font-size:13.5px}
+  .note{font-size:12.6px;color:var(--muted)}
+  .kbd{background:#1b2330;color:#cdd7ea;padding:2px 7px;border-radius:6px;font-size:12px}
+  .callout{border-left:4px solid var(--eng);background:var(--eng-bg);padding:10px 14px;border-radius:0 10px 10px 0;font-size:13px;margin:12px 0}
+  .callout.warn{border-color:#d64545;background:#fdeef0}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;margin:8px 0 0}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:middle}
+  .foot{color:var(--muted);font-size:12.5px;border-top:1px solid var(--line);padding-top:16px;margin-top:30px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>TradingAgents-CN · 前后端功能与架构全景</h1>
+    <p>对运行中的本地实例（前端 Vue3 <code>:3000</code> · 后端 FastAPI <code>:8000</code>）做的功能盘点与实现框架梳理。覆盖全部功能模块，重点拆解<b>单股分析</b>的多智能体引擎流水线与<b>模拟交易</b>的全部子功能与撮合数据流。</p>
+    <div class="stack">
+      <span>Vue 3 + Vite + Element Plus + Pinia</span>
+      <span>FastAPI + Uvicorn（36 路由 / 274 接口）</span>
+      <span>TradingAgentsGraph 多智能体引擎</span>
+      <span>MongoDB（Motor 异步）</span>
+      <span>Redis（队列 + 进度 + PubSub）</span>
+      <span>APScheduler 定时同步</span>
+      <span>JWT 鉴权</span>
+    </div>
+  </div>
+</header>
+
+<nav><div class="wrap">
+  <a href="#arch">总体架构</a>
+  <a href="#matrix">功能全景</a>
+  <a href="#single">① 单股分析</a>
+  <a href="#engine">引擎流水线</a>
+  <a href="#memory">记忆系统</a>
+  <a href="#paper">② 模拟交易</a>
+  <a href="#link">分析→下单联动</a>
+  <a href="#support">支撑功能</a>
+  <a href="#realtime">实时推送</a>
+</div></nav>
+
+<div class="wrap">
+
+<!-- ============ 总体架构 ============ -->
+<section id="arch">
+  <h2>总体架构 <span class="tag p-infra">分层视图</span></h2>
+  <p class="sub">前后端分离。前端经 Vite 代理 <code>/api → :8000</code> 调后端；后端路由层 → 服务层 → （AI 引擎 / Redis 队列 / 定时器）→ 数据存储 / 外部数据源。</p>
+
+  <div class="card">
+    <div class="layer L-fe"><span class="lbl">前端 · Vue3</span>
+      <div class="layer-row">
+        <div class="node">页面/视图<small>views/* + router</small></div>
+        <div class="node">API 模块<small>src/api/*.ts（axios）</small></div>
+        <div class="node">状态<small>Pinia: auth / app / notifications</small></div>
+        <div class="node">实时客户端<small>WebSocket + 5s 轮询</small></div>
+      </div>
+    </div>
+    <div class="flowdown">▼ &nbsp; HTTP <code>/api</code> · WS · SSE（Vite 代理 → :8000）</div>
+
+    <div class="layer L-be"><span class="lbl">后端 · FastAPI 路由层</span>
+      <div class="layer-row">
+        <div class="node">analysis<small>分析任务</small></div>
+        <div class="node">paper<small>模拟交易</small></div>
+        <div class="node">queue<small>批量队列</small></div>
+        <div class="node">screening<small>选股</small></div>
+        <div class="node">*-data / sync<small>行情·财务·新闻</small></div>
+        <div class="node">auth / config / scheduler<small>系统</small></div>
+        <div class="node">sse / ws<small>实时</small></div>
+      </div>
+    </div>
+    <div class="flowdown">▼ &nbsp; 调用服务层 · 中间件（RequestID / 操作日志 / CORS）</div>
+
+    <div class="layer L-be"><span class="lbl">服务层 · app/services</span>
+      <div class="layer-row">
+        <div class="node">SimpleAnalysisService<small>分析编排</small></div>
+        <div class="node">Paper 交易逻辑<small>撮合/估值/手续费</small></div>
+        <div class="node">QueueService<small>Redis FIFO 队列</small></div>
+        <div class="node">Screening / Config / Auth …</div>
+        <div class="node">Sync Services<small>worker/*_sync</small></div>
+      </div>
+    </div>
+    <div class="flowdown">▼</div>
+
+    <div class="layer L-eng"><span class="lbl">AI 引擎 / 调度</span>
+      <div class="layer-row">
+        <div class="node">TradingAgentsGraph<small>多智能体分析引擎 · propagate()</small></div>
+        <div class="node">worker.py<small>队列消费者</small></div>
+        <div class="node">APScheduler<small>15+ 定时同步任务</small></div>
+        <div class="node">ForeignStockService<small>港/美股行情</small></div>
+      </div>
+    </div>
+    <div class="flowdown">▼</div>
+
+    <div class="layer L-data"><span class="lbl">数据存储</span>
+      <div class="layer-row">
+        <div class="node">MongoDB<small>tasks/reports/paper_*/stock_*/users…</small></div>
+        <div class="node">Redis<small>队列 qa:* · 进度 · PubSub · 缓存</small></div>
+        <div class="node">本地文件<small>reports/ · logs/ · cache/</small></div>
+      </div>
+    </div>
+    <div class="flowdown">▲ 拉取外部数据</div>
+
+    <div class="layer L-infra"><span class="lbl">外部数据源</span>
+      <div class="layer-row">
+        <div class="node">Tushare</div><div class="node">AKShare</div><div class="node">BaoStock</div>
+        <div class="node">yfinance / finnhub</div>
+        <div class="node">LLM：Anthropic / 通义 / GLM …</div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span><i style="background:var(--fe)"></i>前端</span>
+      <span><i style="background:var(--be)"></i>后端/服务</span>
+      <span><i style="background:var(--eng)"></i>AI引擎/调度</span>
+      <span><i style="background:var(--data)"></i>存储</span>
+      <span><i style="background:var(--infra)"></i>外部源</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 功能全景 ============ -->
+<section id="matrix">
+  <h2>功能全景矩阵 <span class="tag p-be">前端路由 ↔ 后端实现</span></h2>
+  <p class="sub">前端 24 条路由 / 21 个 API 模块；后端 36 路由 / 274 接口。下表把每个功能对齐到「前端页面 → 后端路由 → 实现框架 → 依赖」。</p>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <thead><tr><th>功能</th><th>前端路由 / 组件</th><th>后端路由</th><th>实现框架</th><th>依赖</th></tr></thead>
+      <tbody>
+        <tr><td><b>单股分析</b> ⭐</td><td><code>/analysis/single</code><br>SingleAnalysis.vue</td><td><span class="pill m-post">POST</span> <code>/api/analysis/single</code></td><td>BackgroundTasks → SimpleAnalysisService → TradingAgentsGraph</td><td><span class="pill p-data">Mongo</span><span class="pill p-data">Redis</span><span class="pill p-eng">LLM</span></td></tr>
+        <tr><td><b>模拟交易</b> ⭐</td><td><code>/paper</code><br>PaperTrading/index.vue</td><td>paper（5 接口）</td><td>路由内撮合逻辑 + 实时行情估值 + 手续费/T+1 规则</td><td><span class="pill p-data">Mongo</span></td></tr>
+        <tr><td>批量分析</td><td><code>/analysis/batch</code></td><td><span class="pill m-post">POST</span> <code>/api/analysis/batch</code></td><td>队列分发，最多 10 只 / 用户级 3 并发</td><td><span class="pill p-data">Redis</span><span class="pill p-data">Mongo</span></td></tr>
+        <tr><td>任务中心</td><td><code>/tasks</code></td><td>analysis（tasks/history/status）</td><td>5s 轮询 + 可选 WebSocket</td><td><span class="pill p-data">Mongo</span></td></tr>
+        <tr><td>报告中心</td><td><code>/reports</code> · <code>/reports/view/:id</code></td><td>reports（10 接口）</td><td>Mongo + 本地 reports/，导出 md/docx/pdf/json</td><td><span class="pill p-data">Mongo</span><span class="pill p-infra">FS</span></td></tr>
+        <tr><td>选股筛选</td><td><code>/screening</code></td><td>screening（12 接口）</td><td>Mongo 视图 <code>stock_screening_view</code> + Redis 缓存 30min</td><td><span class="pill p-data">Mongo</span><span class="pill p-data">Redis</span></td></tr>
+        <tr><td>自选股 / 标签</td><td><code>/favorites</code></td><td>favorites(7) · tags(4)</td><td>users 表内嵌数组，价格预警</td><td><span class="pill p-data">Mongo</span></td></tr>
+        <tr><td>股票详情</td><td><code>/stocks/:code</code></td><td>stock-data · stocks · financial/news</td><td>多 API 聚合（K线/基本面/资讯）</td><td><span class="pill p-data">Mongo</span><span class="pill p-data">Redis</span></td></tr>
+        <tr><td>数据同步</td><td><code>/settings/sync</code></td><td>stock-sync · multi-source-sync · *-init</td><td>APScheduler + 多源故障转移（worker/*_sync）</td><td><span class="pill p-infra">Tushare/AKShare/BaoStock</span></td></tr>
+        <tr><td>定时任务</td><td><code>/settings/scheduler</code></td><td>scheduler（32 接口）</td><td>APScheduler（AsyncIOScheduler · Cron）</td><td><span class="pill p-be">APScheduler</span></td></tr>
+        <tr><td>系统配置</td><td><code>/settings/config</code></td><td>config / system-config（50 接口）</td><td>Pydantic Settings + Mongo SOT，热重载</td><td><span class="pill p-data">Mongo</span><span class="pill p-infra">.env</span></td></tr>
+        <tr><td>登录鉴权</td><td><code>/login</code></td><td>auth（9 接口）</td><td>JWT(HS256) + bcrypt，access 60min / refresh 30d</td><td><span class="pill p-data">Mongo</span></td></tr>
+        <tr><td>使用统计 / 缓存 / 日志 / 通知 / 数据库</td><td><code>/settings/*</code></td><td>usage · cache · logs · operation-logs · notifications · database</td><td>各自 service；操作日志走中间件自动埋点</td><td><span class="pill p-data">Mongo</span><span class="pill p-data">Redis</span></td></tr>
+        <tr><td>学习中心（公开）</td><td><code>/learning/*</code></td><td>—（静态/文章）</td><td>无需登录，Markdown 渲染</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ 单股分析 ============ -->
+<section id="single">
+  <h2>① 单股分析 <span class="tag p-fe">前端配置</span> <span class="tag p-eng">异步任务</span></h2>
+  <p class="sub">前端 <code>SingleAnalysis.vue</code> 收集配置 → <code>POST /api/analysis/single</code> 拿 <code>task_id</code> → 5 秒轮询状态/进度 → 完成后取完整报告与决策。</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>前端可配置项</h3>
+      <ul class="tight">
+        <li><b>股票代码 + 市场</b>：A股 6 位 / 美股字母 / 港股 4-5位或 .HK，自动识别校验</li>
+        <li><b>分析日期</b>：禁未来日期</li>
+        <li><b>分析师团队（多选）</b>：市场 / 技术 / 基本面 / 风险 / 社媒(A股禁) / 研究管理者</li>
+        <li><b>AI 模型</b>：快速模型（市场/新闻/基本面）+ 深度决策模型（综合决策/风控），按深度推荐</li>
+        <li><b>分析选项</b>：情绪分析开关 · 风险评估开关 · 语言（中/英）</li>
+      </ul>
+      <h3 style="margin-top:18px">分析深度 5 档 → 引擎参数</h3>
+      <table>
+        <thead><tr><th>档</th><th>名称</th><th>辩论轮</th><th>风险轮</th><th>记忆</th><th>预计</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>⚡快速</td><td>1</td><td>1</td><td>✗</td><td>2-5min</td></tr>
+          <tr><td>2</td><td>📈基础</td><td>1</td><td>1</td><td>✗</td><td>3-6min</td></tr>
+          <tr><td>3</td><td>🎯标准</td><td>1</td><td>2</td><td>✓</td><td>4-8min</td></tr>
+          <tr><td>4</td><td>🔍深度</td><td>2-3</td><td>2-3</td><td>✓</td><td>6-11min</td></tr>
+          <tr><td>5</td><td>🏆全面</td><td>3</td><td>3</td><td>✓</td><td>8-16min</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3 class="eng">任务生命周期（异步）</h3>
+      <div class="step" style="margin-bottom:8px"><b>1 · 提交</b><small><span class="pill m-post">POST</span> /api/analysis/single → 生成 task_id（UUID），写 <code>analysis_tasks</code>，立即返回 pending</small></div>
+      <div class="flowdown">▼</div>
+      <div class="step" style="margin-bottom:8px"><b>2 · 后台执行</b><small>FastAPI BackgroundTasks → <code>SimpleAnalysisService.execute_analysis_background()</code> → 组装配置 → 调引擎 <code>TradingAgentsGraph.propagate(code,date,cb)</code></small></div>
+      <div class="flowdown">▼</div>
+      <div class="step" style="margin-bottom:8px"><b>3 · 进度回调</b><small>引擎 progress_callback → Redis(RedisProgressTracker) + Mongo(progress/current_step) + WebSocket 推前端；内存 MemoryStateManager 快查</small></div>
+      <div class="flowdown">▼</div>
+      <div class="step" style="margin-bottom:8px"><b>4 · 落库</b><small>报告写 <code>analysis_reports</code>，任务置 completed/100% 并存 result 到 <code>analysis_tasks</code></small></div>
+      <div class="flowdown">▼</div>
+      <div class="step"><b>5 · 取结果</b><small><span class="pill m-get">GET</span> /tasks/{id}/result → 内存优先，级联 reports→tasks.result，回传决策+多 tab 报告</small></div>
+      <div class="callout">前端：<span class="kbd">idle → running → completed/failed</span>，进度条 + 当前步骤 + 已用/剩余时间；完成后展示<b>决策卡</b>（买/持/卖·目标价·置信度·风险分）+ 多标签报告（技术/基本面/市场/情绪/新闻/风险）。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 引擎流水线 ============ -->
+<section id="engine">
+  <h2>多智能体引擎流水线 <span class="tag p-eng">TradingAgentsGraph</span></h2>
+  <p class="sub">单股分析真正的"智能"在 <code>tradingagents/graph/trading_graph.py</code> 的 <code>propagate()</code>：四阶段智能体协作，辩论轮次由深度档位决定。</p>
+  <div class="card">
+    <div class="stagebar">
+      <div class="stage">
+        <h4>Ⓐ 分析师团队</h4>
+        <div class="agentbox">市场分析师 · 趋势/量价</div>
+        <div class="agentbox">技术分析师 · 指标</div>
+        <div class="agentbox">基本面分析师 · 财务</div>
+        <div class="agentbox">新闻分析师</div>
+        <div class="agentbox">社媒/情绪分析师 <span class="note">(A股禁)</span></div>
+        <div class="note">并行产出各自 report（用快速模型）</div>
+      </div>
+      <div class="arrow" style="flex:0">→</div>
+      <div class="stage">
+        <h4>Ⓑ 研究团队辩论</h4>
+        <div class="agentbox">🐂 多头研究员</div>
+        <div class="agentbox">🐻 空头研究员</div>
+        <div class="note">多空对辩 × <b>max_debate_rounds</b></div>
+        <div class="agentbox">🧑‍⚖️ 研究经理 · 裁决</div>
+      </div>
+      <div class="arrow" style="flex:0">→</div>
+      <div class="stage">
+        <h4>Ⓒ 交易决策</h4>
+        <div class="agentbox">💼 交易员 · 形成交易计划</div>
+        <div class="note">基于辩论结论给出方向/价位草案（深度模型）</div>
+      </div>
+      <div class="arrow" style="flex:0">→</div>
+      <div class="stage">
+        <h4>Ⓓ 风险管理团队</h4>
+        <div class="agentbox">🔥 激进 / 🛡️ 保守 / ⚖️ 中立</div>
+        <div class="note">三方辩论 × <b>max_risk_discuss_rounds</b></div>
+        <div class="agentbox">📐 组合经理 · 终裁</div>
+      </div>
+    </div>
+    <div class="flowdown" style="margin-top:14px">▼ 输出</div>
+    <div class="pipe">
+      <div class="step"><b>decision</b><small>action（买/持/卖）· target_price · confidence · risk_level</small></div>
+      <div class="arrow">+</div>
+      <div class="step"><b>reports{}</b><small>market / fundamentals / news / sentiment / bull / bear / risk_management_decision …</small></div>
+      <div class="arrow">→</div>
+      <div class="step"><b>持久化</b><small>analysis_reports + analysis_tasks.result（Mongo）</small></div>
+    </div>
+    <div class="callout">模型分工：<b>快速模型</b>（如 Haiku）跑分析师阶段，<b>深度模型</b>（如 Sonnet/Opus）跑辩论与决策。<code>online_tools</code> 开启时实时取数据源最新数据。</div>
+  </div>
+</section>
+
+<!-- ============ 记忆系统 ============ -->
+<section id="memory">
+  <h2>记忆系统在 Web 的落点 <span class="tag p-eng">FinancialSituationMemory ×5</span> <span class="tag p-data">ChromaDB</span></h2>
+  <p class="sub">引擎自带一套跨次分析的"经验记忆"：5 个智能体各持一个向量记忆库（ChromaDB），辩论/决策时 <code>get_memories</code> 捞历史教训，回测后 <code>reflect_and_remember(真实收益)</code> 写回。但在当前 Web 流程里，<b>只读半边是活的、写半边从未接通、且库不持久化</b> —— 三处沉睡。</p>
+
+  <!-- 读写闭环图 -->
+  <div class="card">
+    <div style="border:1px solid #bfe6d8;background:var(--be-bg);border-radius:12px;padding:14px 16px;position:relative">
+      <span class="pill p-be" style="position:absolute;right:14px;top:12px">Web 里已活</span>
+      <b style="color:var(--be)">B · 读半边（现有分析内）</b>
+      <div class="pipe" style="margin:8px 0 0">
+        <div class="step"><b>propagate()</b><small>现场分析</small></div>
+        <div class="arrow">→</div>
+        <div class="step"><b>辩论（带记忆）</b><small>bull / bear / trader / research_manager / risk_manager 各 <code>get_memories(n_matches=2)</code></small></div>
+        <div class="arrow">→</div>
+        <div class="step"><b>决策</b><small>action/目标价</small></div>
+        <div class="arrow">→</div>
+        <div class="step"><b>落快照</b><small>analysis_reports（决策日志）</small></div>
+      </div>
+    </div>
+
+    <div class="flowdown" style="margin:8px 0">▲ 读 &nbsp; <code>get_memories</code>：原生记忆库 ⟶ 现场辩论</div>
+
+    <div style="border:1px dashed var(--eng);background:var(--eng-bg);border-radius:12px;padding:14px 16px;position:relative">
+      <span class="pill p-eng" style="position:absolute;right:14px;top:12px">引擎 · 单例 ChromaDB</span>
+      <b style="color:var(--eng)">HUB · 原生共享记忆库（5 个 / 进程内）</b>
+      <div class="layer-row" style="margin-top:8px">
+        <div class="node">bull_memory</div><div class="node">bear_memory</div><div class="node">trader_memory</div>
+        <div class="node">invest_judge_memory</div><div class="node">risk_manager_memory</div>
+      </div>
+      <div style="margin-top:10px;font-size:12.8px;color:#9a6a12">三处沉睡：① 持久化 <code>is_persistent=False</code>（硬编码，多处）&nbsp; ② 未按 ticker 锚定 &nbsp; ③ 无收益/回测驱动写入</div>
+    </div>
+
+    <div class="flowdown" style="margin:8px 0">▲ 写 &nbsp; <code>reflect_and_remember(returns)</code> → <code>add_situations</code>：回测 ⟶ 库</div>
+
+    <div style="border:1px dashed #e3a3a3;background:#fdeef0;border-radius:12px;padding:14px 16px;position:relative">
+      <span class="pill" style="background:#fdeaea;color:#d64545;position:absolute;right:14px;top:12px">Web 里未接通 · 沉睡</span>
+      <b style="color:#d64545">A · 写半边（单独回测 · 需驱动）</b>
+      <div class="pipe" style="margin:8px 0 0">
+        <div class="step"><b>快照=决策日志</b><small>analysis_reports</small></div>
+        <div class="arrow" style="color:#d64545">→</div>
+        <div class="step"><b>算真实收益</b><small>唯一真新的输入</small></div>
+        <div class="arrow" style="color:#d64545">→</div>
+        <div class="step"><b>reflect_and_remember(真实 return)</b><small>graph/reflection.py · 当前无任何 web 调用</small></div>
+      </div>
+    </div>
+
+    <div class="callout">↺ 设想闭环：<b>A 写的库 = B 读的库</b> → 持久化后明日现场 <code>get_memories</code> 自动捞到回测教训。当前缺 A（无回写）+ 缺持久化 → 库恒空，B 端 <code>get_memories</code> 多半返回空，智能体回落到「暂无历史记忆数据可参考」。</div>
+  </div>
+
+  <!-- web 触点表 -->
+  <h3 class="eng">记忆系统的 Web 触点逐项</h3>
+  <div class="card" style="overflow-x:auto">
+    <table>
+      <thead><tr><th>触点</th><th>位置</th><th>作用</th><th>Web 现状</th></tr></thead>
+      <tbody>
+        <tr><td><b>前端唯一旋钮</b></td><td><code>SingleAnalysis.vue</code> 分析深度选择器</td><td>档位是用户唯一能影响记忆开关的入口；无独立"记忆/反思"页面</td><td><span class="pill p-be">活</span> 档1关 / 档2-5开</td></tr>
+        <tr><td><b>档位 → memory_enabled</b></td><td><code>simple_analysis_service.py:475-521</code></td><td>快速档 <code>memory_enabled=False</code>（加速）；基础/标准/深度/全面 <code>=True</code>；570 行打日志「💾 记忆功能: True/False」</td><td><span class="pill p-be">活</span></td></tr>
+        <tr><td><b>默认值</b></td><td><code>config_compat.py:174</code></td><td>缺省 <code>memory_enabled=True</code></td><td><span class="pill p-be">活</span></td></tr>
+        <tr><td><b>记忆实例化（门控）</b></td><td><code>trading_graph.py:546-560</code></td><td><code>if memory_enabled</code> → 建 5 个 <code>FinancialSituationMemory</code>；否则全 <code>None</code></td><td><span class="pill p-be">活</span></td></tr>
+        <tr><td><b>读 · get_memories</b></td><td>bull / bear / trader / research_manager / risk_manager</td><td>辩论/决策前按当前情形检索 <code>n_matches=2</code> 条历史教训拼进 prompt</td><td><span class="pill p-eng">跑但库空</span></td></tr>
+        <tr><td><b>写 · reflect_and_remember</b></td><td><code>graph/reflection.py</code> · <code>trading_graph.reflect_and_remember()</code></td><td>用真实收益反思 → <code>add_situations</code> 写回 5 库</td><td><span class="pill" style="background:#fdeaea;color:#d64545">app/ 无调用</span></td></tr>
+        <tr><td><b>持久化</b></td><td><code>chromadb_config.py</code></td><td><code>is_persistent=False</code> / <code>persist_directory=None</code></td><td><span class="pill" style="background:#fdeaea;color:#d64545">进程内·重启即失</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout warn"><b>一句话现状：</b>Web 端记忆系统是"半接通"——深度档位能开关、读路径会执行，但因为<b>从不回写真实收益</b>且<b>不落盘</b>，记忆库实际为空，对决策几乎无增益。要让它真正有用，需补：①Web/任务流里接 <code>reflect_and_remember(真实收益)</code>（依赖回测/持仓收益）②ChromaDB 改持久化 ③记忆按 ticker 锚定检索。</div>
+</section>
+
+<!-- ============ 模拟交易 ============ -->
+<section id="paper">
+  <h2>② 模拟交易（Paper Trading）<span class="tag p-data">5 接口 · 6 集合</span></h2>
+  <p class="sub">虚拟资金的完整交易闭环，支持 A股/港股/美股三套独立币种账户。撮合直接用最新行情即时成交（仅市价单），盈亏/手续费/T+1 全部在 <code>app/routers/paper.py</code> 内计算后落 MongoDB。</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h3 class="data">子功能矩阵（已实现）</h3>
+      <table>
+        <thead><tr><th>子功能</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><b>多币种虚拟账户</b></td><td>CNY/HKD 各 100万、USD 10万；现金 + 已实现盈亏分币种</td></tr>
+          <tr><td><b>下单建仓</b></td><td>市价买入，校验现金，扣款，加权平均成本更新持仓</td></tr>
+          <tr><td><b>平仓/卖出</b></td><td>校验可用数量(T+1)，计算已实现盈亏，回补现金</td></tr>
+          <tr><td><b>持仓管理</b></td><td>数量/可用/冻结、均价、最新价、市值、浮动盈亏</td></tr>
+          <tr><td><b>浮动盈亏</b></td><td>(最新价−均价)×数量，账户查询时实时算</td></tr>
+          <tr><td><b>已实现盈亏</b></td><td>卖出时 (卖价−均价)×量，累加到账户</td></tr>
+          <tr><td><b>手续费</b></td><td>佣金+印花税(A股卖)/交易费(港)/SEC费(美卖)，最低 5 元</td></tr>
+          <tr><td><b>T+1 规则</b></td><td>A股当日买入不可卖（聚合当日 buy 量算可用）；港/美 T+0</td></tr>
+          <tr><td><b>订单 / 成交流水</b></td><td>paper_orders + paper_trades，永久留痕</td></tr>
+          <tr><td><b>账户重置</b></td><td>清空持仓/订单/现金，二次确认不可恢复</td></tr>
+          <tr><td><b>分析联动</b></td><td>下单可带 <code>analysis_id</code>，关联分析报告可追溯</td></tr>
+        </tbody>
+      </table>
+      <div class="callout warn"><b>暂未实现</b>（可扩展）：收益曲线、排行榜、自动/半自动下单、风险度量(VaR/Sharpe/回撤)、限价单/止损单、跨币种汇率换算。</div>
+    </div>
+
+    <div class="card">
+      <h3 class="data">数据模型 · MongoDB 集合</h3>
+      <table>
+        <thead><tr><th>集合</th><th>关键字段</th></tr></thead>
+        <tbody>
+          <tr><td><code>paper_accounts</code></td><td>user_id · cash{CNY/HKD/USD} · realized_pnl{...} · settings</td></tr>
+          <tr><td><code>paper_positions</code></td><td>code · market · currency · quantity · available_qty · frozen_qty · avg_cost</td></tr>
+          <tr><td><code>paper_orders</code></td><td>side · quantity · price · amount · commission · status:filled · analysis_id</td></tr>
+          <tr><td><code>paper_trades</code></td><td>side · price · pnl · timestamp · analysis_id</td></tr>
+          <tr><td><code>paper_market_rules</code></td><td>market · rules{commission rate/min · stamp_duty · t_plus}</td></tr>
+          <tr><td colspan="2" class="note">行情来源：A股 <code>market_quotes</code>/<code>stock_basic_info</code>；港/美股 <code>ForeignStockService.get_quote()</code></td></tr>
+        </tbody>
+      </table>
+      <h3 class="data" style="margin-top:18px">接口</h3>
+      <table>
+        <tbody>
+          <tr><td><span class="pill m-get">GET</span> <code>/api/paper/account</code></td><td>账户+持仓估值（自动建户）</td></tr>
+          <tr><td><span class="pill m-post">POST</span> <code>/api/paper/order</code></td><td>市价单（buy/sell）</td></tr>
+          <tr><td><span class="pill m-get">GET</span> <code>/api/paper/positions</code></td><td>持仓+浮动盈亏</td></tr>
+          <tr><td><span class="pill m-get">GET</span> <code>/api/paper/orders</code></td><td>订单历史</td></tr>
+          <tr><td><span class="pill m-post">POST</span> <code>/api/paper/reset</code></td><td>重置账户</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3 class="data">下单撮合数据流（买入 / 卖出）</h3>
+    <div class="grid2">
+      <div>
+        <b style="color:var(--be)">买入 side=buy</b>
+        <div class="step" style="margin:8px 0"><b>① 识别市场+取价</b><small>_detect_market_and_code → _get_last_price</small></div>
+        <div class="flowdown">▼</div>
+        <div class="step" style="margin:8px 0"><b>② 校验现金</b><small>cash ≥ price×qty + 手续费，否则拒单</small></div>
+        <div class="flowdown">▼</div>
+        <div class="step" style="margin:8px 0"><b>③ 扣款 + 更新持仓</b><small>加权均价 new_avg=(老成本×老量+价×新量)/总量；A股 available_qty 当日不增（T+1）</small></div>
+        <div class="flowdown">▼</div>
+        <div class="step"><b>④ 留痕</b><small>paper_orders(filled) + paper_trades(pnl=0)</small></div>
+      </div>
+      <div>
+        <b style="color:var(--rt)">卖出 side=sell</b>
+        <div class="step" style="margin:8px 0"><b>① 取价 + 算可用</b><small>A股：总量−当日买入量；港/美：全部可用</small></div>
+        <div class="flowdown">▼</div>
+        <div class="step" style="margin:8px 0"><b>② 校验可用数量</b><small>available ≥ 卖量，否则拒单</small></div>
+        <div class="flowdown">▼</div>
+        <div class="step" style="margin:8px 0"><b>③ 算盈亏 + 回款</b><small>pnl=(卖价−均价)×量；现金 += 卖额−手续费；realized_pnl += pnl</small></div>
+        <div class="flowdown">▼</div>
+        <div class="step"><b>④ 更新持仓 + 留痕</b><small>清零则删仓；paper_orders + paper_trades(pnl)</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 联动 ============ -->
+<section id="link">
+  <h2>分析 → 模拟下单 联动 <span class="tag p-eng">闭环</span></h2>
+  <p class="sub">两个核心功能通过 <code>analysis_id</code> 串成"研究 → 决策 → 模拟执行 → 可追溯"的闭环。</p>
+  <div class="card">
+    <div class="pipe">
+      <div class="step"><b>1 · 出决策</b><small>单股分析完成 → 决策卡：BUY 600519 目标价…</small></div>
+      <div class="arrow">→</div>
+      <div class="step"><b>2 · 一键模拟下单</b><small>前端跳 <code>/paper?code=600519&amp;side=buy&amp;qty=100&amp;analysis_id=task_id</code>，预填对话框</small></div>
+      <div class="arrow">→</div>
+      <div class="step"><b>3 · 提交订单</b><small>POST /api/paper/order 带 analysis_id</small></div>
+      <div class="arrow">→</div>
+      <div class="step"><b>4 · 可追溯</b><small>订单/成交记 analysis_id，订单历史可回看关联报告</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 支撑功能 ============ -->
+<section id="support">
+  <h2>支撑功能 <span class="tag p-be">队列 / 同步 / 系统</span></h2>
+  <div class="grid3">
+    <div class="card">
+      <h3 class="be">批量队列系统</h3>
+      <p class="note">即 API 描述里的"批量队列"。<b>自研 Redis FIFO 队列</b>（非 Celery）。</p>
+      <ul class="tight">
+        <li>结构：<code>qa:task:{id}</code>(HASH) + <code>qa:ready</code>(LIST)</li>
+        <li>消费：<code>app/worker.py</code> 异步拉取</li>
+        <li>并发：用户级 3 / 全局 50</li>
+        <li>可见性超时 5min 防僵尸；重试 3 次</li>
+        <li>进度经 Redis PubSub → SSE 推前端</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="be">数据同步</h3>
+      <p class="note">APScheduler 调度，多源故障转移 Tushare→AKShare→BaoStock。</p>
+      <ul class="tight">
+        <li>基础/行情/日K/财务/新闻分别定时</li>
+        <li>行情盘中 */5~*/30 分钟入库</li>
+        <li>新闻每 2h（仅自选股）</li>
+        <li>worker/*_sync_service 各源适配</li>
+        <li>速率限制 rate_limiter（Tushare 分级）</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="be">选股筛选</h3>
+      <ul class="tight">
+        <li>维度：行业/市值/PE/PB/ROE/换手/技术指标(MA/RSI/KDJ/MACD)</li>
+        <li>Mongo 视图 <code>stock_screening_view</code></li>
+        <li>Redis 缓存 30min</li>
+        <li>结果可转批量分析</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="be">鉴权 & 配置</h3>
+      <ul class="tight">
+        <li>JWT(HS256)+bcrypt(12轮)</li>
+        <li>access 60min / refresh 30d，前端自动刷新</li>
+        <li>配置 SOT：文件/env &gt; Mongo，可热重载</li>
+        <li>LLM 厂家/模型/Token、数据源 Token 在线配</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="be">数据接口</h3>
+      <ul class="tight">
+        <li>stock-data / stocks：行情/基本面/列表</li>
+        <li>financial / news / historical / social-media</li>
+        <li>multi-market：跨市场搜索</li>
+        <li>港/美股按需取+缓存（非定时）</li>
+        <li>model-capabilities：模型等级/推荐</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="be">系统/运维</h3>
+      <ul class="tight">
+        <li>scheduler(32)：定时任务增删暂停触发</li>
+        <li>operation-logs：中间件全量埋点审计</li>
+        <li>usage-statistics：Token/成本统计</li>
+        <li>database：状态/统计/备份/导入导出</li>
+        <li>cache / logs / notifications</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 实时推送 ============ -->
+<section id="realtime">
+  <h2>实时推送机制 <span class="tag p-rt">轮询 + WS + SSE</span></h2>
+  <div class="card">
+    <div class="grid3">
+      <div>
+        <h3 class="rt">5s 轮询（主）</h3>
+        <p class="note">任务中心/单股分析对进行中任务每 5 秒 <code>GET .../status</code> 拉进度，最稳。</p>
+      </div>
+      <div>
+        <h3 class="rt">WebSocket</h3>
+        <p class="note"><code>/ws/task/{id}</code> 推分析进度；<code>/ws/notifications</code> 推通知/预警，ConnectionManager 按 user_id 管理。</p>
+      </div>
+      <div>
+        <h3 class="rt">SSE + Redis PubSub</h3>
+        <p class="note"><code>/api/stream/task/{id}/progress</code> 事件流（connected/progress/heartbeat），队列任务进度经 PubSub 频道转发。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="foot">
+  <p>数据来源：对运行中实例（<code>frontend/</code> Vue3 + <code>app/</code> FastAPI）的源码盘点（2026-06-12）。接口数取自后端 OpenAPI（274 个，详见 <code>docs/tradingagents-cn-rest-api.md</code>）。"暂未实现"项以代码现状为准。</p>
+  <p>引擎调用接口（Python/CLI）另见 <code>docs/tradingagents-cn-api.md</code>；本图聚焦 HTTP 前后端与多智能体引擎编排。</p>
+</div>
+
+</div>
+</body>
+</html>

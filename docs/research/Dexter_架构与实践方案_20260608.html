@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dexter · 自主金融研究 Agent — 架构与实践方案</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --font-display:'Instrument Serif',Georgia,serif;
+  --font-body:'IBM Plex Sans',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+
+  --bg:#0a0e1a;
+  --surface:#111726;
+  --surface-elevated:#18203400;
+  --surface-2:#18203a;
+  --border:rgba(255,255,255,0.08);
+  --border-bright:rgba(255,255,255,0.16);
+  --text:#e7ebf3;
+  --text-dim:#8a93a8;
+  --text-bright:#fbfcff;
+
+  --gold:#d4a73a;
+  --gold-dim:rgba(212,167,58,0.13);
+  --blue:#5a9bd8;
+  --blue-dim:rgba(90,155,216,0.13);
+  --green:#4fae6a;
+  --green-dim:rgba(79,174,106,0.13);
+  --red:#d96a6a;
+  --red-dim:rgba(217,106,106,0.13);
+  --violet:#9a86c4;
+  --violet-dim:rgba(154,134,196,0.13);
+}
+@media (prefers-color-scheme:light){
+  :root{
+    --bg:#f6f4ee;
+    --surface:#ffffff;
+    --surface-2:#fbfaf6;
+    --border:rgba(20,24,40,0.10);
+    --border-bright:rgba(20,24,40,0.20);
+    --text:#1d2333;
+    --text-dim:#5d6678;
+    --text-bright:#0c1020;
+    --gold:#a9801c;
+    --gold-dim:rgba(169,128,28,0.12);
+    --blue:#2c6cad;
+    --blue-dim:rgba(44,108,173,0.10);
+    --green:#2f7d44;
+    --green-dim:rgba(47,125,68,0.10);
+    --red:#b23b3b;
+    --red-dim:rgba(178,59,59,0.10);
+    --violet:#6a539e;
+    --violet-dim:rgba(106,83,158,0.10);
+  }
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:var(--font-body);
+  background:var(--bg);
+  background-image:
+    radial-gradient(ellipse at 12% -5%, var(--gold-dim) 0%, transparent 45%),
+    radial-gradient(ellipse at 92% 8%, var(--blue-dim) 0%, transparent 42%);
+  background-attachment:fixed;
+  color:var(--text);
+  line-height:1.6;
+  overflow-wrap:break-word;
+  -webkit-font-smoothing:antialiased;
+}
+.grid>*,.flex>*{min-width:0}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+.layout{display:grid;grid-template-columns:212px 1fr;gap:40px;align-items:start;max-width:1240px;margin:0 auto;padding:0 28px}
+@media(max-width:980px){.layout{grid-template-columns:1fr;gap:0}}
+
+/* ---------- sidebar nav ---------- */
+.toc{position:sticky;top:0;padding:40px 0 40px;align-self:start}
+.toc__brand{font-family:var(--font-display);font-size:30px;line-height:1;color:var(--gold);margin-bottom:4px}
+.toc__sub{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);margin-bottom:24px}
+.toc ul{list-style:none;margin:0;padding:0}
+.toc li{margin:0}
+.toc a{
+  display:block;padding:6px 12px;border-left:2px solid var(--border);
+  color:var(--text-dim);text-decoration:none;font-size:13px;
+  transition:color .15s,border-color .15s,background .15s;border-radius:0 4px 4px 0;
+}
+.toc a:hover{color:var(--text);border-color:var(--gold);background:var(--gold-dim)}
+.toc__n{font-family:var(--font-mono);font-size:10px;color:var(--gold);margin-right:8px}
+@media(max-width:980px){
+  .toc{position:static;padding:24px 0 8px;border-bottom:1px solid var(--border)}
+  .toc ul{display:flex;flex-wrap:wrap;gap:4px}
+  .toc a{border-left:none;border:1px solid var(--border);border-radius:20px;padding:5px 12px}
+  .toc__n{display:none}
+}
+
+main{padding:40px 0 80px;min-width:0}
+
+/* ---------- hero ---------- */
+.hero{padding:24px 0 36px;border-bottom:1px solid var(--border);margin-bottom:44px}
+.hero__kicker{font-family:var(--font-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:18px}
+.hero__kicker span{color:var(--text-dim)}
+.hero h1{font-family:var(--font-display);font-weight:400;font-size:clamp(40px,6vw,68px);line-height:1.02;margin:0 0 18px;letter-spacing:-.5px;color:var(--text-bright)}
+.hero h1 em{font-style:italic;color:var(--gold)}
+.hero__lead{font-size:clamp(17px,1.4vw,20px);line-height:1.6;color:var(--text-dim);max-width:64ch}
+.hero__lead strong{color:var(--text);font-weight:600}
+.hero__tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+
+/* ---------- kpi ---------- */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:32px 0}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;animation:fadeScale .4s ease-out both;animation-delay:calc(var(--i,0)*.06s)}
+.kpi__v{font-family:var(--font-display);font-size:42px;line-height:1;color:var(--gold);font-variant-numeric:tabular-nums}
+.kpi__v small{font-size:20px;color:var(--text-dim)}
+.kpi__l{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-top:10px}
+
+/* ---------- sections ---------- */
+section{margin:0 0 56px;scroll-margin-top:24px}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+.sec-head__n{font-family:var(--font-mono);font-size:13px;color:var(--gold);font-weight:600}
+.sec-head h2{font-family:var(--font-display);font-weight:400;font-size:clamp(28px,3.6vw,40px);line-height:1.1;margin:0;color:var(--text-bright);letter-spacing:-.3px}
+.sec-intro{color:var(--text-dim);font-size:16px;max-width:72ch;margin:0 0 26px}
+.sec-intro strong{color:var(--text);font-weight:600}
+
+/* ---------- cards ---------- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;animation:fadeUp .45s ease-out both;animation-delay:calc(var(--i,0)*.05s)}
+.card--hero{background:color-mix(in srgb,var(--surface) 90%,var(--gold) 10%);border-color:color-mix(in srgb,var(--border) 40%,var(--gold) 60%);box-shadow:0 6px 28px rgba(0,0,0,.25)}
+.card--recessed{background:color-mix(in srgb,var(--bg) 60%,var(--surface) 40%);box-shadow:inset 0 1px 3px rgba(0,0,0,.18)}
+.card__label{font-family:var(--font-mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent,var(--gold));margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card__label::before{content:'';width:8px;height:8px;border-radius:50%;background:currentColor}
+.card h3{margin:0 0 6px;font-size:17px;font-weight:600;color:var(--text-bright)}
+.card p{margin:0 0 8px;color:var(--text-dim);font-size:14px}
+.card p:last-child{margin-bottom:0}
+
+.cards-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cards-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.cards-4{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+@media(max-width:680px){.cards-2{grid-template-columns:1fr}}
+
+.tint-gold{--accent:var(--gold)}.tint-gold.card{border-left:3px solid var(--gold)}
+.tint-blue{--accent:var(--blue)}.tint-blue.card{border-left:3px solid var(--blue)}
+.tint-green{--accent:var(--green)}.tint-green.card{border-left:3px solid var(--green)}
+.tint-violet{--accent:var(--violet)}.tint-violet.card{border-left:3px solid var(--violet)}
+.tint-red{--accent:var(--red)}.tint-red.card{border-left:3px solid var(--red)}
+
+ul.feat{list-style:none;margin:8px 0 0;padding:0;font-size:13.5px;line-height:1.9}
+ul.feat li{padding-left:16px;position:relative;color:var(--text-dim)}
+ul.feat li::before{content:'›';position:absolute;left:0;color:var(--accent,var(--gold));font-weight:700}
+ul.feat li strong{color:var(--text);font-weight:600}
+code{font-family:var(--font-mono);font-size:.86em;background:var(--gold-dim);color:var(--gold);padding:1px 6px;border-radius:4px}
+.tint-blue code{background:var(--blue-dim);color:var(--blue)}
+.tint-green code{background:var(--green-dim);color:var(--green)}
+
+.tag{font-family:var(--font-mono);font-size:11px;font-weight:500;padding:4px 11px;border-radius:20px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim)}
+.tag--gold{background:var(--gold-dim);color:var(--gold);border-color:transparent}
+
+/* ---------- pull quote ---------- */
+.pq{margin:34px 0;padding:6px 0 6px 26px;border-left:3px solid var(--gold)}
+.pq p{font-family:var(--font-display);font-size:clamp(22px,2.6vw,30px);font-style:italic;line-height:1.35;color:var(--text-bright);margin:0}
+.pq cite{display:block;margin-top:12px;font-family:var(--font-mono);font-size:12px;font-style:normal;color:var(--text-dim);letter-spacing:.5px}
+
+/* ---------- table ---------- */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.table-scroll{overflow-x:auto}
+table.dt{width:100%;border-collapse:collapse;font-size:13.5px}
+table.dt thead th{
+  background:var(--surface-2);font-family:var(--font-mono);font-size:10.5px;font-weight:600;
+  text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);text-align:left;
+  padding:13px 16px;border-bottom:2px solid var(--border-bright);white-space:nowrap;position:sticky;top:0;z-index:2
+}
+table.dt td{padding:12px 16px;border-bottom:1px solid var(--border);vertical-align:top}
+table.dt tbody tr:nth-child(even){background:color-mix(in srgb,var(--surface) 92%,var(--gold) 8%)}
+table.dt tbody tr:last-child td{border-bottom:none}
+table.dt td code{white-space:nowrap}
+table.dt .nm{font-family:var(--font-mono);font-size:12.5px;color:var(--text-bright);font-weight:600;white-space:nowrap}
+table.dt small{display:block;color:var(--text-dim);font-size:11.5px;margin-top:3px}
+.pill{display:inline-block;font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:5px;white-space:nowrap}
+.pill--read{background:var(--green-dim);color:var(--green)}
+.pill--write{background:var(--red-dim);color:var(--red)}
+.pill--meta{background:var(--blue-dim);color:var(--blue)}
+
+/* ---------- steps / pipeline ---------- */
+.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface)}
+.tier{padding:18px 20px;border-right:1px solid var(--border);position:relative}
+.tier:last-child{border-right:none}
+.tier__n{font-family:var(--font-mono);font-size:11px;color:var(--gold);font-weight:600;margin-bottom:8px}
+.tier h4{margin:0 0 6px;font-size:15px;color:var(--text-bright)}
+.tier p{margin:0;font-size:12.5px;color:var(--text-dim)}
+.tier__trig{margin-top:10px;font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);padding-top:8px;border-top:1px dashed var(--border)}
+@media(max-width:880px){.tier{border-right:none;border-bottom:1px solid var(--border)}.tier:last-child{border-bottom:none}}
+
+/* ---------- code ---------- */
+.code{font-family:var(--font-mono);font-size:12.5px;line-height:1.6;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;white-space:pre;color:var(--text);margin:0}
+.code .c{color:var(--text-dim)}
+.code .k{color:var(--gold)}
+.code .s{color:var(--green)}
+.code-head{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);padding:9px 16px;background:var(--surface-2);border:1px solid var(--border);border-bottom:none;border-radius:10px 10px 0 0}
+.code-head+.code{border-radius:0 0 10px 10px}
+
+/* ---------- callout ---------- */
+.callout{padding:16px 20px;border-radius:10px;border-left:4px solid var(--accent);background:color-mix(in srgb,var(--accent) 9%,transparent);margin:24px 0}
+.callout.info{--accent:var(--blue)}.callout.warn{--accent:var(--gold)}.callout.good{--accent:var(--green)}
+.callout__t{font-weight:600;color:var(--accent);margin-bottom:6px;font-size:14px}
+.callout p{margin:0;font-size:13.5px;color:var(--text)}
+.callout code{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
+
+/* ---------- mermaid ---------- */
+.diagram-shell{position:relative;margin:8px 0}
+.diagram-shell__hint{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin-bottom:8px;opacity:.75}
+.mermaid-wrap{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;overflow:hidden;display:flex;justify-content:center;align-items:center;min-height:460px;cursor:grab}
+.mermaid-wrap.is-panning{cursor:grabbing;user-select:none}
+.mermaid-viewport{position:relative;overflow:hidden;width:100%;height:100%;min-height:420px}
+.mermaid-canvas{position:absolute;top:0;left:0}
+.zoom-controls{position:absolute;top:8px;right:8px;display:flex;gap:2px;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:2px}
+.zoom-controls button{width:28px;height:28px;border:none;background:transparent;color:var(--text-dim);font-family:var(--font-mono);font-size:14px;cursor:pointer;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s}
+.zoom-controls button:hover{background:var(--border);color:var(--text)}
+.zoom-label{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);padding:0 6px;display:flex;align-items:center;white-space:nowrap}
+
+footer{border-top:1px solid var(--border);padding:32px 0;color:var(--text-dim);font-size:13px}
+footer code{font-size:12px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeScale{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- ===================== SIDEBAR ===================== -->
+  <nav class="toc">
+    <div class="toc__brand">Dexter</div>
+    <div class="toc__sub">Source Teardown</div>
+    <ul>
+      <li><a href="#overview"><span class="toc__n">01</span>它是什么</a></li>
+      <li><a href="#loop"><span class="toc__n">02</span>Agent 主循环</a></li>
+      <li><a href="#design"><span class="toc__n">03</span>核心设计</a></li>
+      <li><a href="#tools"><span class="toc__n">04</span>工具体系</a></li>
+      <li><a href="#context"><span class="toc__n">05</span>上下文四级治理</a></li>
+      <li><a href="#skills"><span class="toc__n">06</span>Skills 工作流</a></li>
+      <li><a href="#subagent"><span class="toc__n">07</span>子代理委派</a></li>
+      <li><a href="#memory"><span class="toc__n">08</span>持久记忆</a></li>
+      <li><a href="#soul"><span class="toc__n">09</span>SOUL 人格</a></li>
+      <li><a href="#delivery"><span class="toc__n">10</span>模型 & 渠道</a></li>
+      <li><a href="#takeaways"><span class="toc__n">11</span>对本项目的启示</a></li>
+    </ul>
+  </nav>
+
+  <!-- ===================== MAIN ===================== -->
+  <main>
+    <!-- HERO -->
+    <header class="hero" id="overview">
+      <div class="hero__kicker">实践方案 · 核心设计 · 功能拆解 <span>/ Third_Party/dexter · v2026.6.3</span></div>
+      <h1>一个会<em>规划、反思、自学</em>的<br>自主金融研究 Agent</h1>
+      <p class="hero__lead">
+        Dexter 把自己定位成 <strong>“金融研究界的 Claude Code”</strong>——没有服务器、没有后端，
+        只是一个跑在终端里的 TypeScript + Ink(React CLI) + LangChain 智能体。它把复杂的金融问题
+        拆成结构化研究步骤，调用实时市场数据执行，<strong>检查自己的工作并迭代</strong>，直到给出有数据支撑、
+        可证伪的结论。本页基于源码逐层拆解其架构、关键机制与可借鉴的工程实践。
+      </p>
+      <div class="hero__tags">
+        <span class="tag tint-gold tag--gold">TypeScript / Bun</span>
+        <span class="tag">Ink (React CLI)</span>
+        <span class="tag">LangChain</span>
+        <span class="tag">Financial Datasets API</span>
+        <span class="tag">MIT License</span>
+        <span class="tag">作者 @virattt</span>
+      </div>
+    </header>
+
+    <!-- KPI -->
+    <div class="kpi-row">
+      <div class="kpi" style="--i:0"><div class="kpi__v">16<small>+</small></div><div class="kpi__l">注册工具</div></div>
+      <div class="kpi" style="--i:1"><div class="kpi__v">6</div><div class="kpi__l">LLM 提供商</div></div>
+      <div class="kpi" style="--i:2"><div class="kpi__v">3</div><div class="kpi__l">内置 Skills</div></div>
+      <div class="kpi" style="--i:3"><div class="kpi__v">4</div><div class="kpi__l">级上下文治理</div></div>
+      <div class="kpi" style="--i:4"><div class="kpi__v">10</div><div class="kpi__l">默认最大迭代</div></div>
+      <div class="kpi" style="--i:5"><div class="kpi__v">2</div><div class="kpi__l">交付渠道</div></div>
+    </div>
+
+    <!-- ===================== 02 LOOP ===================== -->
+    <section id="loop">
+      <div class="sec-head"><span class="sec-head__n">02</span><h2>Agent 主循环</h2></div>
+      <p class="sec-intro">
+        核心是 <code>src/agent/agent.ts</code> 里一个 <strong>不断增长的消息数组 + 迭代式工具调用循环</strong>。
+        每轮：先做轻量微压缩 → 剥离旧推理 → 流式调用 LLM → 若有 tool_calls 则并发执行、回填结果、按阈值治理上下文 →
+        否则视为最终答案退出。整个过程以 <code>AsyncGenerator</code> 形式逐事件 <code>yield</code>，驱动实时终端 UI。
+      </p>
+
+      <div class="diagram-shell">
+        <p class="diagram-shell__hint">Ctrl/Cmd + 滚轮缩放 · 拖拽平移 · 双击自适应 · ⛶ 新标签页打开</p>
+        <div class="mermaid-wrap">
+          <div class="zoom-controls">
+            <button type="button" data-action="zoom-in" title="放大">+</button>
+            <button type="button" data-action="zoom-out" title="缩小">&minus;</button>
+            <button type="button" data-action="zoom-fit" title="自适应">&#8634;</button>
+            <button type="button" data-action="zoom-one" title="1:1">1:1</button>
+            <button type="button" data-action="zoom-expand" title="新标签页打开">&#x26F6;</button>
+            <span class="zoom-label">Loading…</span>
+          </div>
+          <div class="mermaid-viewport"><div class="mermaid mermaid-canvas"></div></div>
+        </div>
+        <script type="text/plain" class="diagram-source">
+flowchart TD
+  Q["用户 Query"] --> INIT["构建消息数组<br/>System(SOUL+规则+记忆) · History · Human"]
+  INIT --> LOOP{{"iteration &lt; maxIterations ?"}}
+  LOOP -->|否| MAXED["返回：达到最大迭代上限"]
+  LOOP -->|是| MC["微压缩 microcompact<br/>清理旧 ToolMessage 内容"]
+  MC --> STRIP["剥离旧 AIMessage 推理<br/>仅保留最近 2 条以续连贯性"]
+  STRIP --> LLM["流式调用 LLM<br/>失败回退阻塞式 invoke"]
+  LLM --> HAS{"包含 tool_calls ?"}
+  HAS -->|否| ANS["生成最终答案<br/>done 事件 + Token 统计"]
+  HAS -->|是| EXEC["并发执行工具<br/>只读工具并行 · 写工具需审批"]
+  EXEC --> CAP["大结果落盘<br/>注入预览 + 路径"]
+  CAP --> BUDGET["按轮次预算裁剪<br/>enforceResultBudget"]
+  BUDGET --> THRESH{"超过上下文阈值 ?"}
+  THRESH -->|是| MGMT["记忆刷写 → LLM 压缩 → 截断回退"]
+  THRESH -->|否| WARN["注入工具用量提醒<br/>+ 排空用户追问队列"]
+  MGMT --> WARN
+  WARN --> LOOP
+
+  classDef start fill:#d4a73a22,stroke:#d4a73a,stroke-width:2px,color:#e7ebf3;
+  classDef decide fill:#5a9bd822,stroke:#5a9bd8,stroke-width:1.5px,color:#e7ebf3;
+  classDef act fill:#11172600,stroke:#8a93a8,stroke-width:1px,color:#e7ebf3;
+  classDef done fill:#4fae6a22,stroke:#4fae6a,stroke-width:2px,color:#e7ebf3;
+  class Q,INIT start;
+  class LOOP,HAS,THRESH decide;
+  class MC,STRIP,LLM,EXEC,CAP,BUDGET,WARN,MGMT act;
+  class ANS,MAXED done;
+        </script>
+      </div>
+
+      <div class="callout info" style="margin-top:20px">
+        <div class="callout__t">设计要点：Growing message array，而非每轮重建</div>
+        <p>消息数组在迭代间持续生长，保留完整推理连续性；不是“每轮把 scratchpad 拼回 prompt”。
+        Scratchpad 作为<strong>旁路的单一事实源</strong>(JSONL 落盘) 供压缩、调试、最终答案使用，与 in-context 消息数组解耦。</p>
+      </div>
+    </section>
+
+    <!-- ===================== 03 DESIGN ===================== -->
+    <section id="design">
+      <div class="sec-head"><span class="sec-head__n">03</span><h2>核心设计原则</h2></div>
+      <p class="sec-intro">六个贯穿全代码库的工程决策，决定了 Dexter 的“可控自主”特性。</p>
+
+      <div class="cards-3">
+        <div class="card tint-gold" style="--i:0">
+          <div class="card__label">Scratchpad</div>
+          <h3>单一事实源 · 追加写</h3>
+          <p>每个 Query 新建一个 <code>.jsonl</code> 文件，记录 <code>init / tool_result / thinking</code>。
+          Anthropic 风格——完整结果入库，不做内联摘要。</p>
+          <ul class="feat">
+            <li>JSONL 追加写，单行损坏不影响整体</li>
+            <li>软限制：同名工具默认 <strong>3 次/Query</strong>，超限只警告不阻断</li>
+            <li>Jaccard 相似度检测重复查询，防止重试死循环</li>
+          </ul>
+        </div>
+        <div class="card tint-blue" style="--i:1">
+          <div class="card__label">并发执行</div>
+          <h3>只读工具并行</h3>
+          <p>每个工具在注册表里标注 <code>concurrencySafe</code>。只读工具(行情/财报/检索)同轮并行执行，
+          写工具(<code>write_file</code>/<code>edit_file</code>/<code>memory_update</code>)串行且需审批。</p>
+          <ul class="feat">
+            <li>事件可能乱序到达，按 <code>tool_call_id</code> 回填</li>
+            <li>ToolMessage 严格按原始 tool_calls 顺序重排</li>
+          </ul>
+        </div>
+        <div class="card tint-green" style="--i:2">
+          <div class="card__label">流式 + 回退</div>
+          <h3>Stream，失败即降级</h3>
+          <p>优先流式逐 chunk <code>yield</code> 进度(requesting→thinking→tool-input→tool-use)；
+          流式异常自动回退阻塞式 <code>invoke</code>，兼容不支持流的提供商。</p>
+          <ul class="feat">
+            <li>同时解析字符串型与 Anthropic 数组型 content</li>
+            <li>区分 text / thinking / tool_use 三类增量</li>
+          </ul>
+        </div>
+        <div class="card tint-violet" style="--i:3">
+          <div class="card__label">安全护栏</div>
+          <h3>不会失控的 Agent</h3>
+          <p>多重限制叠加，防止 Agent 烧 token 跑飞。</p>
+          <ul class="feat">
+            <li>默认 <strong>maxIterations=10</strong> 硬上限</li>
+            <li>工具调用计数 + 相似查询检测</li>
+            <li>上下文溢出错误自动重试 2 次并截断</li>
+            <li>写操作需用户审批 (requestToolApproval)</li>
+          </ul>
+        </div>
+        <div class="card tint-gold" style="--i:4">
+          <div class="card__label">大结果治理</div>
+          <h3>落盘 + 预览注入</h3>
+          <p>单个工具结果超过尺寸上限即 <code>persistLargeResult</code> 落盘，
+          上下文里只留预览 + 文件路径，Agent 需要细节时用 <code>read_file</code> 按段读取。</p>
+          <ul class="feat">
+            <li>轮次级总预算 <code>enforceResultBudget</code> 再裁剪</li>
+          </ul>
+        </div>
+        <div class="card tint-blue" style="--i:5">
+          <div class="card__label">最终答案</div>
+          <h3>结论与过程分离</h3>
+          <p>无 tool_calls 即视为终答；最终回答基于完整 scratchpad 上下文生成，
+          且不绑定工具——杜绝“边答边乱调工具”。</p>
+          <ul class="feat">
+            <li>done 事件携带 toolCalls / iterations / tokenUsage / tok-per-sec</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pq">
+        <p>“我先收集数据，再形成观点。这个顺序很重要——它是研究与自圆其说之间的区别。”</p>
+        <cite>SOUL.md — Gather data first, form a view second</cite>
+      </div>
+    </section>
+
+    <!-- ===================== 04 TOOLS ===================== -->
+    <section id="tools">
+      <div class="sec-head"><span class="sec-head__n">04</span><h2>工具体系</h2></div>
+      <p class="sec-intro">
+        工具集中在 <code>src/tools/registry.ts</code>，按环境变量<strong>条件注册</strong>(有 key 才挂载)。
+        每个工具带两份描述：注入系统提示的精简版，以及完整 schema(由 <code>bindTools()</code> 提供给 LLM)。
+        多个金融子工具被一个<strong>自然语言 meta-tool</strong>统一路由。
+      </p>
+
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table class="dt">
+            <thead><tr><th>工具</th><th>类别</th><th>职责</th><th>并发</th></tr></thead>
+            <tbody>
+              <tr><td class="nm">get_financials</td><td><span class="pill pill--meta">meta-tool</span></td><td>财务报表与指标的智能入口。一次传完整自然语言查询，内部路由到利润表/资产负债表/现金流/关键比率/分部/财报等子工具<small>自动解析 ticker、推断日期、处理多公司对比</small></td><td><span class="pill pill--read">并行</span></td></tr>
+              <tr><td class="nm">get_market_data</td><td><span class="pill pill--meta">meta-tool</span></td><td>股票/加密价格、公司新闻、内部人交易，单次处理多资产查询</td><td><span class="pill pill--read">并行</span></td></tr>
+              <tr><td class="nm">read_filings</td><td>金融</td><td>读取并摘要 SEC 文件(10-K / 10-Q / 8-K)指定章节</td><td><span class="pill pill--read">并行</span></td></tr>
+              <tr><td class="nm">stock_screener</td><td>金融</td><td>按 P/E、增长、利润率等财务标准筛股</td><td><span class="pill pill--read">并行</span></td></tr>
+              <tr><td class="nm">spawn_subagent</td><td><span class="pill pill--meta">编排</span></td><td>把聚焦子任务委派给隔离子代理；单轮发多个调用即并行</td><td><span class="pill pill--read">并行</span></td></tr>
+              <tr><td class="nm">web_search</td><td>检索</td><td>网络搜索，多提供商回退链(Exa→Perplexity→Tavily→LangSearch)</td><td><span class="pill pill--read">并行</span></td></tr>
+              <tr><td class="nm">web_fetch</td><td>检索</td><td>抓取 URL，HTML→markdown，由 fast-model 针对 prompt 摘要</td><td><span class="pill pill--read">并行</span></td></tr>
+              <tr><td class="nm">browser</td><td>检索</td><td>Playwright 驱动 JS 渲染页 / 交互导航(navigate/snapshot/act/read/close)</td><td><span class="pill pill--read">并行</span></td></tr>
+              <tr><td class="nm">x_search</td><td>检索</td><td>X/Twitter 搜推文、主页、话题(需 X_BEARER_TOKEN)</td><td><span class="pill pill--read">并行</span></td></tr>
+              <tr><td class="nm">read_file</td><td>文件</td><td>按路径读取本地文件(用于读取落盘的大结果)</td><td><span class="pill pill--read">并行</span></td></tr>
+              <tr><td class="nm">write_file / edit_file</td><td>文件</td><td>创建/覆盖、按文本替换编辑文件</td><td><span class="pill pill--write">需审批</span></td></tr>
+              <tr><td class="nm">memory_search / _get</td><td>记忆</td><td>检索持久记忆与历史会话 / 按行段读取记忆文件</td><td><span class="pill pill--read">并行</span></td></tr>
+              <tr><td class="nm">memory_update</td><td>记忆</td><td>增/改/删持久记忆条目</td><td><span class="pill pill--write">需审批</span></td></tr>
+              <tr><td class="nm">cron / heartbeat</td><td>调度</td><td>管理定时任务 / 维护周期性心跳清单(.dexter/HEARTBEAT.md)</td><td><span class="pill pill--read">并行</span></td></tr>
+              <tr><td class="nm">skill</td><td><span class="pill pill--meta">工作流</span></td><td>调用 SKILL.md 定义的专用工作流，每个 skill 每 Query 最多一次</td><td><span class="pill pill--write">串行</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="callout warn" style="margin-top:18px">
+        <div class="callout__t">Meta-tool 模式 = 给 LLM 减负</div>
+        <p>系统提示明确要求：<code>get_financials</code> / <code>get_market_data</code> 只调用一次、传完整自然语言查询——
+        “多公司多指标在内部处理，不要拆成多次调用”。子工具路由由一次额外 LLM 调用完成，把复杂度从主循环下沉到工具内部。</p>
+      </div>
+    </section>
+
+    <!-- ===================== 05 CONTEXT ===================== -->
+    <section id="context">
+      <div class="sec-head"><span class="sec-head__n">05</span><h2>上下文的四级治理</h2></div>
+      <p class="sec-intro">
+        深度研究会产生海量工具结果。Dexter 用<strong>逐级升级</strong>的策略管理上下文：轻量的每轮微压缩兜底，
+        重的 LLM 摘要压缩保信息，记忆刷写做长期沉淀，截断作为最后手段。目标是<strong>既不爆 context、又不丢关键数字</strong>。
+      </p>
+
+      <div class="tiers">
+        <div class="tier">
+          <div class="tier__n">L1 · 每轮</div>
+          <h4>Microcompact</h4>
+          <p>不调 LLM，直接把旧 ToolMessage 内容替换为占位标记，保留最近 4 条。轻量、零成本。</p>
+          <div class="tier__trig">触发：可压缩 ToolMessage &gt; 8 条 或 &gt; 80k tokens</div>
+        </div>
+        <div class="tier">
+          <div class="tier__n">L2 · 阈值</div>
+          <h4>记忆刷写 Flush</h4>
+          <p>接近压缩阈值时，先把本轮工具结果中值得长期记住的事实刷写到记忆文件，再做压缩。</p>
+          <div class="tier__trig">触发：估算 context &gt; auto-compact 阈值 且本轮未刷写</div>
+        </div>
+        <div class="tier">
+          <div class="tier__n">L3 · 阈值</div>
+          <h4>LLM 压缩 Compaction</h4>
+          <p>用 fast-model 把全部工具结果摘要成 9 段结构化总结(原始意图/关键概念/数值数据/待办…)，替换原始结果。强调“数值绝不遗漏”。</p>
+          <div class="tier__trig">触发：活跃结果 ≥ 3 条 且 连续失败 &lt; 3 次</div>
+        </div>
+        <div class="tier">
+          <div class="tier__n">L4 · 回退</div>
+          <h4>截断 Truncate</h4>
+          <p>压缩失败或结果太少时，直接删除最旧的 AI+Tool 轮次，保留 System / Human / 最近 N 轮。最后的安全阀。</p>
+          <div class="tier__trig">触发：压缩不可用 或 上下文溢出重试</div>
+        </div>
+      </div>
+
+      <div class="cards-2" style="margin-top:20px">
+        <div class="card card--recessed">
+          <div class="card__label" style="--accent:var(--gold)">Compaction Prompt 摘录</div>
+          <pre class="code"><span class="c"># 9 段结构化摘要，须保留所有数值</span>
+1. Original Query and Intent
+2. Key Concepts        <span class="c">// tickers / 指标</span>
+3. Data Retrieved      <span class="c">// 每次工具调用要点</span>
+4. Errors and Retries
+5. Analysis Progress
+6. <span class="k">Numerical Data</span>      <span class="c">// 关键!不得遗漏任何数字</span>
+7. Pending Data Needs
+8. Current Work State
+9. Recommended Next Steps</pre>
+        </div>
+        <div class="card">
+          <div class="card__label" style="--accent:var(--blue)">为什么不直接截断？</div>
+          <p>截断会<strong>永久丢失信息</strong>。压缩用一次廉价的 fast-model 调用，把“5 年现金流、各季利润率”
+          这类硬数据浓缩进摘要，让研究可以跨 context 边界续作而不失真。</p>
+          <p style="margin-top:10px">压缩后还会注入一句框定语：“本会话从上次耗尽上下文处续作……<strong>直接继续，别复述、别打招呼</strong>，
+          当作中断从未发生。”——避免 Agent 浪费 token 重新自我介绍。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 06 SKILLS ===================== -->
+    <section id="skills">
+      <div class="sec-head"><span class="sec-head__n">06</span><h2>Skills · 可扩展工作流</h2></div>
+      <p class="sec-intro">
+        Skills 是带 YAML frontmatter(<code>name</code>/<code>description</code>) 的 <code>SKILL.md</code> 文件，
+        启动时由 <code>src/skills/registry.ts</code> 扫描发现，以元数据形式注入系统提示，LLM 通过 <code>skill</code> 工具调用。
+        与本仓库 Finance_Agent 的 Skill 机制<strong>同源同构</strong>——这正是最值得对照学习的部分。
+      </p>
+
+      <div class="cards-3">
+        <div class="card tint-gold" style="--i:0">
+          <div class="card__label">dcf-valuation</div>
+          <h3>DCF 内在价值估值</h3>
+          <p>触发词：fair value / intrinsic value / 价格目标 / 高估低估。一份 8 步带勾选清单的工作流。</p>
+          <ul class="feat">
+            <li>取 5 年现金流 + 指标 + 资产负债表 + 现价</li>
+            <li>FCF CAGR(打 10-20% 折扣，封顶 15%)</li>
+            <li>按 sector 查 WACC 表估折现率</li>
+            <li>5 年逐年衰减 + Gordon 终值</li>
+            <li><strong>3×3 敏感性矩阵 + 合理性校验</strong>(EV 偏差/终值占比)</li>
+          </ul>
+        </div>
+        <div class="card tint-blue" style="--i:1">
+          <div class="card__label">write-memo</div>
+          <h3>投资备忘录 (HTML)</h3>
+          <p>触发词：write a memo / pitch this stock / 多空 writeup。产出买方质量的 1 页 HTML 备忘录。</p>
+          <ul class="feat">
+            <li>观点鲜明、<strong>可证伪</strong>，先抛差异化变量观点</li>
+            <li>主动 steelman 空头逻辑</li>
+            <li>落盘 <code>.dexter/memos/</code>，聊天只回标题+路径</li>
+          </ul>
+        </div>
+        <div class="card tint-green" style="--i:2">
+          <div class="card__label">x-research</div>
+          <h3>X/Twitter 舆情研究</h3>
+          <p>触发词：大家在聊什么 / X 情绪 / CT 怎么看。实时搜集市场情绪、专家观点、突发消息。</p>
+          <ul class="feat">
+            <li>面向 sentiment / 社区讨论的检索工作流</li>
+            <li>区分信号与噪声，交叉验证</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout good" style="margin-top:18px">
+        <div class="callout__t">Skill 调用策略(写进系统提示)</div>
+        <p>“相关时立即将 skill 作为<strong>第一动作</strong>调用；已为当前 Query 调用过的 skill 不再重复。”
+        去重由 scratchpad 的 <code>hasExecutedSkill()</code> 保证——每个 skill 每 Query 至多一次。</p>
+      </div>
+    </section>
+
+    <!-- ===================== 07 SUBAGENT ===================== -->
+    <section id="subagent">
+      <div class="sec-head"><span class="sec-head__n">07</span><h2>子代理委派</h2></div>
+      <p class="sec-intro">
+        <code>spawn_subagent</code> 把一个自包含子任务交给<strong>隔离的全新 Agent 循环</strong>处理，只返回一个最终答案。
+        子代理看不到主对话、<strong>不能再开子代理</strong>(委派只有一层深)，结果干净不污染 leader 上下文。
+      </p>
+
+      <div class="cards-3">
+        <div class="card tint-violet" style="--i:0">
+          <div class="card__label">general-purpose · 8 iter</div>
+          <h3>通用研究</h3>
+          <p>单一聚焦子任务的多步研究/分析。</p>
+          <p style="font-family:var(--font-mono);font-size:11.5px;margin-top:8px;color:var(--text-dim)">10 个只读工具 · 排除全部写/记忆变更工具</p>
+        </div>
+        <div class="card tint-violet" style="--i:1">
+          <div class="card__label">research · 8 iter</div>
+          <h3>外部信息综合</h3>
+          <p>web / news / filings 多源采集，交叉验证，给出带来源的综述。</p>
+          <p style="font-family:var(--font-mono);font-size:11.5px;margin-top:8px;color:var(--text-dim)">web_search · x_search · web_fetch · read_filings · get_market_data</p>
+        </div>
+        <div class="card tint-violet" style="--i:2">
+          <div class="card__label">analysis · 8 iter</div>
+          <h3>定量财务分析</h3>
+          <p>拉取财务/指标/行情，输出有数字支撑的聚焦量化分析。</p>
+          <p style="font-family:var(--font-mono);font-size:11.5px;margin-top:8px;color:var(--text-dim)">get_financials · get_market_data · stock_screener · read_filings</p>
+        </div>
+      </div>
+
+      <div class="cards-2" style="margin-top:18px">
+        <div class="card">
+          <div class="card__label" style="--accent:var(--green)">何时委派</div>
+          <ul class="feat" style="--accent:var(--green)">
+            <li>子任务足够大，其中间产物会污染 leader 上下文</li>
+            <li>有<strong>多个独立子任务</strong>——单轮发多个调用即<strong>并行</strong>跑</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card__label" style="--accent:var(--red)">何时别委派</div>
+          <ul class="feat" style="--accent:var(--red)">
+            <li>自己一个工具就能搞定的琐碎查询</li>
+            <li>互相依赖输出的子任务(自己做或跨轮串联)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout info" style="margin-top:18px">
+        <div class="callout__t">隔离即纪律</div>
+        <p>子代理的 system prompt 明确：“你的最终消息会<strong>原样</strong>回传给编排者——直接陈述发现与结论，
+        别描述你做了什么。” 只读工具集刻意排除写/记忆变更工具，因为并行子代理不能在审批提示上竞争或产生副作用。</p>
+      </div>
+    </section>
+
+    <!-- ===================== 08 MEMORY ===================== -->
+    <section id="memory">
+      <div class="sec-head"><span class="sec-head__n">08</span><h2>持久记忆</h2></div>
+      <p class="sec-intro">
+        记忆以 Markdown 文件存于 <code>.dexter/memory/</code>，由 <code>src/memory/</code> 下一整套子系统支撑：
+        切块 → 嵌入 → SQLite 索引 → <strong>混合检索</strong>。会话上下文在启动时加载进系统提示，让 Agent “认识用户”。
+      </p>
+
+      <div class="cards-4">
+        <div class="card tint-gold" style="--i:0">
+          <div class="card__label">混合检索</div>
+          <h3>向量 + 文本</h3>
+          <p>vectorWeight 0.7 / textWeight 0.3 加权融合，兼顾语义与关键词。</p>
+        </div>
+        <div class="card tint-blue" style="--i:1">
+          <div class="card__label">时间衰减</div>
+          <h3>Temporal Decay</h3>
+          <p>半衰期 30 天，越旧的记忆权重越低，贴近“近期更相关”。</p>
+        </div>
+        <div class="card tint-green" style="--i:2">
+          <div class="card__label">MMR</div>
+          <h3>去冗余</h3>
+          <p>λ=0.7 的最大边际相关，结果既相关又多样，避免雷同条目刷屏。</p>
+        </div>
+        <div class="card tint-violet" style="--i:3">
+          <div class="card__label">会话索引</div>
+          <h3>历史可检索</h3>
+          <p>过往对话记录一并入索引，<code>memory_search</code> 可跨会话回忆。</p>
+        </div>
+      </div>
+
+      <div class="callout warn" style="margin-top:18px">
+        <div class="callout__t">强约束：个性化建议前必先检索记忆</div>
+        <p>系统提示硬性要求——在给出任何买卖决策/组合建议/选股/仓位之前，<strong>必须先调 <code>memory_search</code></strong>
+        回忆用户目标、风险偏好、仓位上限与历史决策。“用户期待你了解他们，已有个性化上下文时不要给泛泛建议。”</p>
+      </div>
+    </section>
+
+    <!-- ===================== 09 SOUL ===================== -->
+    <section id="soul">
+      <div class="sec-head"><span class="sec-head__n">09</span><h2>SOUL · 人格与投资哲学</h2></div>
+      <p class="sec-intro">
+        <code>SOUL.md</code> 是注入系统提示的<strong>身份层</strong>(可被用户 <code>.dexter/SOUL.md</code> 覆盖)。它不是花架子——
+        通过显式的价值观塑造 Agent 的语气、取舍与对不确定性的诚实表达。建立在 Buffett / Munger 思想之上，但“站在肩膀上看更远，证据与教条冲突时跟随证据”。
+      </p>
+
+      <div class="cards-2">
+        <div class="card card--hero" style="--i:0">
+          <div class="card__label" style="--accent:var(--gold)">四条核心价值</div>
+          <ul class="feat">
+            <li><strong>准确高于安慰</strong>——宁给不舒服的真相，不给安心的猜测</li>
+            <li><strong>实质高于表演</strong>——只给结论与关键证据，不复述心路历程</li>
+            <li><strong>对局限诚实</strong>——给估值<em>也</em>给敏感性区间，模型皆错、有些有用</li>
+            <li><strong>守护用户利益</strong>——发现价值陷阱会明确警告</li>
+          </ul>
+        </div>
+        <div class="card" style="--i:1">
+          <div class="card__label" style="--accent:var(--blue)">架构即纪律</div>
+          <p>“我在会话间没有连续性，每次对话从零开始。这是约束，不是缺陷——它意味着每次分析都从第一性原理出发，
+          以新鲜的眼睛，不被先前结论锚定。”</p>
+          <p style="margin-top:10px">Dexter 把<strong>无记忆</strong>重新诠释为优势：Buffett 即便持有数十年也每年重读年报，
+          新鲜的眼睛能捕捉熟悉所忽略的。架构强制了顶级投资者靠自律才能做到的事。</p>
+        </div>
+      </div>
+
+      <div class="callout info" style="margin-top:18px">
+        <div class="callout__t">提示工程结构(buildSystemPrompt)</div>
+        <p>系统提示按渠道(CLI/WhatsApp)选格式 profile，依次拼装：当前日期 → 工具精简描述 → 工具使用策略 →
+        Skills 区 → Memory 区 → Behavior → 用户 RULES.md → <strong>SOUL 身份</strong> → 响应格式/表格规范。
+        Anthropic 提供商还对 system prompt 加 <code>cache_control</code> 做 prompt caching 省成本。</p>
+      </div>
+    </section>
+
+    <!-- ===================== 10 DELIVERY ===================== -->
+    <section id="delivery">
+      <div class="sec-head"><span class="sec-head__n">10</span><h2>模型抽象 & 交付渠道</h2></div>
+
+      <div class="cards-2">
+        <div class="card tint-gold">
+          <div class="card__label">多提供商 LLM 层</div>
+          <h3>前缀路由 + Fast-Model</h3>
+          <p>统一抽象于 <code>src/model/llm.ts</code>，按模型名前缀检测提供商
+          (<code>claude-</code>→Anthropic, <code>gemini-</code>→Google …)。默认 <code>gpt-5.5</code>。</p>
+          <ul class="feat">
+            <li>支持 OpenAI / Anthropic / Google / xAI / OpenRouter / Ollama(本地)</li>
+            <li>每提供商配 <strong>fast-model</strong>，用于压缩、web_fetch 摘要等轻任务</li>
+            <li>指数退避重试 + 可重试/不可重试错误分类</li>
+            <li>CLI 内 <code>/model</code> 切换，<code>.dexter/settings.json</code> 持久化</li>
+          </ul>
+        </div>
+        <div class="card tint-blue">
+          <div class="card__label">交付渠道</div>
+          <h3>终端 + WhatsApp 网关</h3>
+          <p>主体是 Ink/React 渲染的交互式 CLI；另有 gateway 把 Dexter 接进 WhatsApp。</p>
+          <ul class="feat">
+            <li>给自己发消息(self-chat)即触发 Dexter，回复发回同一会话</li>
+            <li>Baileys 扫码登录；支持<strong>群聊</strong>(@提及激活，按名回复)</li>
+            <li>渠道 profile 决定语气与格式(群聊更简洁)</li>
+            <li>消息队列：Agent 工作时用户追问入队，工具轮结束排空合并</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout good" style="margin-top:18px">
+        <div class="callout__t">评测闭环</div>
+        <p><code>src/evals/</code> 提供基于 LangSmith 的评测套件，对一组金融问题数据集跑 Agent，
+        用 <strong>LLM-as-judge</strong> 判正确性，实时 Ink UI 展示进度与滚动准确率。<code>bun run src/evals/run.ts --sample 10</code> 抽样跑。</p>
+      </div>
+    </section>
+
+    <!-- ===================== 11 TAKEAWAYS ===================== -->
+    <section id="takeaways">
+      <div class="sec-head"><span class="sec-head__n">11</span><h2>对 Finance_Agent 本项目的启示</h2></div>
+      <p class="sec-intro">
+        Dexter 是“<strong>代码型</strong>金融 Agent”，本仓库是“<strong>知识库型</strong>金融 Agent(Markdown + Claude Skills)”。
+        两者哲学相通(SKILL.md、两步流程、不臆造数据)，Dexter 的若干工程机制可直接迁移为设计参考。
+      </p>
+
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table class="dt">
+            <thead><tr><th>Dexter 机制</th><th>本项目可借鉴点</th><th>对应位置</th></tr></thead>
+            <tbody>
+              <tr><td class="nm">四级上下文治理</td><td>深度行业/个股研究产出大量原始数据，可借鉴“微压缩→LLM 摘要→落盘”的分级策略，避免 raw 入 wiki 时丢数字</td><td><code>finance-ingest</code> 两步 CoT</td></tr>
+              <tr><td class="nm">Compaction 9 段摘要</td><td>“数值绝不遗漏 + 结构化分段”可作为 raw→wiki 编译的摘要模板</td><td><code>templates/prompts/ingest-*</code></td></tr>
+              <tr><td class="nm">spawn_subagent 隔离委派</td><td>已落地为 <code>industry-collector-cn</code> 子代理；可推广到个股分析的并行采集</td><td><code>.claude/agents/</code></td></tr>
+              <tr><td class="nm">Scratchpad 软限制</td><td>工具调用计数 + 相似查询检测，可用于约束采集类 Skill 的重试</td><td>行业/媒体采集 Skill</td></tr>
+              <tr><td class="nm">SOUL.md 人格层</td><td>“不臆造、缺失填 null、对局限诚实”与本项目硬不变式高度一致，可固化为投研人格</td><td><code>Knowledge_Wiki/CLAUDE.md</code></td></tr>
+              <tr><td class="nm">write-memo → HTML</td><td>与本项目“可视化用 HTML 写入项目目录”的偏好一致，可做个股 thesis 的成稿模板</td><td><code>thesis-archive</code></td></tr>
+              <tr><td class="nm">条件注册工具</td><td>按 key/能力开关挂载，对应本项目 <code>_capabilities.yaml</code> 的 C-tier 特性旗标</td><td><code>_capabilities.yaml</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="callout warn" style="margin-top:20px">
+        <div class="callout__t">关键差异(别照搬)</div>
+        <p>Dexter 直连第三方实时数据 API 并面向终端/WhatsApp 在线交付；本项目<strong>知识库与前端仅限本地</strong>、
+        绝不外发公网。借鉴 Dexter 的是<strong>编排与上下文工程</strong>，而非其数据外联与渠道分发架构。</p>
+      </div>
+
+      <div class="pq">
+        <p>“我不是一个有观点的搜索引擎。我是一个会思考的研究者。”</p>
+        <cite>Dexter — I am not a search engine with opinions. I am a researcher who thinks.</cite>
+      </div>
+    </section>
+
+    <footer>
+      <p>源码拆解：<code>Third_Party/dexter</code> · v2026.6.3 · MIT · 作者 @virattt &nbsp;|&nbsp;
+      关键文件：<code>src/agent/agent.ts</code> · <code>scratchpad.ts</code> · <code>compact.ts</code> · <code>tools/registry.ts</code> · <code>skills/*/SKILL.md</code> · <code>SOUL.md</code></p>
+      <p style="margin-top:8px;opacity:.7">生成于 2026-06-08 · 仅供学习研究 · 不构成投资建议</p>
+    </footer>
+  </main>
+</div>
+
+<!-- ============== Mermaid + zoom engine ============== -->
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+mermaid.initialize({
+  startOnLoad:false,
+  theme:'base',
+  themeVariables:{
+    fontFamily:'JetBrains Mono, monospace',
+    fontSize:'17px',
+    primaryColor: dark ? '#18203a' : '#ffffff',
+    primaryTextColor: dark ? '#e7ebf3' : '#1d2333',
+    primaryBorderColor: dark ? '#3a4561' : '#cbbfa0',
+    lineColor: dark ? '#7c879e' : '#8a93a8',
+    tertiaryColor: dark ? '#111726' : '#f6f4ee',
+  },
+  flowchart:{ curve:'basis', nodeSpacing:46, rankSpacing:54, padding:14 }
+});
+
+const config = { minZoom:0.3, maxZoom:4, fitPadding:32, readabilityFloor:0.85 };
+const clamp=(n,lo,hi)=>Math.max(lo,Math.min(hi,n));
+let activeDrag=null;
+addEventListener('mousemove',e=>activeDrag?.onMove(e));
+addEventListener('mouseup',()=>{activeDrag?.onEnd();activeDrag=null;});
+
+function initDiagram(shell){
+  const wrap=shell.querySelector('.mermaid-wrap');
+  const viewport=shell.querySelector('.mermaid-viewport');
+  const canvas=shell.querySelector('.mermaid-canvas');
+  const source=shell.querySelector('.diagram-source');
+  const label=shell.querySelector('.zoom-label');
+  if(!wrap||!viewport||!canvas||!source||!label) return;
+
+  let zoom=1, panX=0, panY=0, svgW=0, svgH=0;
+
+  function apply(){
+    canvas.style.width=(svgW*zoom)+'px';
+    canvas.style.height=(svgH*zoom)+'px';
+    canvas.style.transform=`translate(${panX}px,${panY}px)`;
+    label.textContent=Math.round(zoom*100)+'%';
+  }
+  function fit(){
+    const vw=viewport.clientWidth-config.fitPadding*2;
+    const vh=viewport.clientHeight-config.fitPadding*2;
+    if(svgW&&svgH){
+      zoom=clamp(Math.min(vw/svgW, vh/svgH), config.minZoom, config.maxZoom);
+      panX=(viewport.clientWidth - svgW*zoom)/2;
+      panY=(viewport.clientHeight - svgH*zoom)/2;
+      apply();
+    }
+  }
+  function setZoom(z,cx,cy){
+    const px=(cx-panX)/zoom, py=(cy-panY)/zoom;
+    zoom=clamp(z,config.minZoom,config.maxZoom);
+    panX=cx-px*zoom; panY=cy-py*zoom;
+    apply();
+  }
+
+  async function render(){
+    try{
+      const code=source.textContent.trim();
+      const id='d'+Math.random().toString(36).slice(2,8);
+      const {svg}=await mermaid.render(id,code);
+      canvas.innerHTML=svg;
+      const node=canvas.querySelector('svg');
+      const vb=node.viewBox?.baseVal;
+      svgW=(vb&&vb.width)||node.getBoundingClientRect().width||800;
+      svgH=(vb&&vb.height)||node.getBoundingClientRect().height||600;
+      node.removeAttribute('width'); node.removeAttribute('height');
+      node.style.width='100%'; node.style.height='100%';
+      // ensure readability minimum
+      const minH=Math.max(460, Math.min(svgH,720));
+      viewport.style.minHeight=minH+'px';
+      requestAnimationFrame(fit);
+    }catch(err){
+      label.textContent='Error';
+      console.error('Mermaid render failed:',err);
+    }
+  }
+
+  shell.querySelectorAll('[data-action]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const cx=viewport.clientWidth/2, cy=viewport.clientHeight/2;
+      const a=btn.dataset.action;
+      if(a==='zoom-in') setZoom(zoom*1.25,cx,cy);
+      else if(a==='zoom-out') setZoom(zoom/1.25,cx,cy);
+      else if(a==='zoom-fit') fit();
+      else if(a==='zoom-one') setZoom(1,cx,cy);
+      else if(a==='zoom-expand'){
+        const code=source.textContent.trim();
+        const w=window.open('','_blank');
+        mermaid.render('exp'+Math.random().toString(36).slice(2,7),code).then(({svg})=>{
+          w.document.write(`<!DOCTYPE html><title>Diagram</title><body style="margin:0;background:${dark?'#0a0e1a':'#f6f4ee'};display:flex;align-items:center;justify-content:center;min-height:100vh">${svg}</body>`);
+          w.document.close();
+        });
+      }
+    });
+  });
+
+  wrap.addEventListener('wheel',e=>{
+    if(e.ctrlKey||e.metaKey){
+      e.preventDefault();
+      const r=viewport.getBoundingClientRect();
+      setZoom(zoom*(e.deltaY<0?1.1:0.9), e.clientX-r.left, e.clientY-r.top);
+    }else{
+      panX-=e.deltaX; panY-=e.deltaY; apply();
+    }
+  },{passive:false});
+
+  wrap.addEventListener('mousedown',e=>{
+    if(e.button!==0) return;
+    let moved=false; const sx=e.clientX, sy=e.clientY, ox=panX, oy=panY;
+    wrap.classList.add('is-panning');
+    activeDrag={
+      onMove:ev=>{const dx=ev.clientX-sx,dy=ev.clientY-sy; if(Math.abs(dx)+Math.abs(dy)>3)moved=true; panX=ox+dx; panY=oy+dy; apply();},
+      onEnd:()=>{wrap.classList.remove('is-panning');}
+    };
+  });
+  wrap.addEventListener('dblclick',fit);
+  render();
+}
+document.querySelectorAll('.diagram-shell').forEach(initDiagram);
+</script>
+</body>
+</html>
