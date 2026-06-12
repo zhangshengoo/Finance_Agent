@@ -1,0 +1,14 @@
+{
+  "eval_id": 1,
+  "eval_name": "baijiu-brand-moat",
+  "prompt": "分析白酒板块，给个产业链 + 龙头 + 投资含义的画像。",
+  "assertions": [
+    {"text": "龙头用白酒特有 KPI（吨价/预收款=合同负债/经销商数），而非只有通用 PE", "id": "baijiu_specific_kpi"},
+    {"text": "护城河评估识别出无形资产/品牌为最强护城河（strong）", "id": "moat_brand_dominant"},
+    {"text": "护城河覆盖 4 类（网络效应/切换成本/规模经济/无形资产），逐项评强/中/弱", "id": "moat_4category"},
+    {"text": "含 ●●● 同口径横评记法", "id": "peer_rating_notation"},
+    {"text": "内容是白酒专属，未串入半导体痕迹（无误用 光刻/晶圆/国产化 等）", "id": "not_semiconductor_copy"},
+    {"text": "给出牛/熊论据并与护城河挂钩", "id": "bull_bear_tied_to_moat"},
+    {"text": "未写入 Knowledge_Wiki/（未执行 Step 6）", "id": "no_kb_write"}
+  ]
+}

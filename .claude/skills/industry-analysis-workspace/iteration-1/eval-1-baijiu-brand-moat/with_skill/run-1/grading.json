@@ -1,0 +1,45 @@
+{
+  "expectations": [
+    {
+      "text": "龙头用白酒特有 KPI（非仅通用 PE）",
+      "passed": true,
+      "evidence": "§3.2 明列 吨价/合同负债(预收款)/经销商数/毛利率/库存周转，注明 cn-playbook §1"
+    },
+    {
+      "text": "护城河识别 无形资产/品牌 为最强",
+      "passed": true,
+      "evidence": "§5.1 表中『无形资产=强』加粗，注『品牌+稀缺产区+老酒+提价权=护城河本体』"
+    },
+    {
+      "text": "护城河覆盖 4 类逐项强中弱",
+      "passed": true,
+      "evidence": "网络效应弱/切换成本中/规模经济中/无形资产强 完整 4 类表"
+    },
+    {
+      "text": "含 ●●● 同口径横评",
+      "passed": true,
+      "evidence": "§3.2 ●●● 评 品牌定价权/吨价/合同负债/全国化弹性/毛利率"
+    },
+    {
+      "text": "白酒专属，无半导体串入",
+      "passed": true,
+      "evidence": "全文围绕产区/老酒/吨价/批价，无半导体痕迹"
+    },
+    {
+      "text": "牛/熊与护城河挂钩",
+      "passed": true,
+      "evidence": "§5.1 护城河三要素直接导出 §5.2 牛(无形资产护城河)/熊(消费税悬顶=结构性弱点)"
+    },
+    {
+      "text": "未写入 Knowledge_Wiki（跳过 Step 6）",
+      "passed": true,
+      "evidence": "结尾声明未执行 Step 6；KB 零写入"
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 7,
+    "failed": 0,
+    "total": 7
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "skill_name": "industry-analysis",
+  "notes": "Improving existing skill. Baseline = git HEAD version (no cn-playbook). The change adds 4 on-demand playbook files (sector KPIs / peer ●●● rating / moat / positioning-viz) reached via pointers in SKILL.md Steps 2/3/5. Evals pick 2 sectors with different KPI+moat profiles to test generalization. Runners produce the Step 2-5 sector analysis markdown only; they SKIP the real KB write (Step 6 raw-intake/finance-ingest) and use null/[UNSOURCED] when live data is unavailable — we are grading analytical structure, not data accuracy.",
+  "evals": [
+    {
+      "id": 0,
+      "name": "semiconductor-value-chain-heavy",
+      "prompt": "帮我分析一下 A 股半导体行业，做一份行业研究：市场概览、产业链、龙头、估值和投资含义都要。",
+      "expected_output": "Sector analysis markdown that (a) breaks the value chain into up/mid/down with bottleneck (卡脖子) markers, (b) picks semiconductor-specific KPIs (国产化率/产能/良率) for the leaders rather than only PE/market-cap, (c) gives a ●●● same-basis peer comparison across a few decisive dimensions, (d) does a 4-category moat assessment feeding bull/bear.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "baijiu-brand-moat",
+      "prompt": "分析白酒板块，给个产业链 + 龙头 + 投资含义的画像。",
+      "expected_output": "Sector analysis markdown that (a) selects baijiu-specific KPIs (吨价/预收款=合同负债/经销商) not generic ones, (b) value chain reflects a consumer/brand structure, (c) moat assessment correctly identifies 无形资产/品牌 as the dominant moat (strong) and is not a copy of the semiconductor write-up, (d) bull/bear map to the moat synthesis.",
+      "files": []
+    }
+  ]
+}

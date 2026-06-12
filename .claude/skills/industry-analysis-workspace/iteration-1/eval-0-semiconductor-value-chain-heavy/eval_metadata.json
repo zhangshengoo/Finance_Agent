@@ -1,0 +1,14 @@
+{
+  "eval_id": 0,
+  "eval_name": "semiconductor-value-chain-heavy",
+  "prompt": "帮我分析一下 A 股半导体行业，做一份行业研究：市场概览、产业链、龙头、估值和投资含义都要。",
+  "assertions": [
+    {"text": "产业链被拆成上/中/下游三段（up/mid/down）", "id": "value_chain_split"},
+    {"text": "至少一个产业链环节被标为卡脖子/瓶颈（如光刻机、光刻胶、EUV），即 |bottleneck 或文字标注", "id": "bottleneck_marked"},
+    {"text": "龙头用半导体特有 KPI 描述（国产化率/产能/良率/设备替代），而非只有 PE 与市值", "id": "sector_specific_kpi"},
+    {"text": "含 ●●● 同口径横评（跨若干决定性维度的实心/空心圆点评级，且附真实值）", "id": "peer_rating_notation"},
+    {"text": "投资含义含护城河评估，覆盖 4 类（网络效应/切换成本/规模经济/无形资产）", "id": "moat_4category"},
+    {"text": "给出明确的牛/熊（bull/bear）论据，且与护城河结论挂钩", "id": "bull_bear_tied_to_moat"},
+    {"text": "未写入 Knowledge_Wiki/（未执行 Step 6 raw-intake/finance-ingest）", "id": "no_kb_write"}
+  ]
+}

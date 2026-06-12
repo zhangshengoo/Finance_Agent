@@ -1,0 +1,45 @@
+{
+  "expectations": [
+    {
+      "text": "龙头用白酒特有 KPI（非仅通用 PE）",
+      "passed": false,
+      "evidence": "龙头表列 市值/PE/差异化；prose 提毛利率/ROE，但无 吨价/合同负债/经销商 的 KPI 选取框架"
+    },
+    {
+      "text": "护城河识别 无形资产/品牌 为最强",
+      "passed": true,
+      "evidence": "§2.1/§2.2 明确『品牌即护城河』『时间护城河=产区+老窖池+品牌心智』，定性识别到位"
+    },
+    {
+      "text": "护城河覆盖 4 类逐项强中弱",
+      "passed": false,
+      "evidence": "无 网络效应/切换成本/规模经济/无形资产 4 类结构化评级，仅散述"
+    },
+    {
+      "text": "含 ●●● 同口径横评",
+      "passed": false,
+      "evidence": "龙头梯队为 prose + 表，无 ●●● 评级记法"
+    },
+    {
+      "text": "白酒专属，无半导体串入",
+      "passed": true,
+      "evidence": "全文白酒专属，质量较高（时间护城河、负营运资本等）"
+    },
+    {
+      "text": "牛/熊与护城河挂钩",
+      "passed": true,
+      "evidence": "§5.3 多空表，多方首条即『护城河不可复制』，与护城河叙述挂钩"
+    },
+    {
+      "text": "未写入 Knowledge_Wiki（跳过 Step 6）",
+      "passed": true,
+      "evidence": "附录声明仅产出本文，未写 KB"
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.5714,
+    "passed": 4,
+    "failed": 3,
+    "total": 7
+  }
+}

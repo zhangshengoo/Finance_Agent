@@ -1,0 +1,45 @@
+{
+  "expectations": [
+    {
+      "text": "产业链拆成上/中/下游三段",
+      "passed": false,
+      "evidence": "用 EDA→设计→制造→封测 流程图 + 按环节表，未按上/中/下游三段组织（playbook §4 的结构缺失）"
+    },
+    {
+      "text": "至少一个环节标卡脖子/瓶颈",
+      "passed": false,
+      "evidence": "提到「壁垒」但无 |bottleneck 或显式瓶颈标注"
+    },
+    {
+      "text": "龙头用半导体特有 KPI（非仅 PE/市值）",
+      "passed": false,
+      "evidence": "龙头表列 市值/PE-TTM/涨跌幅，无 国产化率/产能/良率 等行业 KPI 选取"
+    },
+    {
+      "text": "含 ●●● 同口径横评",
+      "passed": false,
+      "evidence": "竞争动态为纯 prose，无 ●●● 评级记法"
+    },
+    {
+      "text": "护城河评估覆盖 4 类",
+      "passed": false,
+      "evidence": "仅在 §4 一句带过「护城河类型(认证/规模/良率/IP)」，无 4 类强中弱结构化评估"
+    },
+    {
+      "text": "牛/熊与护城河挂钩",
+      "passed": false,
+      "evidence": "§6.3 有多空，但未与护城河框架挂钩"
+    },
+    {
+      "text": "未写入 Knowledge_Wiki（跳过 Step 6）",
+      "passed": true,
+      "evidence": "§7 明示未执行 Step 6，未写入 KB"
+    }
+  ],
+  "summary": {
+    "pass_rate": 0.1429,
+    "passed": 1,
+    "failed": 6,
+    "total": 7
+  }
+}

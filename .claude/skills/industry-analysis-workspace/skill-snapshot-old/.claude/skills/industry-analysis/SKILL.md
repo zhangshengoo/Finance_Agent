@@ -1,6 +1,6 @@
 ---
 name: industry-analysis
-description: A 股行业分析 Skill。做行业研究并把分析产出归档到 raw/（经 raw-intake，不直写 wiki），再由 finance-ingest 编译成 wiki/sectors/<slug>.md。含产业链 / 龙头股 / 估值 / 投资含义。触发词：分析 X 行业 / X 板块画像 / X 产业链 / 行业研究 / industry analysis / sector overview。
+description: A 股行业分析 Skill。产出 wiki/sectors/<slug>.md，含产业链 / 龙头股 / 估值 / 投资含义。触发词：分析 X 行业 / X 板块画像 / X 产业链 / 行业研究 / industry analysis / sector overview。
 ---
 
 # Industry Analysis (P0 · A 股 only)
@@ -92,13 +92,11 @@ Agent(
 - **Step 2 Market Overview** —
   - 用 Subagent 返回的 `market_size` 填行业总市值 / 成份数
   - 补维度 1 产业链结构（grep `Knowledge_Wiki/ontology/graph.jsonl` + 必要时 WebSearch 上游/下游环节）
-    > 产业链拆分形式选型（价值链/2×2/tier）+ `value_chain_*` 瓶颈标注约定见 [references/cn-playbook/04-positioning-viz.md](references/cn-playbook/04-positioning-viz.md)
   - 补维度 7 景气与政策（最近 3 月政策、PMI、订单 → 知识库 grep + 必要时 WebSearch）
   - **禁止**修改 Subagent 返回的任何数值
 - **Step 3 Competitive Landscape** —
   - 把 `top_companies[10]` 渲染为 sector 页正文 3.1 表格
   - 每只龙头加 1-2 句业务定位（从 `Knowledge_Wiki/wiki/companies/<TICKER>.md` grep；缺页用 `[[companies/<TICKER>]]` 占位，验收 Task 9 时建 stub）
-  - **行业特有 KPI 选取**（半导体看国产化率、银行看 NIM…）见 [references/cn-playbook/01-sector-kpis.md](references/cn-playbook/01-sector-kpis.md)；**龙头 ●●● 同口径横评记法**见 [references/cn-playbook/02-peer-rating.md](references/cn-playbook/02-peer-rating.md)——让 3.2 竞争动态有信息量，而非数字平铺
 - **Step 4 Valuation Context** —
   - 用 Subagent 返回的 `valuation` 填 PE-TTM / PB / 股息率
   - 与沪深 300 当前估值对比（如可知）
@@ -106,59 +104,34 @@ Agent(
 
 ### Step 5: Investment Implications（CoT 综合，无新数据采集）
 
-> 写多空之前，先对核心龙头做**护城河评估**（网络效应/切换成本/规模经济/无形资产 4 类 → 持久优势=牛、结构性弱点=熊，并上浮前端 `bull[]/bear[]`）：见 [references/cn-playbook/03-moat-assessment.md](references/cn-playbook/03-moat-assessment.md)。这一步把「行业景气」升级成「龙头凭什么持续赢」，避免投资含义写成新闻摘要。
-
 基于 Step 2-4 已有事实：
 - 最佳风险回报机会
 - 主题性投注（如"AI 算力国产化"）
-- 多空争论（牛/熊各自映射到护城河持久优势 / 结构性弱点）
+- 多空争论
 - 催化剂（未来 3-6 月）
 
 **Surface for review** — 在落地前停下来给用户看 Step 1-5 草稿，等用户确认。
 
-### Step 6: 产出分析 → 归档到 raw（经 `raw-intake`，**不直写 wiki**）
+### Step 6: Output to `Knowledge_Wiki/wiki/sectors/<slug>.md`
 
-industry-analysis 是 Agent 的分析能力：它**只产出分析并落到 raw/**，wiki/sectors/ 由 `finance-ingest` 两步 CoT 编译——这样既保留人工 review 点，又让 raw（不可变源）和 wiki（编译产物）职责清晰。**不要自己拼 raw 路径、不要自己写 raw 文件、更不要写 wiki**，统一交给 raw-intake。
-
-1. **组装 sector 分析 markdown**：把 Step 2-5 的完整内容（市场概览 / 竞争格局 / 估值 / 投资含义）写到临时文件，如 `/tmp/<slug>-analysis.md`。正文里公司提及用 `[[companies/<TICKER>]]`，含 `## 来自媒体源的观察与观点` 章节（P0 可"（暂无）"）。
-2. **组装 intake envelope**（完整契约见 `Knowledge_Wiki/.claude/skills/raw-intake/references/envelope-schema.md`），写到 `/tmp/<slug>-intake.json`：
-   ```json
-   {
-     "source": "industry-analysis",
-     "kind": "sector-analysis",
-     "title": "<行业>行业分析 <as_of>",
-     "as_of": "<YYYY-MM-DD>",
-     "content": { "path": "/tmp/<slug>-analysis.md", "format": "md" },
-     "meta": {
-       "slug": "<slug>", "taxonomy_code": "<SW:xxxxxx>", "market": "cn",
-       "status": "full | partial | stub",
-       "leaders": ["<ticker>", "..."],
-       "data_sources": ["finrobot:industry_analysis.py:overview:<date>"],
-       "snapshot": "raw/data/industry-snapshots/cn/<slug>-<YYYYMMDD>.jsonl",
-       "frontend": {
-         "_doc": "前端「行业分析」模块直接渲染；数值必须引自正文，缺失→null/[UNSOURCED]，禁止臆造。契约见 docs/frontend-kb-binding.md §2",
-         "constituents": null, "pe_ttm": null, "pb": null, "div_yield": null, "val_rank": null,
-         "value_chain_up": ["<单元格>|bottleneck", "..."],
-         "value_chain_mid": ["..."], "value_chain_down": ["..."],
-         "bull": ["<牛方论据>", "..."], "bear": ["<熊方论据>", "..."]
-       }
-     }
-   }
-   ```
-   > `frontend` 块承载前端结构化字段，原样取自 Step 2-5 的数值/枚举（产业链单元格后缀 `|bottleneck` 标瓶颈环节）。下游 finance-ingest 把它们摊平进 sector 页 frontmatter（`pe_ttm` / `value_chain_*` / `bull` / `bear` …），供 `build_frontend_data.py` 解析。
-3. **调 raw-intake 落盘**（从项目根 CWD 跑）：
-   ```bash
-   uv run --python 3.12 Knowledge_Wiki/.claude/skills/raw-intake/scripts/intake.py --envelope /tmp/<slug>-intake.json
-   ```
-   读 stdout 的 `dest`（KB 相对 raw 路径）、`status`、`next`。
+1. **复制** `Knowledge_Wiki/templates/sector.md` → `Knowledge_Wiki/wiki/sectors/<slug>.md`
+2. **填充 frontmatter**：
+   - `title` / `type: sector` / `market: cn` / `taxonomy_code` / `slug` / `created` / `updated` / `as_of`
+   - `summary`（≤100 字）
+   - `sources[]`：至少包含 `raw/data/industry-snapshots/cn/<slug>-YYYYMMDD.jsonl` + Subagent 用过的数据源字符串（如 `finrobot:industry_analysis.py:overview:2026-06-05`）
+   - `leaders[]`：top_companies 的 ticker 列表（至少 3 个，对齐验收标准）
+   - `status: active`
+3. **填充正文** Step 2-5 内容
+4. **公司提及强制 `[[companies/<TICKER>]]`**：每个 leader 至少出现一次 wikilink
+5. **`## 6. 来自媒体源的观察与观点`** 章节：P0 一般为"（暂无）"占位
 
 ### Post-output
 
-1. 回报用户：分析已归档到 raw（`<dest>`），collector 快照 jsonl 也在 raw/data/ 下。
-2. **询问是否进 wiki**："是否调用 `finance-ingest` 把这份 sector 分析（`<dest>`，kind=sector-analysis）编译成 `wiki/sectors/<slug>.md`？" —— finance-ingest 走两步 CoT，自动引用 raw 分析 + 快照作为 `sources[]`，并把 envelope `meta.frontend` 摊平进 sector 页 frontmatter（契约见 `docs/frontend-kb-binding.md` §2）。
-   - 编译完成后（可选）刷新前端：`python3 Knowledge_Wiki/scripts/build_frontend_data.py` → 前端「行业分析」自动多出该行业卡片。
-3. （可选）对 leaders 中 `Knowledge_Wiki/wiki/companies/` 缺页的 ticker，提示后续用 `company-page` 建 stub。
-4. （P0 默认 no）是否触发 `thesis-archive` / `graph_append.py` 追边。
+1. 跑 `python3 Knowledge_Wiki/scripts/build_index.py --validate` 确认 frontmatter 合法
+2. 对 leaders 中 `Knowledge_Wiki/wiki/companies/` 缺页的 ticker，调用 `company-page` Skill 建 stub
+3. 询问用户：
+   - "本 sector 页含明确投资判断，是否触发 `thesis-archive`？"
+   - "是否触发 `Knowledge_Wiki/scripts/graph_append.py` 追加 supplies/uses_component 边？"（P0 默认 no，→ P2）
 
 ## 5 处本土化注入对照表（v0.7）
 
@@ -183,18 +156,7 @@ industry-analysis 是 Agent 的分析能力：它**只产出分析并落到 raw/
 - ❌ pptx / xlsx 输出（→ P3）
 - ❌ thesis-archive 自动触发（→ 询问用户后人工触发）
 
-## References
-
-### cn-playbook/（本土化方法论 · 按需加载，**不进默认上下文**）
-
-> distilled from upstream `120a31d` 并改写为 A 股 + Markdown 口径；上面 Workflow 各步的指针按需引用，避免 SKILL.md 正文膨胀。
-
-- [references/cn-playbook/01-sector-kpis.md](references/cn-playbook/01-sector-kpis.md) — 申万行业 → 行业特有 KPI（Step 3 用）
-- [references/cn-playbook/02-peer-rating.md](references/cn-playbook/02-peer-rating.md) — 龙头 ●●● 同口径横评记法（Step 3 用）
-- [references/cn-playbook/03-moat-assessment.md](references/cn-playbook/03-moat-assessment.md) — 4 类护城河评估 → bull/bear（Step 5 用）
-- [references/cn-playbook/04-positioning-viz.md](references/cn-playbook/04-positioning-viz.md) — 产业链/定位可视化选型 → `value_chain_*`（Step 2 用）
-
-### upstream（read-only fork · 仅溯源，勿照搬 pptx 部分）
+## References (read-only fork)
 
 - [references/upstream-sector-overview.md](references/upstream-sector-overview.md) — Anthropic 6-step 原文
 - [references/upstream-competitive-analysis.md](references/upstream-competitive-analysis.md) — 9-step 竞争分析方法论

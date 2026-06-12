@@ -1,0 +1,45 @@
+{
+  "expectations": [
+    {
+      "text": "产业链拆成上/中/下游三段",
+      "passed": true,
+      "evidence": "§2 显式分「上游—设备与材料 / 中游—设计制造封测 / 下游—终端应用」三段"
+    },
+    {
+      "text": "至少一个环节标卡脖子/瓶颈",
+      "passed": true,
+      "evidence": "光刻机（EUV）|bottleneck、光刻胶|bottleneck、晶圆制造(Foundry)|bottleneck"
+    },
+    {
+      "text": "龙头用半导体特有 KPI（非仅 PE/市值）",
+      "passed": true,
+      "evidence": "§3.2 明列 产能利用率/国产化率/良率/设备国产替代率/研发费用率，注明 cn-playbook §1"
+    },
+    {
+      "text": "含 ●●● 同口径横评",
+      "passed": true,
+      "evidence": "§3.2 表格用 ●●●/●●○ 评 国产化卡位/制程壁垒，附定性值"
+    },
+    {
+      "text": "护城河评估覆盖 4 类",
+      "passed": true,
+      "evidence": "中芯国际、北方华创各一张 网络效应/切换成本/规模经济/无形资产 强中弱评级表"
+    },
+    {
+      "text": "牛/熊与护城河挂钩",
+      "passed": true,
+      "evidence": "§5.1 护城河三要素 → §5.4 牛(持久优势:切换成本/规模) / 熊(护城河上限被外部锁死)"
+    },
+    {
+      "text": "未写入 Knowledge_Wiki（跳过 Step 6）",
+      "passed": true,
+      "evidence": "结尾明示未执行 Step 6；find -mmin 验证 KB 零写入"
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 7,
+    "failed": 0,
+    "total": 7
+  }
+}
