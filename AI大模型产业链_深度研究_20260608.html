@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 大模型产业链 · 深度研究报告（2025–2026）</title>
+<style>
+  :root{
+    --navy:#0b2942; --navy2:#13395a; --steel:#2f6f9f; --accent:#c8862f;
+    --ink:#1a1a1a; --sub:#5a6672; --line:#e2e6ea; --bg:#f6f7f9; --card:#ffffff;
+    --green:#2e7d51; --red:#b5402f; --amber:#b8862b; --chipbg:#eef2f6;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:14px;line-height:1.7;}
+  a{color:var(--steel);text-decoration:none;}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px;}
+
+  /* header */
+  header.hero{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:46px 0 30px;}
+  .hero .wrap{display:block;}
+  .kicker{letter-spacing:3px;font-size:12px;color:#9ec3e0;text-transform:uppercase;margin-bottom:10px;}
+  h1{font-size:31px;margin:0 0 12px;font-weight:700;letter-spacing:.5px;}
+  .hero p.lead{color:#cdd9e4;max-width:780px;margin:0;font-size:15px;}
+  .meta-row{margin-top:20px;display:flex;flex-wrap:wrap;gap:10px;}
+  .meta-row span{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);
+    padding:5px 12px;border-radius:2px;font-size:12px;color:#dce7f0;}
+
+  /* dashboard */
+  .dash{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:-26px 0 0;position:relative;z-index:2;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-top:3px solid var(--accent);
+    padding:16px 16px 14px;box-shadow:0 4px 14px rgba(11,41,66,.06);}
+  .kpi .v{font-size:26px;font-weight:700;color:var(--navy);line-height:1.1;}
+  .kpi .l{font-size:12px;color:var(--sub);margin-top:6px;}
+  .kpi .s{font-size:11px;color:#93a0ab;margin-top:4px;}
+
+  /* nav */
+  nav.toc{position:sticky;top:0;background:rgba(246,247,249,.95);backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);z-index:50;margin-top:30px;}
+  nav.toc .wrap{display:flex;flex-wrap:wrap;gap:2px;padding-top:8px;padding-bottom:8px;}
+  nav.toc a{font-size:12.5px;color:var(--sub);padding:6px 11px;border-radius:2px;white-space:nowrap;}
+  nav.toc a:hover{background:#e8edf1;color:var(--navy);}
+
+  section{padding:34px 0 6px;}
+  h2{font-size:22px;color:var(--navy);margin:0 0 4px;padding-bottom:10px;border-bottom:2px solid var(--navy);
+     display:flex;align-items:baseline;gap:10px;}
+  h2 .num{font-size:13px;color:#fff;background:var(--navy);padding:2px 9px;border-radius:2px;font-weight:600;}
+  h3{font-size:16px;color:var(--navy2);margin:24px 0 8px;}
+  h4{font-size:14px;color:var(--steel);margin:16px 0 6px;}
+  p{margin:9px 0;}
+  .sublead{color:var(--sub);font-size:13.5px;margin:6px 0 14px;}
+
+  /* chain diagram */
+  .chain{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:18px 0 8px;}
+  .layer{background:var(--card);border:1px solid var(--line);padding:14px 14px 16px;position:relative;}
+  .layer:not(:last-child){border-right:none;}
+  .layer .ll{font-size:11px;letter-spacing:1px;color:#fff;background:var(--steel);display:inline-block;
+    padding:2px 8px;margin-bottom:8px;border-radius:2px;}
+  .layer.up .ll{background:#7a4cc4;} .layer.mid .ll{background:var(--steel);}
+  .layer.mod .ll{background:var(--accent);} .layer.app .ll{background:var(--green);}
+  .layer h5{margin:0 0 6px;font-size:14px;color:var(--navy);}
+  .layer ul{margin:4px 0 0;padding-left:16px;}
+  .layer li{font-size:12px;color:var(--sub);margin:3px 0;}
+  .flowbar{height:6px;background:linear-gradient(90deg,#7a4cc4,#2f6f9f,#c8862f,#2e7d51);margin:2px 0 16px;}
+
+  /* tables */
+  .tbl-wrap{overflow-x:auto;margin:14px 0;}
+  table{width:100%;border-collapse:collapse;background:var(--card);font-size:13px;}
+  th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top;}
+  thead th{background:var(--navy);color:#fff;font-weight:600;font-size:12.5px;border-bottom:none;}
+  tbody tr:nth-child(even){background:#fafbfc;}
+  td.code{font-family:ui-monospace,Menlo,monospace;color:var(--navy2);white-space:nowrap;}
+  .up{color:var(--green);font-weight:600;} .down{color:var(--red);font-weight:600;}
+
+  /* bars */
+  .bars{margin:16px 0;}
+  .bar-row{display:flex;align-items:center;gap:12px;margin:7px 0;}
+  .bar-row .name{width:160px;font-size:12.5px;color:var(--ink);text-align:right;flex:none;}
+  .bar-track{flex:1;background:#e9edf1;height:22px;border-radius:2px;overflow:hidden;}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--steel),var(--navy));display:flex;
+    align-items:center;justify-content:flex-end;padding-right:8px;color:#fff;font-size:11px;font-weight:600;}
+  .bar-fill.alt{background:linear-gradient(90deg,var(--accent),#9c6520);}
+
+  /* callouts */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .card{background:var(--card);border:1px solid var(--line);padding:14px 16px;border-radius:2px;}
+  .card.insight{border-left:3px solid var(--accent);}
+  .card.bull{border-left:3px solid var(--green);}
+  .card.bear{border-left:3px solid var(--red);}
+  .card h4{margin-top:0;}
+  .note{background:#fff8ec;border:1px solid #f0dcae;padding:10px 14px;font-size:12.5px;color:#6b5826;border-radius:2px;margin:14px 0;}
+  .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:2px;background:var(--chipbg);color:var(--navy2);margin-right:4px;}
+
+  /* timeline */
+  .tl{border-left:2px solid var(--steel);margin:14px 0 8px;padding-left:18px;}
+  .tl .ev{position:relative;margin:0 0 14px;}
+  .tl .ev::before{content:"";position:absolute;left:-25px;top:5px;width:9px;height:9px;background:var(--accent);
+    border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--steel);}
+  .tl .dt{font-size:12px;font-weight:700;color:var(--navy);}
+  .tl .tx{font-size:13px;color:var(--sub);}
+
+  footer{background:var(--navy);color:#c7d3de;margin-top:40px;padding:26px 0;font-size:12px;}
+  footer a{color:#9ec3e0;}
+  .disc{font-size:11.5px;color:#93a0ab;margin-top:8px;}
+  sup.c{color:var(--steel);font-weight:600;font-size:10px;cursor:help;}
+
+  @media(max-width:860px){
+    .dash{grid-template-columns:repeat(2,1fr);}
+    .chain{grid-template-columns:1fr;} .layer{border-right:1px solid var(--line)!important;}
+    .grid2{grid-template-columns:1fr;} .bar-row .name{width:110px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">Finance Agent · Deep Research</div>
+    <h1>AI 大模型产业链 · 深度研究报告</h1>
+    <p class="lead">从算力上游到应用下游的全景拆解：谁握有定价权、谁在真正赚钱、A 股/港股/美股的投资主线与悬顶风险。基于 6 个并行研究子代理、约 90+ 条带源数据综合而成。</p>
+    <div class="meta-row">
+      <span>编制日期：2026-06-08</span>
+      <span>数据窗口：2025 – 2026 Q2</span>
+      <span>研究模式：Deep（6 智能体并行）</span>
+      <span>来源：90+ 条（券商/机构/SEC/官方）</span>
+      <span>用途：个人投资研究 · 非投资建议</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="dash">
+    <div class="kpi"><div class="v">~6440 亿$</div><div class="l">2025 全球生成式 AI 支出</div><div class="s">Gartner，同比 +76%，约 80% 流向硬件</div></div>
+    <div class="kpi"><div class="v">~70%</div><div class="l">AI 收入被半导体层攫取</div><div class="s">而成熟云栈中半导体仅占 ~8%</div></div>
+    <div class="kpi"><div class="v">6000–7000 亿$</div><div class="l">2026 五大云厂资本开支</div><div class="s">同比近翻倍，约 75% 投向 AI 基建</div></div>
+    <div class="kpi"><div class="v">95%</div><div class="l">企业 GenAI 试点无可衡量 ROI</div><div class="s">MIT 报告，悬顶的泡沫之问</div></div>
+  </div>
+</div>
+
+<nav class="toc">
+  <div class="wrap">
+    <a href="#sum">摘要</a>
+    <a href="#map">产业链全景</a>
+    <a href="#up">① 算力上游</a>
+    <a href="#mid">② 云与数据</a>
+    <a href="#model">③ 基础模型</a>
+    <a href="#app">④ 应用与 Agent</a>
+    <a href="#market">市场规模</a>
+    <a href="#invest">投资标的</a>
+    <a href="#bubble">估值与泡沫</a>
+    <a href="#risk">风险</a>
+    <a href="#timeline">时间线</a>
+    <a href="#src">来源</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<!-- 摘要 -->
+<section id="sum">
+  <h2><span class="num">摘要</span>核心判断</h2>
+  <p class="sublead">一句话：本轮超级周期里「卖铲子的（NVIDIA + 云 + 上游硬件）在赚钱，挖金子的（应用层）多数还没盈利」。价值分布严重向上游倾斜，这是与上一轮云计算周期最根本的差异。</p>
+  <div class="grid2">
+    <div class="card insight">
+      <h4>1 · 定价权沿产业链向上游集中</h4>
+      <p>瓶颈定价权排序为：<strong>CoWoS 先进封装</strong>（NVIDIA 锁定台积电 60%+ 产能）＞ <strong>HBM</strong>（SK 海力士占 62%，供需紧张延续至 2026）＞ GPU。半导体层目前攫取约 70% 的 AI 收入，NVIDIA FY26Q3 单季营收 570 亿美元、毛利率约 73%。<sup class="c">[上游/市场]</sup></p>
+    </div>
+    <div class="card insight">
+      <h4>2 · 资本开支狂飙，但 ROI 缺口悬顶</h4>
+      <p>2026 年五大云厂 capex 合计 6000–7000 亿美元（近翻倍），约 75% 投向 AI 基建；然而年度 capex 超 4000 亿美元，企业 AI 仅产生约 1000 亿美元收入。MIT 称 95% 企业 GenAI 试点无可衡量 ROI。<sup class="c">[中游/应用]</sup></p>
+    </div>
+    <div class="card insight">
+      <h4>3 · 推理取代训练成为算力主引擎</h4>
+      <p>推理负载占比从 2023 年 1/3 → 2025 年 1/2 → 2026 年约 2/3，预计 2033 年正式超过训练。Agent 化是核心驱动——单任务 token 消耗远高于传统问答。模型 API 价格一年降约 80%、推理成本年降约 10 倍。<sup class="c">[模型/市场]</sup></p>
+    </div>
+    <div class="card insight">
+      <h4>4 · 中国路线：低成本 + 开源 + 国产替代</h4>
+      <p>DeepSeek 把推理价压到 GPT-4 的约 1%，引爆全球开源浪潮；2025 年夏全球模型下载量由中国主导，Qwen 超越 Llama 成最常用微调基座。华为昇腾国内份额升至 20%，寒武纪、海光率先盈利，但二线国产芯片仍全面亏损。<sup class="c">[模型/上游]</sup></p>
+    </div>
+  </div>
+</section>
+
+<!-- 产业链全景 -->
+<section id="map">
+  <h2><span class="num">全景</span>产业链四层结构</h2>
+  <p class="sublead">资金流向：下游应用变现 → 反哺基础模型 → 拉动云资本开支 → 灌入上游硬件。当前利润绝大部分沉淀在最上游的算力硬件环节。</p>
+  <div class="flowbar"></div>
+  <div class="chain">
+    <div class="layer up">
+      <span class="ll">上游 · 算力硬件</span>
+      <h5>① 芯片 / 存储 / 封装</h5>
+      <ul>
+        <li>GPU：NVIDIA（份额 80–90%）、AMD、国产昇腾/寒武纪/海光</li>
+        <li>自研 ASIC：Google TPU v7、AWS Trainium3</li>
+        <li>HBM：SK海力士 62%、美光、三星</li>
+        <li>封装：台积电 CoWoS（瓶颈）</li>
+        <li>光模块/服务器/液冷/电力</li>
+      </ul>
+    </div>
+    <div class="layer mid">
+      <span class="ll">中游 · 算力服务</span>
+      <h5>② 云与数据</h5>
+      <ul>
+        <li>超大规模云：微软/亚马逊/谷歌/Meta</li>
+        <li>中国云：阿里/腾讯/火山引擎/华为</li>
+        <li>Neocloud：CoreWeave、Nebius</li>
+        <li>IDC / 液冷 / 数据中心</li>
+        <li>数据层：标注(Scale)/向量库/合成数据</li>
+      </ul>
+    </div>
+    <div class="layer mod">
+      <span class="ll">中游 · 智能内核</span>
+      <h5>③ 基础大模型</h5>
+      <ul>
+        <li>国际闭源：OpenAI / Anthropic / Google / xAI</li>
+        <li>中国：DeepSeek / 通义 / 豆包 / 智谱 / Kimi</li>
+        <li>开源权重：Llama / Qwen / DeepSeek / Mistral</li>
+        <li>推理模型 + 原生多模态 + Agent 能力</li>
+      </ul>
+    </div>
+    <div class="layer app">
+      <span class="ll">下游 · 价值兑现</span>
+      <h5>④ 应用与 Agent</h5>
+      <ul>
+        <li>AI 编程：Cursor / Copilot / Claude Code</li>
+        <li>工具生态：MCP / RAG / Agent 框架</li>
+        <li>企业：Salesforce / 法律 / 医疗 / 金融</li>
+        <li>消费：ChatGPT / Gemini / Perplexity</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note">⚠️ 价值分布扭曲：在成熟云栈里半导体仅占约 8% 份额，而当前 AI 栈半导体占约 70%。结构若要从硬件转向应用，需要「应用层爆发或半导体降价」，而历史上云栈用了约 15 年才完成这一迁移。</div>
+</section>
+
+<!-- 上游 -->
+<section id="up">
+  <h2><span class="num">①</span>算力上游 · 硬件与瓶颈</h2>
+  <p class="sublead">这是利润沉淀最厚、A 股弹性最强的环节。真正的供给天花板不在 GPU 本身，而在它身后的 HBM 与先进封装。</p>
+
+  <h3>AI 芯片格局：NVIDIA 一家独大，ASIC 与国产替代两路侵蚀</h3>
+  <p>NVIDIA FY2026 Q3 单季数据中心营收创纪录 512 亿美元（同比 +66%），数据中心 AI 芯片市占率维持 80–90%；Blackwell Ultra 已成主力架构，GTC 披露 2025–2026 AI 芯片订单达 5000 亿美元。AMD 主攻推理与「第二货源」，FY2025 数据中心营收 166 亿美元（+32%），管理层指引两年内冲击 200 亿美元。</p>
+  <p>长期最大变量是云厂商自研 ASIC：Google TPU v7（Ironwood）单 pod 9216 颗芯片、42.5 ExaFlops；AWS Trainium3 已 GA。需求侧信号强烈——Anthropic 已确认至少 100 万颗 TPU、并以 50 万颗 Trainium2 训练。国产端，华为昇腾国内份额升至 20%（81.2 万张），跃居国产第一。</p>
+
+  <h4>国产 AI 芯片：龙头率先盈利，二线全面亏损</h4>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>公司</th><th>代码</th><th>2025 业绩</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>寒武纪</td><td class="code">688256.SH</td><td>营收 60–70 亿（+410%~496%），净利 18.5–21.5 亿，扭亏</td><td class="up">盈利</td></tr>
+      <tr><td>海光信息</td><td class="code">688041.SH</td><td>扣非净利 9.23 亿（+74.86%），26Q1 营收 +68%</td><td class="up">盈利</td></tr>
+      <tr><td>沐曦 / 摩尔线程 / 壁仞 / 天数</td><td class="code">未上市/申报中</td><td>营收 10–16 亿区间，全部亏损 4–10 亿</td><td class="down">亏损</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>HBM 与先进封装：真正的供给天花板</h3>
+  <p>HBM 市场 2025 年约 380 亿美元，需求同比 +130%，预计 2026 年达约 580 亿美元；份额上 SK 海力士 62%、美光 21%、三星 17%（三星因 NVIDIA 认证受阻从 41% 暴跌）。台积电 CoWoS 产能从 2024 末 ~35K wpm 扩至 2025 末 75–80K、2026 末目标 120–130K wpm，但 NVIDIA 已锁定 60%+ 产能。这两个环节构成 AI 加速器交付的首要约束。</p>
+
+  <h3>A 股最强弹性：光模块</h3>
+  <p>光模块是 A 股在全球产业链中市占主导、业绩弹性最强的环节。2025 年全球预计出货 800G 约 1800–2100 万只、1.6T 约 300–500 万只，1.6T 自 25Q3 起量成为主驱动。</p>
+  <div class="bars">
+    <div class="bar-row"><div class="name">中际旭创 净利 +108.78%</div><div class="bar-track"><div class="bar-fill" style="width:43%">107.97 亿元</div></div></div>
+    <div class="bar-row"><div class="name">新易盛 净利 +235.89%</div><div class="bar-track"><div class="bar-fill" style="width:38%">95.32 亿元</div></div></div>
+    <div class="bar-row"><div class="name">工业富联 净利 +51.99%</div><div class="bar-track"><div class="bar-fill alt" style="width:100%">352.86 亿元</div></div></div>
+    <div class="bar-row"><div class="name">浪潮信息 净利 +5.2%</div><div class="bar-track"><div class="bar-fill alt" style="width:10%">24.13 亿元</div></div></div>
+  </div>
+  <p class="sublead">注：工业富联体量最大但属代工（独家代工 GB200）；浪潮信息「增收不增利」——营收 1648 亿但服务器毛利率仅 4.52%、存货 465 亿拖累。这揭示了硬件环节内部「卖整机不如卖关键器件」的利润分化。</p>
+
+  <h3>确定性增量：液冷与电力</h3>
+  <p>高盛预测液冷 AI 服务器占比 2024 年 15% → 2025 年 54% → 2026 年 76%；机柜功率密度已跳升至 120–140 kW，传统风冷失效。中国三大运营商液冷渗透率一年从 14% 升至 26%。电力侧，IEA 预测全球数据中心用电到 2030 年翻倍至约 950 TWh，欧洲电力供给已成扩张的硬约束——竞争焦点正从「抢 GPU」转向「抢电力」。</p>
+</section>
+
+<!-- 中游云 -->
+<section id="mid">
+  <h2><span class="num">②</span>云与数据 · 资本开支引擎</h2>
+  <p class="sublead">超大规模云厂的 capex 是整条产业链的「水龙头」。2026 年这个龙头开到了历史最大。</p>
+
+  <h3>海外云厂 2026 资本开支（万亿美元级竞赛）</h3>
+  <div class="bars">
+    <div class="bar-row"><div class="name">亚马逊 AWS</div><div class="bar-track"><div class="bar-fill" style="width:100%">~2000 亿$</div></div></div>
+    <div class="bar-row"><div class="name">谷歌 GCP</div><div class="bar-track"><div class="bar-fill" style="width:92%">1750–1850 亿$</div></div></div>
+    <div class="bar-row"><div class="name">Meta</div><div class="bar-track"><div class="bar-fill" style="width:72%">1250–1450 亿$</div></div></div>
+    <div class="bar-row"><div class="name">微软 Azure</div><div class="bar-track"><div class="bar-fill" style="width:60%">~1200 亿$+</div></div></div>
+    <div class="bar-row"><div class="name">Oracle</div><div class="bar-track"><div class="bar-fill" style="width:25%">~500 亿$</div></div></div>
+  </div>
+  <p>行业共识：2026 年「大五家」capex 普遍预测 >6000 亿美元（同比 +36%），激进口径达 7000–7250 亿，其中约 75%（~4500 亿）直接投向 AI 基础设施。市场对回报的认可度分化明显——谷歌因云收入单季 200 亿（+63%）财报后大涨近 10%，Meta 上调指引后反而跌 6%。</p>
+
+  <h3>中国云厂：阿里领跑，口径决定排名</h3>
+  <p>阿里宣布未来三年 AI+云投入 ≥3800 亿元（超过去十年总和），CFO 称「偏保守」；腾讯 2025 capex 约 1070 亿元、字节预计 >1500 亿元。市场份额因统计口径完全不同：整体云市场阿里云 34%、华为云 17%、腾讯云 10%；但按 token 调用量（MaaS），火山引擎以 49.2% 居首。</p>
+  <div class="note">📌 引用提示：中国云份额一定要说明口径——「整体云 IaaS」「AI 云」「token 调用量」三套口径下排名完全不一致。</div>
+
+  <h3>Neocloud：从「抢 GPU」到「抢电力」</h3>
+  <p>新兴 AI 云 2025 年总营收超 250 亿美元（Q4 同比 +223%）。CoreWeave（CRWV）2025 营收 51.3 亿美元、backlog 高达 994 亿美元（2026/3），客户含 Anthropic/OpenAI/Google/Meta 四大模型厂；但背负约 290 亿美元债务，被空头视为「AI 泡沫缩影」。Nebius（NBIS）营收同比 +625%。</p>
+
+  <h3>数据层：从「数据枯竭」到合成数据</h3>
+  <p>Meta 2025/6 以 143 亿美元投资数据标注龙头 Scale AI（取得 49% 无投票权股权，估值约 290 亿），交易后 OpenAI、Google 停止与 Scale 合作。行业进入「数据枯竭」——公网高质量人类文本基本耗尽，转向合成数据 + expert-in-the-loop。向量数据库赛道（Pinecone/Milvus/Weaviate）则趋于商品化，被巨头吸收。</p>
+</section>
+
+<!-- 模型层 -->
+<section id="model">
+  <h2><span class="num">③</span>基础大模型 · 智能内核</h2>
+  <p class="sublead">闭源前沿（OpenAI / Anthropic / Google）冲击能力与估值天花板；开源权重（DeepSeek / Qwen / Llama）则系统性压低成本。两条路线共同推动「能力上升、价格下降」。</p>
+
+  <h3>头部厂商：估值与 ARR 全面狂飙</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>厂商</th><th>最新估值</th><th>ARR（年化收入）</th><th>旗舰 / 看点</th></tr></thead>
+    <tbody>
+      <tr><td>Anthropic</td><td>9650 亿$（已秘交 IPO）</td><td class="up">~430–470 亿$（16 个月 43 倍）</td><td>Claude Opus 4.8；Claude Code run-rate >25 亿$</td></tr>
+      <tr><td>OpenAI</td><td>8520 亿$</td><td>~250 亿$（月收入约 20 亿$）</td><td>GPT-5 系列；2026 或亏损 140 亿$</td></tr>
+      <tr><td>xAI</td><td>2500 亿$（并入 SpaceX）</td><td>未找到</td><td>Grok 4.x；Colossus 2 目标百万 GPU</td></tr>
+      <tr><td>Mistral（欧）</td><td>~117 亿欧元</td><td>2025 超 4 亿$</td><td>开源权重；定价约竞品 20%</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="sublead">编程能力跃迁（SWE-bench Verified，约一年内）：o1 48.9% → o3 71.7% → GPT-5.4 77.2% → Claude Opus 4.7 87.6% → 研究预览 93.9%。<br><span class="tag">交叉核验提示</span>部分 2026 年版本号来自二手聚合站，写入 KB 前建议用一手厂商公告复核。</p>
+
+  <h3>中国大模型：低成本 + 开源双引擎</h3>
+  <p>DeepSeek V3 训练估算仅约 558 万美元、推理价约为 GPT-4 的 1%，V4（2026）约 1 万亿参数 MoE。阿里 Qwen3.5（397B/17B 激活、201 语言、1M 上下文）开源生态最活跃，下载量超越 Llama 成最常用微调基座。百度 ERNIE 5.0 达 2.4 万亿参数原生全模态。智谱 GLM-5.1 全程华为昇腾训练、编程能力达 Claude Opus 的 94.6%。中国模型 API 定价普遍为美国的 1/5 至 1/10。</p>
+
+  <h3>成本曲线：一年降 80%</h3>
+  <p>2025 年初至 2026 年初 LLM API 价格下降约 80%；长期看推理成本年降约 10 倍——GPT-4 等效性能价格从 2022 年底 $20/百万 token 降至约 $0.40。但前沿推理模型仍维持溢价（o3 输出 $60/百万 token），2026 年价格区间跨度达 600 倍。</p>
+</section>
+
+<!-- 应用 -->
+<section id="app">
+  <h2><span class="num">④</span>应用与 Agent · 价值兑现</h2>
+  <p class="sublead">2025 被广泛称为「Agent 元年」——99% 企业开发者在探索 Agent，Gartner 预测 2026 年底 40% 企业应用将集成任务型 Agent（2025 年不足 5%）。但变现成熟度高度集中在编程垂类。</p>
+
+  <h3>编程：最硬的收入证据</h3>
+  <div class="bars">
+    <div class="bar-row"><div class="name">Claude Code run-rate</div><div class="bar-track"><div class="bar-fill" style="width:42%">~25 亿$</div></div></div>
+    <div class="bar-row"><div class="name">Cursor (Anysphere) ARR</div><div class="bar-track"><div class="bar-fill" style="width:33%">~20 亿$</div></div></div>
+    <div class="bar-row"><div class="name">GitHub Copilot ARR(估)</div><div class="bar-track"><div class="bar-fill" style="width:17%">~10 亿$+</div></div></div>
+  </div>
+  <p>Cursor 从 0 到 20 亿美元 ARR 仅约 3 年（号称 B2B 软件史上最快），2025/11 估值 293 亿美元，传 2026 洽谈 500 亿估值。GitHub Copilot 2026/1 付费订阅 470 万（+75%），覆盖 90% 财富 100 强。三者均跨过 10 亿美元量级，是「Agent 元年」最实打实的收入证明。</p>
+
+  <h3>工具生态：MCP 成事实标准</h3>
+  <p>Anthropic 2024/11 推出的 MCP（Model Context Protocol）已被 OpenAI、Google、微软全部采纳，官方 SDK 月下载量达 9700 万（「16 个月达到与 React 相当规模」），41% 软件组织已在生产中使用——堪称 Agent 工具调用生态的「USB-C」。RAG 则从实验转为生产关键架构，金融为最大采用方。</p>
+
+  <h3>垂类应用：估值倍数极高且分化</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>赛道 / 公司</th><th>估值</th><th>ARR</th><th>看点</th></tr></thead>
+    <tbody>
+      <tr><td>法律 · Harvey</td><td>110 亿$</td><td>~3 亿$（约 58x）</td><td>10 万+ 律师、1300+ 组织</td></tr>
+      <tr><td>医疗 · Abridge</td><td>53 亿$（4 月翻倍）</td><td>~1 亿$</td><td>Kaiser、Mayo 等大客户</td></tr>
+      <tr><td>AI 搜索 · Perplexity</td><td>~212 亿$</td><td>~5 亿$（2026/4）</td><td>1 亿+ MAU</td></tr>
+      <tr><td>企业 · Salesforce Agentforce</td><td>—（上市公司）</td><td>5.4 亿$（+330%）</td><td>18,500+ 签约</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>消费端，ChatGPT 2026/6 月活破 10 亿（史上最快）、年化收入超 250 亿美元；Gemini app 月活 7.5 亿。变现模式正从「按席位」向「按成果」迁移（如 Intercom Fin 按 $0.99/解决 计费）。</p>
+</section>
+
+<!-- 市场规模 -->
+<section id="market">
+  <h2><span class="num">规模</span>市场口径与预测</h2>
+  <p class="sublead">「AI 市场规模」是被滥用最多的数字。三种口径相差一个量级以上，引用时必须分清。</p>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>口径</th><th>代表机构 / 数字</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><strong>A. 全口径支出（含硬件）</strong></td><td>Gartner：2025 年 6440 亿$（+76%）；IDC：2025 年 3070 亿 → 2029 年 1.3 万亿$</td><td>数字最大，约 80% 是硬件</td></tr>
+      <tr><td><strong>B. GenAI 软件/平台市场</strong></td><td>Grand View：2025 年 222 亿$ → 2033 年 3247 亿$（CAGR 40.8%）</td><td>小一个量级，注意区分</td></tr>
+      <tr><td><strong>C. 经济价值口径</strong></td><td>McKinsey：每年 2.6–4.4 万亿$ 经济价值；Bloomberg：2032 年 2.3 万亿$ 市场</td><td>长周期、终局口径</td></tr>
+      <tr><td>AI 芯片市场</td><td>多机构：2030 年 2900–4500 亿$（CAGR 14%–33%）</td><td>口径差异源于是否含整机</td></tr>
+      <tr><td>AI 基础设施支出</td><td>IDC：2025 年 3180 亿$（翻倍）→ 2029 年超 1 万亿$</td><td>含服务器/存储/网络</td></tr>
+      <tr><td>中国大模型市场</td><td>2024 年 294 亿元 → 2026 年破 700 亿元（36氪）</td><td>智能算力 2025 年达 1037 EFLOPS（信通院）</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note">⚠️ 最常见错误：把 C 的「经济价值」与 B 的「软件市场」混为一谈。本报告所有引用均按口径分列，未混算。中国部分宽口径数字（如 7470 亿）源自商业博客，未采用。</div>
+</section>
+
+<!-- 投资 -->
+<section id="invest">
+  <h2><span class="num">投资</span>产业链投资主线与标的</h2>
+  <p class="sublead">仅供个人投资研究 · 非投资建议。按环节梳理 A 股/港股/美股代表标的与逻辑。</p>
+
+  <h3>A 股：算力链是最强主线</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>环节</th><th>代表标的</th><th>2025 关键数据 / 逻辑</th></tr></thead>
+    <tbody>
+      <tr><td>光模块</td><td class="code">中际旭创 300308<br>新易盛 300502</td><td>旭创净利 107.97 亿(+109%)、年涨超 550%；新易盛净利 95 亿(+236%)。1.6T 升级周期主驱动</td></tr>
+      <tr><td>PCB/覆铜板</td><td class="code">沪电股份 002463<br>生益电子 688183</td><td>沪电净利 38.22 亿(+48%)；生益电子净利 +344%、两年累涨超 1133%</td></tr>
+      <tr><td>AI 服务器</td><td class="code">工业富联 601138<br>浪潮信息 000977</td><td>富联营收 9029 亿、独家代工 GB200；浪潮液冷全球 >35% 但毛利仅 4.5%</td></tr>
+      <tr><td>国产芯片</td><td class="code">寒武纪 688256<br>海光信息 688041</td><td>双双盈利；中国 AI 芯片市场 2024→2029 CAGR 53.7%</td></tr>
+      <tr><td>液冷散热</td><td class="code">英维克 002837<br>高澜股份 300499</td><td>英维克进入英伟达供应链、获中国电信 11.2 亿合同</td></tr>
+      <tr><td>AI 应用</td><td class="code">金山办公 688111<br>科大讯飞 002230</td><td>WPS 365 收入 +71.6%；讯飞净利 +49.85%。昆仑万维仍亏损（高投入未变现）</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>港股 / 中概：capex「踩油门」与「踩刹车」分化</h3>
+  <p>阿里（9988.HK）资本开支激进、AI 云收入连续 11 季三位数增长，但年初至今港股跌约 7%；腾讯（0700.HK）态度相对保守、港股跌约 23%；小米（1810.HK）净利 +76% 但股价自高点腰斩；商汤（0020.HK）生成式 AI 收入 +73%、扭亏预期升温。</p>
+
+  <h3>美股：市场只为「见到回报」的公司买单</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>标的</th><th>估值 / 表现</th><th>定位</th></tr></thead>
+    <tbody>
+      <tr><td>英伟达 NVDA</td><td>前瞻 PE ~41x、PEG ~0.89</td><td>EPS 增 70% 而股价涨 <40%，PE 实际收缩（多头核心论据）</td></tr>
+      <tr><td>博通 AVGO</td><td>AI 半导体收入 +106%，年涨约 95%</td><td>定制 ASIC 最大赢家</td></tr>
+      <tr><td>谷歌 GOOGL</td><td>云收入 +63%，财报后涨近 10%</td><td>四大厂中唯一获认可「投入见回报」</td></tr>
+      <tr><td>Palantir PLTR</td><td>前瞻 PE ~90x</td><td>「几乎无容错空间」，Burry 做空标的</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- 泡沫 -->
+<section id="bubble">
+  <h2><span class="num">争议</span>估值水平与「是否泡沫」</h2>
+  <div class="grid2">
+    <div class="card bull">
+      <h4>📈 多头观点</h4>
+      <p>英伟达 PE 随盈利增长在收缩（PEG &lt; 1），与互联网泡沫相比当前 AI 龙头负债/盈利比更低、已有实际利润。市场更认可「需求已进入利润表/订单/云用量」的公司（NVDA、MSFT、AVGO、TSMC）。斯坦福 2026 AI Index 显示生态正从「实验」转向「建设」。</p>
+    </div>
+    <div class="card bear">
+      <h4>📉 空头 / 警示</h4>
+      <p>2025 年底标普 500 中 5 家巨头占约 30%，估值为互联网泡沫以来最紧绷。Michael Burry（《大空头》）做空 NVDA 与 Palantir，指控超大厂通过低估芯片折旧（估 2026–2028 累计少计约 1760 亿美元）虚增利润。Bain 测算：维持当前投资需每年约 5000 亿美元支出对应约 2 万亿美元收入（4 倍变现），尚未被规模验证。</p>
+    </div>
+  </div>
+  <div class="note">💰 资金面：2025 全年 AI 融资达 2110 亿美元（+85%），OpenAI/Anthropic/xAI/Waymo 四轮即吸收约 1880 亿（占全球 VC 约 63%）。CoreWeave 2025/3 上市（股价一度 +349%）。OpenAI 目标 2026/9 IPO（约 1 万亿估值方向）。</div>
+</section>
+
+<!-- 风险 -->
+<section id="risk">
+  <h2><span class="num">风险</span>四大悬顶风险</h2>
+  <div class="grid2">
+    <div class="card bear">
+      <h4>1 · ROI / 算力过剩</h4>
+      <p>五大云厂 2026 capex 合计 6600–6900 亿美元，与收入缺口巨大。2026/4 OpenAI 未达内部目标曾触发 AI 基建股抛售。若任一超大厂砍 GPU 订单 20–30%，效应将「机械式」级联至整条上游。</p>
+    </div>
+    <div class="card bear">
+      <h4>2 · 循环融资 / 折旧会计</h4>
+      <p>供应链内循环交易结构不透明，私募信贷大举介入提供「非稀释」资金，叠加 Burry 指控的折旧低估，放大财报「利润虚高」风险。</p>
+    </div>
+    <div class="card bear">
+      <h4>3 · 地缘 / 出口管制</h4>
+      <p>英伟达 H20 于 2025/4 被列入出口管制（计提约 55 亿美元损失），后经解禁—约谈—批准许可证反复。利好国产替代（寒武纪、海光），但中国市场能否真正打开仍取决于安全审查。</p>
+    </div>
+    <div class="card bear">
+      <h4>4 · 电力 / 电网约束</h4>
+      <p>美国数据中心 IT 负荷 2025 年约 80GW → 2028 年约 150GW；并网需 4–10 年而建厂仅 2–3 年。到 2026 年初近 1/3 新增产能设计为「脱离公共电网」自建电源运行。电力已超越资本/土地成为首要瓶颈。</p>
+    </div>
+  </div>
+</section>
+
+<!-- 时间线 -->
+<section id="timeline">
+  <h2><span class="num">脉络</span>关键里程碑（2023–2026）</h2>
+  <div class="tl">
+    <div class="ev"><span class="dt">2024-05</span> <span class="tx">DeepSeek-V2 把价格降至 GPT-4 的 1%，引爆中国「按厘计价」降价潮。</span></div>
+    <div class="ev"><span class="dt">2024-11</span> <span class="tx">Anthropic 推出 MCP 开放协议；DeepSeek-V3 年底发布（671B/37B 激活，FP8 训练）。</span></div>
+    <div class="ev"><span class="dt">2025-01</span> <span class="tx">DeepSeek-R1 开源，API 远低于 o1，触发全球开源浪潮、一度令 NVIDIA 市值蒸发数千亿。</span></div>
+    <div class="ev"><span class="dt">2025-03</span> <span class="tx">CoreWeave 上市，AI 算力租赁登陆资本市场。</span></div>
+    <div class="ev"><span class="dt">2025-04</span> <span class="tx">Meta 发布 Llama 4（原生多模态 + MoE）；英伟达 H20 被列入出口管制。</span></div>
+    <div class="ev"><span class="dt">2025-06</span> <span class="tx">Meta 143 亿美元投资 Scale AI；MIT 报告称 95% 企业 GenAI 试点无 ROI。</span></div>
+    <div class="ev"><span class="dt">2025 夏</span> <span class="tx">全球模型下载量由美主导转为中国主导，Qwen 超越 Llama 成最常用微调基座。</span></div>
+    <div class="ev"><span class="dt">2025 全年</span> <span class="tx">全球 AI 基础设施支出 3180 亿美元（翻倍）；中国智能算力达约 1037 EFLOPS。</span></div>
+    <div class="ev"><span class="dt">2026 H1</span> <span class="tx">五大云厂 capex 冲向 6000–7000 亿美元；Anthropic 秘交 IPO（9650 亿估值）；ChatGPT 月活破 10 亿。</span></div>
+  </div>
+</section>
+
+<!-- 来源 -->
+<section id="src">
+  <h2><span class="num">附录</span>研究方法与来源可信度</h2>
+  <p>本报告由 6 个并行研究子代理分别覆盖：① 算力上游、② 云与数据、③ 基础模型、④ 应用与 Agent、⑤ 投资与资本市场、⑥ 市场规模与宏观趋势，合计调用约 90 次网络检索、综合约 90+ 条带源数据。</p>
+  <h4>来源可信度分层</h4>
+  <p><span class="tag">高可信</span>一手/权威：Gartner、IDC、IEA、McKinsey、NVIDIA 等 SEC 文件、中国信通院、各厂商官方 newsroom、Sacra。<br>
+  <span class="tag">中可信</span>二级研究机构（口径需注明）：Grand View、ABI、Precedence、Statista、IDTechEx、MarkNtel；财经媒体（财联社、华尔街见闻、新浪财经、CNBC、TechCrunch、Reuters）。<br>
+  <span class="tag">待核验</span>第三方统计聚合站（getLatka、demandsage、getpanto 等）的 ARR/用户数、部分 2026 模型版本号、GitHub star 数——正式决策前建议以官方财报/实时数据二次核验。</p>
+  <h4>主要数据缺口（已在正文标注「未找到」）</h4>
+  <p>xAI Grok 的 ARR；字节豆包/MiniMax/Kimi 的估值与 ARR；中芯国际与 CoWoS 直接关联数据；A 股先进封测（长电/通富）具体产能；台积电估值/股价；美图 2025 财报；中国「人工智能+」政策一手量化目标。</p>
+</section>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <strong>AI 大模型产业链 · 深度研究报告</strong> · Finance Agent / Deep Research · 编制于 2026-06-08<br>
+    <span class="disc">免责声明：本报告仅供个人投资研究与学习，不构成任何投资建议。所有市场数据均来自公开网络二手来源，口径不一、可能存在误差，引用前请以原始一手资料核验。提及的任何证券标的不代表推荐，投资有风险，决策需谨慎。</span>
+  </div>
+</footer>
+
+</body>
+</html>

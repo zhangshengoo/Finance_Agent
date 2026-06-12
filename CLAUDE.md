@@ -8,10 +8,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 1. **[Knowledge_Wiki/](Knowledge_Wiki/)** — the knowledge base the agent reads from and writes to. This is a separate git repo (`Knowledge_Wiki/.git`).
 2. **Skills** — split by role across two `.claude/skills/` homes (plus globally-installed ones):
-   - **`Knowledge_Wiki/.claude/skills/`** = **KB document-management** capabilities (operate on the KB's raw/wiki layers, anchored inside `Knowledge_Wiki/`): `finance-ingest` (两步 CoT 财报摄入), `company-page` (公司画像), `thesis-archive` (论点归档), `raw-preview` (raw 可读化预览), `asset-describe` (raw 图片 caption).
+   - **`Knowledge_Wiki/.claude/skills/`** = **KB document-management** capabilities (operate on the KB's raw/wiki layers, anchored inside `Knowledge_Wiki/`): `raw-intake` (raw/ 层统一入口 — 外部产出经标准 envelope 落 raw/ + 溯源), `finance-ingest` (两步 CoT raw→wiki 摄入，含 sector-analysis→wiki/sectors), `company-page` (公司画像), `thesis-archive` (论点归档), `raw-preview` (raw 可读化预览), `asset-describe` (raw 图片 caption).
    - **`.claude/skills/`** (project root) = the **Agent's analysis / research & acquisition** capabilities (run from the project root, reach into the KB via `Knowledge_Wiki/` prefixes): `industry-analysis` (行业分析, + companion subagent `.claude/agents/industry-collector-cn.md`), `media-archive` (B 站/公众号采集落 raw). Planned next: 个股分析.
 
    **Rule of thumb:** if a skill's job is to *maintain knowledge documents* (deposit raw / compile wiki), it lives in `Knowledge_Wiki/.claude/skills/`. If its job is to *analyze / research / acquire* and then hand off to the KB skills for persistence, it lives at the project root.
+
+   **Standard data flow:** analysis skills never write `raw/` or `wiki/` directly. They hand off through `raw-intake` (→ `raw/` + provenance), and `finance-ingest` compiles `raw/` → `wiki/` via two-step CoT. E.g. `industry-analysis → raw-intake → finance-ingest → wiki/sectors`. This applies to future analysis skills (个股分析, etc.) too.
 
 There is **no application code** in the repo root. Work happens by editing the wiki, adding skills, and writing design docs.
 
