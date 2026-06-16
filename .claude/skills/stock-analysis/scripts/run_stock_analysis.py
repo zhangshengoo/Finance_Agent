@@ -126,6 +126,10 @@ def _serialize(args, analysts, config, final_state, decision, elapsed):
             "risk_score": decision.get("risk_score"),
             "reasoning": decision.get("reasoning"),
             "model_info": decision.get("model_info"),
+            # bugfix #8 审计：逐字段来源（genuine_structured/genuine_json/text/fallback/...）+ 解析时现价，
+            # 让快照保留决策原子 provenance（区分真实解析 vs 0.7/0.5 兜底），不丢失审计线索。
+            "provenance": decision.get("_provenance"),
+            "current_price": decision.get("_current_price"),
         },
         "performance_metrics": final_state.get("performance_metrics") or {},
     }
@@ -143,6 +147,16 @@ def main():
     ap.add_argument("--backend-url", default="http://localhost:5678")
     ap.add_argument("--deep-model", default="claude-opus-4-8")
     ap.add_argument("--quick-model", default="claude-haiku-4-5-20251001")
+    # A/B 记忆环（复用原生 FinancialSituationMemory）：
+    #   - 持久化目录默认落 KB 的 .kb-vectors/ta-memory（跨日复用，独立于钉版引擎）。
+    #   - 记忆 namespace 默认按 ticker 锚定，不同标的记忆分桶不串味。
+    #   - 嵌入 provider 与对话 LLM 解耦：对话走 anthropic，嵌入走 dashscope(text-embedding-v4)。
+    ap.add_argument("--memory-persist-dir", default=None,
+                    help="ChromaDB 记忆持久化目录（默认 <project>/Knowledge_Wiki/.kb-vectors/ta-memory）")
+    ap.add_argument("--memory-embed-provider", default="dashscope",
+                    help="记忆向量嵌入 provider，与对话 LLM 解耦（默认 dashscope，仅做 Embedding）")
+    ap.add_argument("--memory-embed-model", default="text-embedding-v4",
+                    help="记忆向量嵌入模型（DashScope，默认 text-embedding-v4，中文 SOTA 档）")
     args = ap.parse_args()
 
     ta_root = os.path.abspath(args.ta_root)
@@ -152,6 +166,13 @@ def main():
     os.environ["MONGODB_ENABLED"] = "false"
     os.environ["REDIS_ENABLED"] = "false"
     os.environ["USE_MONGODB_STORAGE"] = "false"
+
+    # 1b) 记忆持久化目录（必须在引擎构建 FinancialSituationMemory 前设好；ChromaDB 单例
+    #     按此 env 决定用 PersistentClient 还是内存态）。depth=1 关闭记忆时此 env 无副作用。
+    persist_dir = args.memory_persist_dir or os.path.abspath(
+        os.path.join(ta_root, os.pardir, "Knowledge_Wiki", ".kb-vectors", "ta-memory")
+    )
+    os.environ["TRADINGAGENTS_MEMORY_PERSIST_DIR"] = persist_dir
 
     # 2) 切到 TA 根（相对路径的 results/data 缓存等），并把 TA 根放到 sys.path。
     #    tradingagents 不是 pip 安装的包，而是 TA 根下的源码目录——analyze_stock.py 能 import
@@ -186,6 +207,13 @@ def main():
     config["max_risk_discuss_rounds"] = risk
     config["memory_enabled"] = mem
     config["online_tools"] = True
+    # B（连续/读半边）：按 ticker 锚定记忆 + 嵌入 provider/模型与对话 LLM 解耦。
+    # 记忆桶（bull_memory__<ticker> 等）持久化在 persist_dir，次日同 ticker 分析自动 get_memories 命中。
+    # ⚠️ DashScope 在本项目仅用于 Embedding（text-embedding-v4），对话 LLM 走 --provider（默认 anthropic/
+    #    claude-max-proxy），二者计费完全独立——绝不让 DashScope 触碰 LLM 消费。
+    config["memory_namespace"] = args.ticker
+    config["memory_llm_provider"] = args.memory_embed_provider
+    config["memory_embedding_model"] = args.memory_embed_model
 
     analysts = [a.strip() for a in args.analysts.split(",") if a.strip()]
     # A 股 social 情绪已接入 sentiment_em（东财人气排名 + 微博情绪分，social_media_analyst 走 is_china），
