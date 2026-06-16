@@ -138,28 +138,50 @@ def get_video_info(client: Session, bvid: str) -> dict:
     return j["data"]
 
 
-def get_subtitle(client: Session, bvid: str, cid: int) -> tuple[str | None, str]:
-    """返回 (字幕全文, 字幕来源 cc-zh/ai-zh/...)；无字幕返回 (None, 'none')"""
+def get_subtitle(client: Session, bvid: str, cid: int) -> tuple[str | None, str, dict | None]:
+    """返回 (字幕全文, 字幕来源标签, subtitle_data)；无字幕返回 (None, 'none', None)。
+
+    subtitle_data 结构：
+      {source, lan, lan_doc, type, body: [{from, to, content}, ...]}
+    type: 0=人工CC  1=AI自动生成
+    """
+    _NONE = (None, "none", None)
     resp = client.get("https://api.bilibili.com/x/player/wbi/v2", params={"bvid": bvid, "cid": cid})
     j = resp.json()
     if j.get("code") != 0:
-        return None, "none"
+        return _NONE
     subs = j.get("data", {}).get("subtitle", {}).get("subtitles", [])
     if not subs:
-        return None, "none"
+        return _NONE
     chosen = _select_best_subtitle(subs)
     if not chosen:
-        return None, "none"
-    src_tag = ("cc-" if chosen.get("type") == 0 else "ai-") + chosen.get("lan", "unk")
+        return _NONE
 
-    url = chosen["subtitle_url"]
+    # B站 AI字幕 lan 字段本身已含 "ai-" 前缀（如 "ai-zh"）；
+    # CC字幕 lan 是纯语言代码（如 "zh"）。避免双重前缀产生 "ai-ai-zh"。
+    lan = chosen.get("lan", "")
+    if chosen.get("type") == 0:
+        src_tag = f"cc-{lan}" if lan else "cc-zh"
+    else:
+        src_tag = lan if lan.startswith("ai-") else (f"ai-{lan}" if lan else "ai-zh")
+
+    url = chosen.get("subtitle_url", "")
     if url.startswith("//"):
         url = "https:" + url
     r = client.get(url)
     body = r.json().get("body", [])
+
+    subtitle_data: dict | None = {
+        "source": src_tag,
+        "lan": lan,
+        "lan_doc": chosen.get("lan_doc", ""),
+        "type": chosen.get("type", 1),     # 0=CC  1=AI
+        "body": body,                       # [{from, to, content}, ...]
+    }
+
     if not body:
-        return None, src_tag
-    return " ".join(item["content"] for item in body), src_tag
+        return None, src_tag, subtitle_data
+    return " ".join(item["content"] for item in body), src_tag, subtitle_data
 
 
 def write_video_json(
@@ -194,6 +216,7 @@ def write_video_json(
         "description": video.get("description", ""),
         "subtitle": video.get("subtitle"),
         "subtitle_source": video.get("subtitle_source", "none"),
+        "subtitle_data": video.get("subtitle_data"),   # {source,lan,lan_doc,type,body}
         "fetched_at": _iso_now(),
         "link": f"https://www.bilibili.com/video/{video['bvid']}",
     }
@@ -256,12 +279,14 @@ def main():
                 if args.with_subtitle:
                     cid = info["cid"]
                     api_sleep()
-                    sub, src = get_subtitle(client, args.bvid, cid)
+                    sub, src, sub_data = get_subtitle(client, args.bvid, cid)
                     video["subtitle"] = sub
                     video["subtitle_source"] = src
+                    video["subtitle_data"] = sub_data
                 else:
                     video["subtitle"] = None
                     video["subtitle_source"] = "none"
+                    video["subtitle_data"] = None
                 path, skip = write_video_json(kb_root, video, uid, uploader, args.overwrite)
                 if path:
                     written.append(path)
@@ -289,12 +314,14 @@ def main():
                         info = get_video_info(client, bvid)
                         cid = info["cid"]
                         api_sleep()
-                        sub, src = get_subtitle(client, bvid, cid)
+                        sub, src, sub_data = get_subtitle(client, bvid, cid)
                         v["subtitle"] = sub
                         v["subtitle_source"] = src
+                        v["subtitle_data"] = sub_data
                     else:
                         v["subtitle"] = None
                         v["subtitle_source"] = "none"
+                        v["subtitle_data"] = None
                     path, skip = write_video_json(kb_root, v, args.uid, uploader, args.overwrite)
                     if path:
                         written.append(path)

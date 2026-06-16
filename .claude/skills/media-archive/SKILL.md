@@ -37,6 +37,7 @@ description: 把 B 站视频/动态 与 微信公众号文章 抓取后落到 Kn
 4. **禁止跳过 `is_ad` 标记**：B 站动态脚本会标 `is_ad`，本 skill 不主动过滤（保留 Agent 决策权），但也**不**抹掉这个字段。
 5. **图片必须本地化**：B 站/公众号图片 URL 有反盗链，必须下载到 `raw/assets/` 并改写引用为相对路径；不允许 raw 文件里留外链。
 6. **路径必须用 KB_ROOT**：所有写入路径通过 `KB_ROOT` 解析，默认 `${PROJECT_ROOT}/Knowledge_Wiki`。脚本必须接 `--kb-root` 参数，SKILL.md 必须读环境变量。
+7. **采集走直连、住宅 CN IP**：B 站/公众号一律直连走本机住宅 CN IP，境外/机房 IP → B 站风控（412/-352/-799）、公众号封；采集前先自检出口 IP 为 CN 住宅再抓，仅境外流量走代理。
 
 ## KB_ROOT 解析约定
 
@@ -93,6 +94,38 @@ uv run --with 'curl_cffi==0.9.0' \
 - **必须后台执行**（脚本含 412 重试 90s）
 - 含字幕时 `--count` ≤ 5
 - 输出：每个视频一份 `raw/transcripts/bilibili/<uploader-slug>_<bvid>.json`
+- `subtitle_source` 优先级：`cc-zh > ai-zh > none`（`none` 代表无字幕轨道，需走 ASR）
+
+#### B 站视频 ASR 转写（当 subtitle_source=none 时的备选方案）
+
+当视频无字幕（`subtitle_source: none`）时，用 **DashScope Qwen3-ASR** 从音频转写：
+
+```bash
+# 方式 A：BV号直接下载+转写（需 yt-dlp 能访问B站，可能遇412风控）
+uv run --project "${PROJECT_ROOT}/Third_Party/bili2text" \
+  python3 "${SKILL_DIR}/scripts/transcribe_bilibili.py" \
+  --bvid <BV号> --kb-root "${KB_ROOT}" \
+  [--prompt "金融/半导体行业术语提示"] \
+  [--model qwen3-asr-flash]
+
+# 方式 B：已有音频文件（BBDown 下载或其他工具）
+uv run --project "${PROJECT_ROOT}/Third_Party/bili2text" \
+  python3 "${SKILL_DIR}/scripts/transcribe_bilibili.py" \
+  --audio-file /path/to/audio.m4a \
+  --bvid <BV号> --kb-root "${KB_ROOT}"
+```
+
+**当 yt-dlp 遇到 412 时**，脚本会打印 BBDown 备用命令：
+```bash
+BBDown -ia -c ~/.bilibili_sessdata.json <BV号>
+# 下载完后再用方式 B
+```
+
+- 需要环境变量 `DASHSCOPE_API_KEY`（必须）
+- 可选 `BILIBILI_SESSDATA`（提升 yt-dlp 成功率）
+- 输出：更新已有 raw JSON 的 `subtitle` / `subtitle_source: asr-qwen3-asr-flash` 字段
+- 若 raw JSON 不存在：创建 skeleton JSON 到 `raw/transcripts/bilibili/_asr_only/<bvid>.json`
+- bili2text 安装路径：`Third_Party/bili2text/`（含 DashScope 插件 + pydub/soundfile）
 
 #### B 站动态 + 图片
 ```bash
@@ -128,9 +161,10 @@ python3 "${SKILL_DIR}/scripts/build_timeline.py" \
 ```
 
 - 输出：`raw/transcripts/bilibili/<up>/_previews/timeline.json`（每个 UP 主一份）
-- 每条 item 一行高度概括：`{date, kind, id, title, tldr, mentions, up_actions, is_trade, stats, src, preview, link}`
-- 数据来源：raw JSON（权威字段）+ `_previews/*.md`（TL;DR / mentions / 操作表）。**没有 `_preview` 的源也照样进时间线**（降级：tldr 为空，仅 raw 字段）——这正是「全覆盖」的价值。
+- 每条 item 一行高度概括：`{date, kind, id, title, summary, tldr, topics, stances, mentions, up_actions, is_trade, stats, src, preview, link}`（`summary/topics/stances` 来自 preview 的 knowledge-tree v0.3）
+- 数据来源：raw JSON（权威字段）+ `_previews/*.md`（TL;DR / mentions / 操作表 / knowledge-tree）。**没有 `_preview` 的源也照样进时间线**（降级：tldr 为空，仅 raw 字段）——这正是「全覆盖」的价值。
 - `has_wiki` / 深度链接**不在此处算**——那是前端构建期 `build_frontend_data.py` 读 wiki/filings-summary 叠加的事。
+- 无内容动态（`n_items=0` 纯转发 / 无 preview，即无 tldr·树·摘要·立场）仍写入 timeline.json，但**前端「媒体转录」默认隐藏**，仅在计数处标注"已隐藏 N 条空动态"，避免刷屏。
 
 **定位**：`timeline.json` 与 `_previews/` 同等地位——派生、可重建、随时可删，**不进** `wiki/` / `ontology/` / `_index.json`。它既不破坏 `raw/` 不可变铁律，也不绕过 `finance-ingest` 的两步 CoT 人工 review 边界。设计见 [`frontend/media-timeline-architecture.html`](../../../frontend/media-timeline-architecture.html)：**「wiki 装结论，raw + 轻量 digest 装流水」**。
 
@@ -206,12 +240,35 @@ raw-preview 与 asset-describe 的产物**都不进 wiki / ontology / _index.jso
   "published_at": "2026-05-15T12:00:00Z",
   "duration_seconds": 1215,
   "description": "视频简介",
-  "subtitle": "字幕全文，空格分隔",
-  "subtitle_source": "cc-zh | ai-zh | none",
+  "subtitle": "字幕全文，空格分隔（向后兼容快速读取）",
+  "subtitle_source": "cc-zh | ai-zh | asr-qwen3-asr-flash | none",
+  "subtitle_data": {
+    "source": "ai-zh",
+    "lan": "ai-zh",
+    "lan_doc": "中文（自动生成）",
+    "type": 1,
+    "body": [
+      {"from": 0.5, "to": 3.2, "content": "大家好"},
+      {"from": 3.5, "to": 7.1, "content": "今天讲..."}
+    ]
+  },
   "fetched_at": "2026-06-03T08:42:11Z",
   "link": "https://www.bilibili.com/video/BV1xxxxxx"
 }
 ```
+
+**`subtitle_source` 枚举值：**
+| 值 | 含义 |
+|---|---|
+| `cc-zh` | UP 主手动上传的人工字幕 |
+| `ai-zh` | B 站 AI 自动生成字幕 |
+| `asr-qwen3-asr-flash` | DashScope Qwen3-ASR 兜底转写 |
+| `none` | 无任何字幕 |
+
+**`subtitle_data` 字段含义：**
+- 官方字幕（`cc-zh` / `ai-zh`）：`type`=0 为人工 CC，`type`=1 为 AI；`body` 含完整时间轴 `[{from, to, content}]`
+- ASR 转写（`asr-*`）：`body=null`（无逐句时间轴），额外含 `model`、`language`、`duration_s`、`asr_at`
+- 无字幕：`subtitle_data=null`
 
 ### B 站动态日聚合 JSON（`raw/transcripts/bilibili/<up>/dynamics/<YYYY>/<YYYY-MM>/<YYYY-MM-DD>.json`）
 
@@ -349,7 +406,13 @@ uv run scripts/migrate_bilibili_layout.py --kb-root "${KB_ROOT}" --apply
 - `uv`（PEP 723 内联依赖管理）
 - B 站抓取：`curl_cffi==0.9.0`（自动安装）
 - 公众号抓取：`readability-lxml`、`html2text`、`beautifulsoup4`（自动安装）
-- 可选环境变量：
+- B 站 ASR 转写（`transcribe_bilibili.py`）：
+  - `Third_Party/bili2text/`：主体工具，含 `DashScopeQwenTranscriber`（已安装于项目中）
+  - `Third_Party/Qwen3-ASR-Toolkit/`：QwenASR 封装（重试/幻觉过滤），已克隆
+  - `pydub`、`soundfile`（已纳入 bili2text 依赖，`uv sync` 后自动就绪）
+  - `ffmpeg`：系统依赖，用于音频解码（`brew install ffmpeg`）
+- 环境变量：
   - `BILIBILI_SESSDATA`：登录态 Cookie，显著提升字幕获取成功率
   - `BILIBILI_PROXY`：HTTP 代理（如频繁触发 412）
   - `KB_ROOT`：Knowledge_Wiki 根路径，默认 `<project_root>/Knowledge_Wiki`
+  - `DASHSCOPE_API_KEY`：必须，ASR 转写时使用（Qwen3-ASR-Flash）

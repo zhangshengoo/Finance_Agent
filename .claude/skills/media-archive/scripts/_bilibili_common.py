@@ -85,12 +85,42 @@ def make_headers(sessdata: str | None = None) -> dict:
     return headers
 
 
-def get_sessdata(args_sessdata: str | None = None) -> str | None:
-    raw = args_sessdata or os.environ.get("BILIBILI_SESSDATA")
+# SESSDATA 缓存：由 bilibili-auth skill 扫码登录后写入（与该脚本约定同一路径）
+_SESSDATA_CACHE_PATH = os.path.join(os.path.expanduser("~"), ".bilibili_sessdata.json")
+
+
+def _load_sessdata_cache() -> str | None:
+    """读 bilibili-auth 落地的 ~/.bilibili_sessdata.json 里的 sessdata。缺失/损坏返回 None。"""
+    try:
+        with open(_SESSDATA_CACHE_PATH, encoding="utf-8") as f:
+            return json.load(f).get("sessdata") or None
+    except (OSError, ValueError):
+        return None
+
+
+def _pick(raw: str | None) -> str | None:
+    """从逗号分隔的多账号串里随机取一个（兼容单值）。"""
     if not raw:
         return None
     candidates = [s.strip() for s in raw.split(",") if s.strip()]
     return random.choice(candidates) if candidates else None
+
+
+def get_sessdata(args_sessdata: str | None = None) -> str | None:
+    """SESSDATA 解析顺序：CLI/参数 > bilibili-auth 缓存 > 环境变量(.env)。
+
+    为什么 cache 优先于 env：env（如 .env）通常在会话启动时被注入、之后无法在会话内
+    热更新——一旦过期就会「陈旧 env 盖住刚扫码的新 cache」，正是踩过的坑。而
+    ~/.bilibili_sessdata.json 由 bilibili-auth 每次扫码登录写入、且写前经 nav 校验过
+    isLogin，是「当前活的」凭据，因此让它压过 env。显式 --sessdata 仍最高优先（人工覆盖）。
+    env 作为首次还没扫码时的兜底。
+    """
+    if args_sessdata:
+        return _pick(args_sessdata)
+    cached = _load_sessdata_cache()
+    if cached:
+        return cached
+    return _pick(os.environ.get("BILIBILI_SESSDATA"))
 
 
 def get_proxy() -> str | None:

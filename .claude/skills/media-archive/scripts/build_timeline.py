@@ -135,6 +135,77 @@ def extract_up_actions(body: str) -> list[dict]:
     return actions
 
 
+# --------------------------------------------------------------------------
+# preview v0.3：类型化知识点树（knowledge-tree JSON 块）+ 立场萃取
+# --------------------------------------------------------------------------
+_KT_RE = re.compile(
+    r"<!--\s*knowledge-tree[^>]*-->\s*```json\s*(\{.*?\})\s*```",
+    re.DOTALL,
+)
+
+
+def extract_knowledge_tree(body: str) -> dict:
+    """抓 preview 正文里的 `<!-- knowledge-tree v0.3 -->` + ```json 块。
+
+    返回 {"summary": str|None, "topics": [...]}；缺失或解析失败时返回空结构。
+    每个 topic = {t, icon?, nodes:[{type, target?, dir?, head?, detail?, chain?,
+                  action?, target_price?, stop_loss?}]}。类型不限，前端兜底到「其他」。
+    """
+    m = _KT_RE.search(body or "")
+    if not m:
+        return {"summary": None, "topics": []}
+    try:
+        data = json.loads(m.group(1))
+    except (json.JSONDecodeError, ValueError):
+        return {"summary": None, "topics": []}
+    topics = data.get("topics") or []
+    if not isinstance(topics, list):
+        topics = []
+    summary = data.get("summary")
+    return {"summary": summary.strip() if isinstance(summary, str) else None,
+            "topics": topics}
+
+
+def _norm_target(name: str) -> str:
+    """标的归一：去括号说明（'黄金（纽约期货金）' -> '黄金'），用于立场聚合。"""
+    return re.split(r"[（(]", str(name or ""), maxsplit=1)[0].strip()
+
+
+def derive_stances(topics: list) -> list[dict]:
+    """从知识点树萃取立场：按标的聚合带 target 且含方向/价位/操作信号的节点。
+
+    立场 = type∈{trend,view,action}（或任意带 dir/target_price/stop_loss/action 的）
+    且带 target 的节点投影。dir 仅取显式 long/short（不从「减持」等动作臆测方向）。
+    一份数据两处用——演化图与立场徽章都吃它，统一走 ②③，不依赖 wiki。
+    """
+    agg: dict[str, dict] = {}
+    order: list[str] = []
+    for topic in topics:
+        for n in (topic.get("nodes") or []):
+            tgt = _norm_target(n.get("target", ""))
+            if not tgt:
+                continue
+            dir_ = n.get("dir")
+            has_signal = bool(dir_ or n.get("target_price")
+                              or n.get("stop_loss") or n.get("action"))
+            if not has_signal:
+                continue
+            if tgt not in agg:
+                agg[tgt] = {"target": tgt, "dir": None, "target_price": None,
+                            "stop_loss": None, "actions": []}
+                order.append(tgt)
+            s = agg[tgt]
+            if dir_ in ("long", "short") and not s["dir"]:
+                s["dir"] = dir_
+            if n.get("target_price"):
+                s["target_price"] = str(n["target_price"])
+            if n.get("stop_loss"):
+                s["stop_loss"] = str(n["stop_loss"])
+            if n.get("action") and n["action"] not in s["actions"]:
+                s["actions"].append(n["action"])
+    return [agg[t] for t in order]
+
+
 def preview_path_for(raw_path: Path, up_dir: Path) -> Path:
     """raw <up>/videos/Y/M/x.json -> <up>/_previews/videos/Y/M/x.md"""
     rel = raw_path.relative_to(up_dir)
@@ -155,6 +226,7 @@ def build_video_item(raw_path: Path, up_dir: Path, kb_root: Path) -> dict | None
         return None
     pv = preview_path_for(raw_path, up_dir)
     tldr, mentions, actions, sub_chars = [], [], [], None
+    kt = {"summary": None, "topics": []}
     preview_rel = None
     if pv.exists():
         fm, body = split_md(pv.read_text(encoding="utf-8"))
@@ -162,17 +234,22 @@ def build_video_item(raw_path: Path, up_dir: Path, kb_root: Path) -> dict | None
         mentions = extract_mentions(fm)
         actions = extract_up_actions(body)
         sub_chars = fm_scalar(fm, "subtitle_chars")
+        kt = extract_knowledge_tree(body)
         preview_rel = kb_rel(pv, kb_root)
     date = (raw.get("published_at") or "")[:10]
+    stances = derive_stances(kt["topics"])
     return {
         "date": date,
         "kind": "video",
         "id": raw.get("bvid") or raw_path.stem,
         "title": raw.get("title") or raw_path.stem,
+        "summary": kt["summary"],
         "tldr": tldr,
+        "topics": kt["topics"],
+        "stances": stances,
         "mentions": mentions,
         "up_actions": actions,
-        "is_trade": bool(actions),
+        "is_trade": bool(actions) or bool(stances),
         "stats": {
             "duration": raw.get("duration_seconds"),
             "subtitle_chars": int(sub_chars) if sub_chars and sub_chars.isdigit() else None,
@@ -193,6 +270,7 @@ def build_dynamic_item(raw_path: Path, up_dir: Path, kb_root: Path) -> dict | No
         return None
     pv = preview_path_for(raw_path, up_dir)
     tldr, mentions = [], []
+    kt = {"summary": None, "topics": []}
     total_images = ad_count = 0
     preview_rel = title = None
     if pv.exists():
@@ -201,22 +279,27 @@ def build_dynamic_item(raw_path: Path, up_dir: Path, kb_root: Path) -> dict | No
         mentions = extract_mentions(fm)
         total_images = int(fm_scalar(fm, "total_images") or 0)
         ad_count = int(fm_scalar(fm, "ad_count") or 0)
+        kt = extract_knowledge_tree(body)
         h1 = re.search(r"^#\s+(.+)$", body, re.MULTILINE)
         if h1:
             title = h1.group(1).split("·", 1)[-1].strip()
         preview_rel = kb_rel(pv, kb_root)
     date = raw.get("date") or raw_path.stem
     total = (raw.get("stats") or {}).get("total")
+    stances = derive_stances(kt["topics"])
     joined = " ".join(tldr)
     return {
         "date": date,
         "kind": "dynamic",
         "id": date,
         "title": title or f"{date} 动态聚合",
+        "summary": kt["summary"],
         "tldr": tldr,
+        "topics": kt["topics"],
+        "stances": stances,
         "mentions": mentions,
         "up_actions": [],
-        "is_trade": bool(_TRADE_HINT.search(joined)),
+        "is_trade": bool(_TRADE_HINT.search(joined)) or bool(stances),
         "stats": {"total": total, "images": total_images, "ad": ad_count},
         "src": kb_rel(raw_path, kb_root),
         "preview": preview_rel,
