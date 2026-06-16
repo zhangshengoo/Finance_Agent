@@ -6,7 +6,7 @@
 ## 个股分析（Planned next，对应 CLAUDE.md "Planned next: 个股分析"）
 
 - [ ] **资金面分析师 Capital Flow Analyst** —— 在 TradingAgents-CN 个股分析流程中新增资金面维度
-      - 方案文档：[capital-flow-analyst-design.md](capital-flow-analyst-design.md)（v2，已对照真实源码评审修订）
+      - 方案文档：[capital-flow-analyst-design.md](tradingagents-cn/capital-flow-analyst/capital-flow-analyst-design.md)（v2，已对照真实源码评审修订）
       - 数据：筹码分布 `stock_cyq_em` / 主力资金流 `stock_individual_fund_flow` / 龙虎榜 `stock_lhb_stock_detail_em`（AKShare，免费无 token）
       - 接入点：插入分析师序列首位；涉及 12 类共 13+ 文件（provider / Toolkit / AgentState / 新 analyst / setup / trading_graph / conditional_logic / propagation / 下游消费者 / CLI / web）
       - 最小可运行集见方案文档 §6；验证方式见 §7

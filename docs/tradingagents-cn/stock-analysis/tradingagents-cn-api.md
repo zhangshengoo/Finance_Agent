@@ -3,10 +3,10 @@
 > 面向**编排 / 调用方 Agent** 的接口参考。覆盖 CLI 与 Python 脚本两条调用路径，逐项说明分析深度、分析团队、模型配置、分析选项、情绪分析、风险评估、语言偏好等可配项。
 >
 > 代码定位（行号截至本次核对）：
-> - 入口类 [`TradingAgentsGraph`](../TradingAgents-CN/tradingagents/graph/trading_graph.py#L201)
-> - 默认配置 [`DEFAULT_CONFIG`](../TradingAgents-CN/tradingagents/default_config.py#L3)
-> - CLI 入口 [`cli/main.py`](../TradingAgents-CN/cli/main.py)
-> - 深度映射 [`cli/utils.py`](../TradingAgents-CN/cli/utils.py#L171) / [`web/utils/analysis_runner.py`](../TradingAgents-CN/web/utils/analysis_runner.py#L237)
+> - 入口类 [`TradingAgentsGraph`](../../../TradingAgents-CN/tradingagents/graph/trading_graph.py#L201)
+> - 默认配置 [`DEFAULT_CONFIG`](../../../TradingAgents-CN/tradingagents/default_config.py#L3)
+> - CLI 入口 [`cli/main.py`](../../../TradingAgents-CN/cli/main.py)
+> - 深度映射 [`cli/utils.py`](../../../TradingAgents-CN/cli/utils.py#L171) / [`web/utils/analysis_runner.py`](../../../TradingAgents-CN/web/utils/analysis_runner.py#L237)
 
 ---
 
@@ -34,7 +34,7 @@ final_state, decision = ta.propagate("601899", "2026-06-05")   # (ticker, date)
 print(decision["action"], decision["target_price"], decision["confidence"])
 ```
 
-> 仓库内已有封装脚本 [`TradingAgents-CN/analyze_stock.py`](../TradingAgents-CN/analyze_stock.py)，命令行用法：
+> 仓库内已有封装脚本 [`TradingAgents-CN/analyze_stock.py`](../../../TradingAgents-CN/analyze_stock.py)，命令行用法：
 > `MONGODB_ENABLED=false REDIS_ENABLED=false .venv/bin/python analyze_stock.py <代码> <日期>`
 
 ---
@@ -64,7 +64,7 @@ print(decision["action"], decision["target_price"], decision["confidence"])
 
 ## 2. 配置 Schema（`config` 全字段）
 
-来源 [`default_config.py`](../TradingAgents-CN/tradingagents/default_config.py#L3)。所有键均可在调用前 `config[...] = ...` 覆盖。
+来源 [`default_config.py`](../../../TradingAgents-CN/tradingagents/default_config.py#L3)。所有键均可在调用前 `config[...] = ...` 覆盖。
 
 | 键 | 默认 | 作用 |
 |---|---|---|
@@ -89,7 +89,7 @@ print(decision["action"], decision["target_price"], decision["confidence"])
 
 ## 3. 分析团队 / 分析师（`selected_analysts`）
 
-枚举 [`cli/models.py:AnalystType`](../TradingAgents-CN/cli/models.py#L10)，校验于 [`graph/setup.py`](../TradingAgents-CN/tradingagents/graph/setup.py#L65)。
+枚举 [`cli/models.py:AnalystType`](../../../TradingAgents-CN/cli/models.py#L10)，校验于 [`graph/setup.py`](../../../TradingAgents-CN/tradingagents/graph/setup.py#L65)。
 
 | key | 角色 | 产出字段 | 备注 |
 |---|---|---|---|
@@ -106,7 +106,7 @@ print(decision["action"], decision["target_price"], decision["confidence"])
 
 **注意**：Python API **没有** `research_depth` 单一参数；深度是 CLI/Web 的"预设"，本质是对下表三个 config 键的组合赋值。对外 Agent 调用时，要么直接设这三个键，要么自己实现等价映射。
 
-来源 [`cli/utils.py`](../TradingAgents-CN/cli/utils.py#L171) / [`analysis_runner.py`](../TradingAgents-CN/web/utils/analysis_runner.py#L237)。
+来源 [`cli/utils.py`](../../../TradingAgents-CN/cli/utils.py#L171) / [`analysis_runner.py`](../../../TradingAgents-CN/web/utils/analysis_runner.py#L237)。
 
 | 档位 | 名称 | `max_debate_rounds` | `max_risk_discuss_rounds` | `memory_enabled` |
 |---|---|---|---|---|
@@ -122,7 +122,7 @@ print(decision["action"], decision["target_price"], decision["confidence"])
 
 ## 5. CLI 接口
 
-入口 [`cli/main.py`](../TradingAgents-CN/cli/main.py#L143)（Typer 应用，`python -m cli.main` 或安装后 `tradingagents`）。交互式顺序提问：
+入口 [`cli/main.py`](../../../TradingAgents-CN/cli/main.py#L143)（Typer 应用，`python -m cli.main` 或安装后 `tradingagents`）。交互式顺序提问：
 
 1. **选择市场** — 美股 / A股(默认) / 港股
 2. **股票代码** — 按市场格式校验
@@ -147,7 +147,7 @@ print(decision["action"], decision["target_price"], decision["confidence"])
 
 ## 7. 风险评估
 
-风险团队（[`graph/setup.py`](../TradingAgents-CN/tradingagents/graph/setup.py#L165)）固定四角色，**始终运行**（无开关）：
+风险团队（[`graph/setup.py`](../../../TradingAgents-CN/tradingagents/graph/setup.py#L165)）固定四角色，**始终运行**（无开关）：
 
 | 角色 | 模型 | 说明 |
 |---|---|---|
@@ -166,14 +166,14 @@ print(decision["action"], decision["target_price"], decision["confidence"])
 
 **无内置语言配置。** `DEFAULT_CONFIG` 和 `TradingAgentsGraph.__init__` 均无 language/lang/locale 参数。系统**原生中文输出**：
 
-- 信号处理器 [`signal_processing.py`](../TradingAgents-CN/tradingagents/graph/signal_processing.py#L86) 在 system prompt 中**强制中文**（"绝对不允许使用英文 buy/hold/sell"）。
+- 信号处理器 [`signal_processing.py`](../../../TradingAgents-CN/tradingagents/graph/signal_processing.py#L86) 在 system prompt 中**强制中文**（"绝对不允许使用英文 buy/hold/sell"）。
 - 如需英文，必须在调用方自行加翻译层，框架不支持切换。
 
 ---
 
 ## 9. 模型配置 / 供应商
 
-供应商选择逻辑 [`create_llm_by_provider`](../TradingAgents-CN/tradingagents/graph/trading_graph.py#L39)。
+供应商选择逻辑 [`create_llm_by_provider`](../../../TradingAgents-CN/tradingagents/graph/trading_graph.py#L39)。
 
 | `llm_provider` | 端点（默认） | 类型 |
 |---|---|---|
@@ -193,7 +193,7 @@ print(decision["action"], decision["target_price"], decision["confidence"])
 
 ## 10. 输出结构
 
-### `final_state`（dict）关键字段 — [`agent_states.py`](../TradingAgents-CN/tradingagents/agents/utils/agent_states.py#L60)
+### `final_state`（dict）关键字段 — [`agent_states.py`](../../../TradingAgents-CN/tradingagents/agents/utils/agent_states.py#L60)
 
 | 字段 | 内容 |
 |---|---|
@@ -208,7 +208,7 @@ print(decision["action"], decision["target_price"], decision["confidence"])
 | `final_trade_decision` | 最终决策原文（风险经理产出） |
 | `performance_metrics` | 各节点耗时/性能数据 |
 
-### `decision`（dict）结构化决策 — [`signal_processing.py`](../TradingAgents-CN/tradingagents/graph/signal_processing.py#L90)
+### `decision`（dict）结构化决策 — [`signal_processing.py`](../../../TradingAgents-CN/tradingagents/graph/signal_processing.py#L90)
 
 ```jsonc
 {
