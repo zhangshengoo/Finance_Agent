@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>前端「媒体转录」展示设计 · 功能 × 内容来源 — Finance_Agent</title>
+<style>
+  :root{
+    /* 5 个内容来源色（与编号 ①-⑤ 绑定，全文一致） */
+    --s1:#cd5638; --s2:#b79be6; --s3:#bf8a2c; --s4:#48993d; --s5:#2f7fc4;
+    --bg:#0e1014; --panel:#161a21; --panel2:#1c222c; --line:#2a313d;
+    --ink:#e8ebf0; --dim:#9aa4b2; --faint:#6b7480;
+    --ok:#48993d; --warn:#d9a441; --wait:#5b8def; --todo:#cd5638;
+    --radius:14px; --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft Yahei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:
+      radial-gradient(1200px 600px at 80% -10%,rgba(205,86,56,.08),transparent 60%),
+      radial-gradient(900px 500px at -10% 10%,rgba(47,127,196,.07),transparent 55%),
+      var(--bg);
+    color:var(--ink);font-family:var(--sans);line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1160px;margin:0 auto;padding:44px 28px 100px}
+  .kicker{font:600 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--s1);margin-bottom:14px}
+  h1{font-size:30px;margin:0 0 10px;letter-spacing:-.01em}
+  .sub{color:var(--dim);font-size:15px;max-width:840px}
+  .note-bar{margin-top:16px;border:1px solid rgba(217,164,65,.3);background:rgba(217,164,65,.07);
+    border-radius:10px;padding:10px 14px;font-size:12.5px;color:#e2c07e}
+
+  h2.sec{font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);
+    margin:56px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:12px}
+  h2.sec .no{font:700 13px var(--mono);color:var(--s1)}
+  h2.sec .cn{color:var(--ink);font-size:19px;letter-spacing:normal;text-transform:none;font-weight:650}
+  .lead{font-size:14.5px;color:var(--dim);margin:0 0 20px;max-width:900px}
+  .sub-h{font-size:15px;font-weight:650;margin:30px 0 13px;color:var(--ink);display:flex;align-items:center;gap:9px}
+  .sub-h .bar{width:4px;height:16px;border-radius:3px;background:var(--s1)}
+
+  /* 来源编号 pill */
+  .sp{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:6px;
+    font:700 11px var(--mono);color:#0e1014;vertical-align:middle}
+  .sp.s1{background:var(--s1)} .sp.s2{background:var(--s2)} .sp.s3{background:var(--s3)}
+  .sp.s4{background:var(--s4)} .sp.s5{background:var(--s5)}
+
+  /* ========== 框架图 ========== */
+  .frame{background:linear-gradient(180deg,#13171e,#0f1218);border:1px solid var(--line);border-radius:16px;padding:26px 24px 30px}
+  .layer-lab{font:700 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  /* 来源层 */
+  .sources{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  @media(max-width:860px){.sources{grid-template-columns:repeat(2,1fr)}}
+  .src{border-radius:11px;padding:12px 13px;border:1px solid var(--ac);background:color-mix(in srgb,var(--ac) 10%,transparent)}
+  .src .sh{font:700 12.5px var(--sans);display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .src .sh .stage{font:600 10px var(--mono);color:var(--faint)}
+  .src .sd{font-size:11.5px;color:var(--dim);line-height:1.55}
+  .src.s1{--ac:var(--s1)} .src.s2{--ac:var(--s2)} .src.s3{--ac:var(--s3)} .src.s4{--ac:var(--s4)} .src.s5{--ac:var(--s5)}
+
+  .flow-down{display:flex;justify-content:center;align-items:center;gap:10px;color:var(--faint);padding:14px 0 16px}
+  .flow-down .ln{height:1px;flex:1;max-width:200px;background:linear-gradient(90deg,transparent,var(--line),transparent)}
+  .flow-down .t{font:500 11.5px var(--mono);color:var(--dim)}
+
+  /* 功能层 */
+  .feats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:860px){.feats{grid-template-columns:1fr}}
+  .feat{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px 15px;position:relative}
+  .feat .fh{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+  .feat .fh h4{margin:0;font-size:14px}
+  .feat .star{font-size:11px;color:var(--s1)}
+  .feat .fd{font-size:12px;color:var(--dim);min-height:32px}
+  .feat .from{display:flex;align-items:center;gap:5px;margin-top:10px;flex-wrap:wrap}
+  .feat .from .lbl{font:600 10px var(--mono);color:var(--faint);margin-right:2px}
+  .feat .st{position:absolute;top:13px;right:13px;font:600 10px var(--mono)}
+  .st-live{color:var(--ok)} .st-v2{color:var(--wait)} .st-block{color:var(--todo)}
+
+  .legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:18px;font-size:12px;color:var(--dim)}
+  .legend .it{display:flex;align-items:center;gap:7px}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .d-ok{background:var(--ok)} .d-v2{background:var(--wait)} .d-block{background:var(--todo)}
+
+  /* 通用卡/表 */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:840px){.grid2{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px 18px}
+  .card h4{margin:0 0 10px;font-size:14.5px;display:flex;align-items:center;gap:9px}
+  .card p{margin:0;font-size:13px;color:var(--dim)} .card p+p{margin-top:7px}
+  code{font:500 11.5px var(--mono);color:#cdb892;background:rgba(191,138,44,.09);border:1px solid rgba(191,138,44,.18);border-radius:5px;padding:1px 6px}
+  .tbl{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .tbl th,.tbl td{text-align:left;padding:10px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+  .tbl th{font:600 10.5px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--faint);background:var(--panel2)}
+  .tbl tr:last-child td{border-bottom:none}
+  .tbl td.k{font-weight:600;color:var(--ink);white-space:nowrap}
+  .tbl .src-mini{font:500 11px var(--mono);color:var(--dim)}
+
+  .warnbox{border:1px solid rgba(217,164,65,.35);background:rgba(217,164,65,.06);border-radius:11px;padding:14px 17px;font-size:13px;color:#e6c987}
+  .warnbox b{color:#f0d9a0}
+
+  footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font:500 12px var(--mono);color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker">Finance_Agent · 前端「媒体转录」展示设计</div>
+    <h1>前端展示 × 知识内容来源 — 设计框架</h1>
+    <p class="sub">本文聚焦一件事：前端「媒体转录」视图<b>展示哪些功能</b>，每个功能的<b>知识内容从哪一层来</b>。核心是一张框架图，把功能与来源用统一的 ①-⑤ 编号/配色对齐。配套：完整设计规格见 <code>media-frontend-redesign-proposal.html</code>，链路总览见 <code>media-transcription-framework.html</code>。</p>
+    <div class="note-bar">⚠ 关于"采集第二个 UP"（M0）：后台采集 504018708 因 B 站 <code>-352</code> 环境/账号风控失败，raw 未写入。<b>跨 UP 功能（共识 / 多线对比）暂保持架构预留</b>，待换网 / 新 SESSDATA / 风控冷却后再采集激活；其余功能不依赖第二个 UP。</div>
+  </header>
+
+  <!-- ============ 1 ============ -->
+  <h2 class="sec"><span class="no">01</span><span class="cn">功能 × 内容来源 框架图</span></h2>
+  <p class="lead">上层 = 5 个知识内容来源（按链路阶段 ①→⑤）；下层 = 前端展示功能。每个功能卡右上是状态，底部的彩色编号标明它<b>吃哪几层来源</b>（颜色/编号与上层一一对应）。</p>
+
+  <div class="frame">
+    <div class="layer-lab">▸ 知识内容来源（链路阶段）</div>
+    <div class="sources">
+      <div class="src s1"><div class="sh"><span class="sp s1">①</span>采集 raw JSON</div><div class="sd">标题 · 日期 · 时长 · 字幕全文 · bvid · uploader/uid。权威字段，不可变。</div></div>
+      <div class="src s2"><div class="sh"><span class="sp s2">②</span>预览 raw-preview</div><div class="sd">TL;DR · mentions(话题,含噪) · UP操作表 · <b>stances[]</b>(v2 机读立场)。</div></div>
+      <div class="src s3"><div class="sh"><span class="sp s3">③</span>聚合 timeline.json</div><div class="sd">items[] + item.stances[] + is_trade + 计数。前端读取的单一数据契约。</div></div>
+      <div class="src s4"><div class="sh"><span class="sp s4">④</span>摄入 finance-ingest</div><div class="sd">filing-summary(summary/sources) + ontology。<b>立场权威方</b>（混合权威）。</div></div>
+      <div class="src s5"><div class="sh"><span class="sp s5">⑤</span>前端 kb-parse live</div><div class="sd">has_wiki 匹配 · stanceIndex 倒排 · 统计聚合。浏览器内现算，零编译。</div></div>
+    </div>
+
+    <div class="flow-down"><span class="ln"></span><span class="t">▼ 解析 / 聚合 / 渲染 ▼</span><span class="ln"></span></div>
+
+    <div class="layer-lab">▸ 前端「媒体转录」展示功能</div>
+    <div class="feats">
+
+      <div class="feat"><span class="st st-live">实装</span>
+        <div class="fh"><h4>创作者头卡</h4></div>
+        <div class="fd">头像 / 名称 / UID + 统计（条目·视频·动态·深度·关联主题）。</div>
+        <div class="from"><span class="lbl">来源</span><span class="sp s1">①</span><span class="sp s3">③</span><span class="sp s5">⑤</span></div>
+      </div>
+
+      <div class="feat"><span class="st st-live">实装</span>
+        <div class="fh"><h4>双轨时间线卡片</h4></div>
+        <div class="fd">左轨 raw 概要（日期/标题/chips/TL;DR/操作/话题）+ 右轨 wiki 深度叠加。</div>
+        <div class="from"><span class="lbl">来源</span><span class="sp s1">①</span><span class="sp s2">②</span><span class="sp s3">③</span><span class="sp s4">④</span><span class="sp s5">⑤</span></div>
+      </div>
+
+      <div class="feat"><span class="st st-live">实装</span>
+        <div class="fh"><h4>深度摘要叠加</h4></div>
+        <div class="fd">命中条目点亮「深度 ↗」，展开 wiki 摘要 + 出处路径。</div>
+        <div class="from"><span class="lbl">来源</span><span class="sp s4">④</span><span class="sp s5">⑤</span></div>
+      </div>
+
+      <div class="feat"><span class="st st-v2">v2</span>
+        <div class="fh"><h4>立场徽章</h4></div>
+        <div class="fd">卡片每条加立场徽章行（标的·多空色点·目标/止损·is_trade⚡），与事实物理区隔。</div>
+        <div class="from"><span class="lbl">来源</span><span class="sp s2">②</span><span class="sp s3">③</span><span class="sp s5">⑤</span></div>
+      </div>
+
+      <div class="feat"><span class="st st-v2">v2 · 核心</span>
+        <div class="fh"><h4>观点演化图 <span class="star">★</span></h4></div>
+        <div class="fd">标的/方向 × 时间：仓位动作 + 目标/止损迁移（默认轴），可切多空泳道。</div>
+        <div class="from"><span class="lbl">来源</span><span class="sp s2">②</span><span class="sp s4">④</span><span class="sp s3">③</span><span class="sp s5">⑤</span></div>
+      </div>
+
+      <div class="feat"><span class="st st-v2">v2</span>
+        <div class="fh"><h4>实体聚合页</h4></div>
+        <div class="fd">以标的为中心：演化图 + 各 UP 最新立场卡 + 相关条目（含深度叠加）。</div>
+        <div class="from"><span class="lbl">来源</span><span class="sp s5">⑤</span><span class="sp s4">④</span></div>
+      </div>
+
+      <div class="feat"><span class="st st-v2">v2</span>
+        <div class="fh"><h4>UP 主画像</h4></div>
+        <div class="fd">标的云（基于立场非话题）+ 立场雷达 + 持仓快照（is_trade 取最新）。</div>
+        <div class="from"><span class="lbl">来源</span><span class="sp s2">②</span><span class="sp s3">③</span><span class="sp s5">⑤</span></div>
+      </div>
+
+      <div class="feat"><span class="st st-block">v2 · 暂阻塞</span>
+        <div class="fh"><h4>跨 UP 同标的对比</h4></div>
+        <div class="fd">某标的有哪些 UP 在看，多线对比 + 图例 toggle。<b>需第二个 UP 数据</b>。</div>
+        <div class="from"><span class="lbl">来源</span><span class="sp s5">⑤</span></div>
+      </div>
+
+      <div class="feat"><span class="st st-v2">v2</span>
+        <div class="fh"><h4>话题云（含噪·只读）</h4></div>
+        <div class="fd">mentions 词频词云，<b>仅作话题概览，不参与关注度统计</b>（含背景提及噪声）。</div>
+        <div class="from"><span class="lbl">来源</span><span class="sp s2">②</span></div>
+      </div>
+
+    </div>
+
+    <div class="legend">
+      <span class="it"><i class="dot d-ok"></i>实装（现已上线）</span>
+      <span class="it"><i class="dot d-v2"></i>v2 规划（本方案新增）</span>
+      <span class="it"><i class="dot d-block"></i>v2 · 暂阻塞（待第二个 UP）</span>
+      <span class="it">★ = 用户点名的核心交付</span>
+    </div>
+  </div>
+
+  <!-- ============ 2 ============ -->
+  <h2 class="sec"><span class="no">02</span><span class="cn">各功能的展示内容</span></h2>
+  <p class="lead">逐个功能说清"屏幕上显示什么"与"字段绑到哪一层来源"。<span class="sp s1">①</span><span class="sp s2">②</span><span class="sp s3">③</span><span class="sp s4">④</span><span class="sp s5">⑤</span> 同上图编号。</p>
+  <table class="tbl">
+    <thead><tr><th>功能</th><th>展示内容（屏幕上看到的）</th><th>数据绑定 → 来源</th></tr></thead>
+    <tbody>
+      <tr><td class="k">创作者头卡</td><td>头像/名称/UID；条目·视频·动态·深度·关联主题 计数</td><td class="src-mini">uploader/uid <span class="sp s1">①</span> · 计数 <span class="sp s3">③</span> · 深度数/主题去重 <span class="sp s5">⑤</span></td></tr>
+      <tr><td class="k">双轨时间线卡片</td><td>日期·标题·视频/trade-log/时长 chips·TL;DR·UP操作·话题 chips；右侧深度叠加</td><td class="src-mini">日期/标题/时长 <span class="sp s1">①</span> · TL;DR/话题/操作 <span class="sp s2">②</span> · is_trade <span class="sp s3">③</span> · 深度 <span class="sp s4">④</span> · 匹配 <span class="sp s5">⑤</span></td></tr>
+      <tr><td class="k">深度摘要叠加</td><td>「深度 ↗」徽章 + 绿框 wiki 摘要 + 出处路径</td><td class="src-mini">filing-summary.summary/sources <span class="sp s4">④</span> · 按 sources/BV 匹配 <span class="sp s5">⑤</span></td></tr>
+      <tr><td class="k">立场徽章 <span style="color:var(--wait)">v2</span></td><td>每条立场：标的 + 多空色点 + 目标位 + 止损 + is_trade⚡/纯观点○</td><td class="src-mini">stances[] <span class="sp s2">②</span>→<span class="sp s3">③</span> · 渲染 <span class="sp s5">⑤</span></td></tr>
+      <tr><td class="k">观点演化图 ★ <span style="color:var(--wait)">v2</span></td><td>标的×时间：止损台阶线 + 目标位区间带 + 仓位动作点 + 立场转向标记 + 数据空档标注 + "非成交价"诚实标注</td><td class="src-mini">stanceIndex 倒排 <span class="sp s5">⑤</span> ← item.stances[] <span class="sp s3">③</span> ← 立场权威 <span class="sp s4">④</span>/<span class="sp s2">②</span>(混合)</td></tr>
+      <tr><td class="k">实体聚合页 <span style="color:var(--wait)">v2</span></td><td>标的为中心：主视觉演化图 + 各 UP 最新立场卡 + 相关条目列表（含深度）</td><td class="src-mini">stanceIndex <span class="sp s5">⑤</span> · 深度 <span class="sp s4">④</span></td></tr>
+      <tr><td class="k">UP 主画像 <span style="color:var(--wait)">v2</span></td><td>标的云（按立场）+ 立场雷达 + 持仓快照</td><td class="src-mini">stances 聚合 <span class="sp s2">②</span><span class="sp s3">③</span> · reduce <span class="sp s5">⑤</span></td></tr>
+      <tr><td class="k">跨 UP 对比 <span style="color:var(--todo)">阻塞</span></td><td>某标的多 UP 多线对比 + 图例 toggle</td><td class="src-mini">stanceIndex 按 uploader 分组 <span class="sp s5">⑤</span>（需 ≥2 个 UP）</td></tr>
+      <tr><td class="k">话题云 <span style="color:var(--wait)">v2</span></td><td>话题词频云（标注"含背景噪声"）</td><td class="src-mini">mentions <span class="sp s2">②</span>（只读，不算关注度）</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============ 3 ============ -->
+  <h2 class="sec"><span class="no">03</span><span class="cn">知识内容来源与权威</span></h2>
+  <p class="lead">五层来源各产出什么、谁是"立场"的权威，以及两个必须分清的统计口径。</p>
+
+  <div class="grid2">
+    <div class="card"><h4><span class="sp s1">①</span>采集 · raw JSON</h4><p>B 站字幕 / 元信息落不可变源。提供时间轴权威（<code>published_at</code>）、标题、字幕全文。<b>缺字段留 null，不臆造</b>。</p></div>
+    <div class="card"><h4><span class="sp s2">②</span>预览 · raw-preview</h4><p>读字幕提炼：TL;DR、mentions（话题，<b>启发式含噪</b>）、UP操作表、<b>stances[]</b>（v2 机读立场，含 provenance/target_price/stop_loss）。同一步 CoT 同时产人读与机读，内容一致。</p></div>
+    <div class="card"><h4><span class="sp s3">③</span>聚合 · timeline.json</h4><p><code>build_timeline.py</code> 把 ① 权威字段 + ② 提炼结果拼成前端唯一契约，并抽 <code>item.stances[]</code>、算 is_trade、归一标的（canon_target）。派生镜像，可重建。</p></div>
+    <div class="card"><h4><span class="sp s4">④</span>摄入 · finance-ingest</h4><p>两步 CoT 编 filing-summary + 进 ontology。<b>立场权威方</b>：有 wiki 的条目以此为准（可全库检索）；无 wiki 的退 ② 兜底。</p></div>
+  </div>
+
+  <div class="sub-h" style="margin-top:26px"><span class="bar"></span>混合权威：立场以谁为准</div>
+  <div class="card">
+    <p><b>有 <code>filing-summary</code> 的条目</b> → 以 finance-ingest 产出的结构化立场为权威（<code>### Trade Actions</code> / ontology <code>OPINES_ON</code>），前端实体页深度轨优先读它。</p>
+    <p><b>无 wiki 的条目</b> → 以 <code>preview.stances[]</code> 兜底进演化图。</p>
+    <p>正文"关键观点 callout"与 <code>stances[]</code> 同一步 CoT 产出、内容必须一致 → 单一权威家，消除三源漂移。守 CLAUDE.md 的 <code>raw → finance-ingest → wiki</code> 数据流。</p>
+  </div>
+
+  <div class="warnbox" style="margin-top:16px">
+    <b>两个口径必须分清（对抗评审 RC-4）：</b>「关注度 / 共识 / 被几位 UP 看」<b>只能用 <span class="sp s2" style="width:17px;height:17px">②</span> 的 stances[]（真实立场）</b>；<code>mentions</code> 是词表命中、含背景提及与恰饭软广噪声，<b>仅作话题云，绝不参与频率/关注度统计</b>。实测：05-14 视频 mentions 含"黄金"，正文却注明"仅作货币体系背景提及，无价位判断"。
+  </div>
+
+  <!-- ============ 4 ============ -->
+  <h2 class="sec"><span class="no">04</span><span class="cn">状态 · 交互溯源 · 落地次序</span></h2>
+
+  <div class="sub-h"><span class="bar"></span>实现状态</div>
+  <table class="tbl">
+    <thead><tr><th>功能</th><th>现状</th><th>v2 目标</th></tr></thead>
+    <tbody>
+      <tr><td class="k">双轨时间线 / 头卡 / 深度叠加</td><td><i class="dot d-ok"></i> 已上线</td><td>保留，叠加立场徽章</td></tr>
+      <tr><td class="k">立场徽章 · 观点演化图 · 实体页 · UP画像 · 话题云</td><td><i class="dot d-v2"></i> 未实现</td><td>v2 新增（M1–M3）</td></tr>
+      <tr><td class="k">跨 UP 同标的对比</td><td><i class="dot d-block"></i> 阻塞（n=1 + 采集风控）</td><td>架构预留，采到第二个 UP 激活</td></tr>
+    </tbody>
+  </table>
+
+  <div class="grid2" style="margin-top:18px">
+    <div class="card"><h4><span class="bar" style="display:inline-block;width:4px;height:14px;background:var(--s5);border-radius:3px"></span>三级溯源（每个立场都可回查）</h4>
+      <p>① 跳 B 站原片（<code>item.link</code>）</p>
+      <p>② 开预览页（<code>item.preview</code>）</p>
+      <p>③ 定位正文锚：视频 <code>#seg-N</code> / 动态 <code>#dyn-k</code>（缺则 null，不臆造）</p>
+    </div>
+    <div class="card"><h4><span class="bar" style="display:inline-block;width:4px;height:14px;background:var(--s1);border-radius:3px"></span>交互</h4>
+      <p>标的 chips 切换；UP / 立场 图例 toggle（复用现有星图图例）</p>
+      <p>hover 节点 → 日期/立场/目标/止损/原文片段</p>
+      <p>刷新即 live 重绘（零编译）</p>
+    </div>
+  </div>
+
+  <div class="sub-h" style="margin-top:26px"><span class="bar"></span>落地次序</div>
+  <table class="tbl">
+    <thead><tr><th>里程碑</th><th>范围</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td class="k">M0 采集第二个 UP</td><td>media-archive 抓另一财经 UP，供跨 UP 功能真实数据</td><td><i class="dot d-block"></i> 暂阻塞（B站 -352 风控）</td></tr>
+      <tr><td class="k">M1 数据管道</td><td>raw-preview v0.3 出 stances[] + build_timeline 抽取/归一；diff 验旧 timeline 不变</td><td><i class="dot d-v2"></i> 待开工</td></tr>
+      <tr><td class="k">M2 核心演化图</td><td>回填 demo 序列 + stanceIndex + 实体页/演化图/立场徽章</td><td><i class="dot d-v2"></i> 待开工</td></tr>
+      <tr><td class="k">M3 UP 维度</td><td>UP 画像 + 跨 UP 对比（依赖 M0）</td><td><i class="dot d-block"></i> 依赖 M0</td></tr>
+    </tbody>
+  </table>
+
+  <footer>
+    <span>Finance_Agent · docs/tradingagents-cn/media-transcription/media-frontend-presentation.html</span>
+    <span>前端展示 × 内容来源 · 待评审</span>
+  </footer>
+
+</div>
+</body>
+</html>

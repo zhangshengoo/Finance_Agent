@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>前端「回测」功能单元 Demo v4 · M1 核心版（601899 真实实证）— Finance_Agent</title>
+<style>
+  :root{
+    --c-media:#cd5638; --c-macro:#7a4fce; --c-sector:#2f7fc4; --gold:#bf8a2c; --c-thesis:#48993d;
+    --c-company:#bd7a0e; --c-equity:#cd5638;
+    /* 对齐真实前端 eqVCol：买=红 卖=绿 持有=褐 */
+    --buy:#c2362f; --sell:#2f8f5b; --hold:#8a7457; --gain:#c2362f; --loss:#2f8f5b;
+    /* 记忆桶配色 */
+    --m-bull:#3f9d6b; --m-bear:#c2493f; --m-trader:#bf8a2c; --m-judge:#2f7fc4; --m-risk:#d9a441;
+    --bg:#0e1014; --panel:#161a21; --panel2:#1c222c; --line:#2a313d;
+    --ink:#e8ebf0; --dim:#9aa4b2; --faint:#6b7480; --warn:#d9a441;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft Yahei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:
+      radial-gradient(1200px 600px at 82% -10%,rgba(205,86,56,.08),transparent 60%),
+      radial-gradient(900px 500px at -10% 8%,rgba(122,79,206,.07),transparent 55%),var(--bg);
+    color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1100px;margin:0 auto;padding:42px 26px 90px}
+  .kicker{font:600 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--c-media);margin-bottom:13px}
+  h1{font-size:27px;margin:0 0 8px;letter-spacing:-.01em}
+  .sub{color:var(--dim);font-size:14px;max-width:870px}
+  .sub b{color:var(--ink)}
+
+  .changes{margin-top:16px;border:1px solid rgba(122,79,206,.3);background:rgba(122,79,206,.06);border-radius:11px;padding:14px 17px}
+  .changes .h{font:700 11px var(--mono);color:#b7a3e8;letter-spacing:.06em;margin-bottom:9px}
+  .changes ul{margin:0;padding-left:18px;font-size:12.5px;color:var(--dim)}.changes li{margin:5px 0}
+  .changes b{color:var(--ink)} .changes code{font:600 11px var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:#c9d2dd}
+
+  .capmap{display:flex;flex-wrap:wrap;gap:9px;margin-top:13px}
+  .cap{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:7px 12px;font-size:12px}
+  .cap .k{font:700 10px var(--mono);border-radius:5px;padding:2px 7px;color:#0e1014;flex:none}
+  .cap .A{background:var(--c-media)}.cap .B{background:var(--c-sector)}.cap .M1{background:var(--gold)}.cap .MEM{background:var(--c-macro)}
+  .cap.soon{opacity:.5}.cap.soon .k{background:#5a6470}
+  .cap .d{color:var(--dim)}.cap .d b{color:var(--ink)}
+
+  h2.sec{font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);
+    margin:50px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:12px}
+  h2.sec .no{font:700 13px var(--mono);color:var(--c-media)}
+  h2.sec .cn{color:var(--ink);font-size:18px;letter-spacing:normal;text-transform:none;font-weight:650}
+
+  .pin{display:inline-grid;place-items:center;width:21px;height:21px;border-radius:50%;background:var(--c-media);color:#fff;font:700 11px var(--mono);flex:none;vertical-align:middle}
+  .sp{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:5px;font:700 10px var(--mono);color:#0e1014;vertical-align:middle}
+  .sp.s1{background:var(--c-sector)}.sp.s2{background:var(--gold)}.sp.s3{background:var(--c-media)}
+  .sp.s4{background:var(--c-macro)}.sp.s6{background:#4f8a86}
+
+  .browser{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#0d1116;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+  .bbar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#11151c;border-bottom:1px solid var(--line)}
+  .bbar .dotr{display:flex;gap:6px}.bbar .dotr i{width:11px;height:11px;border-radius:50%}
+  .bbar .url{flex:1;min-width:0;background:#0c0f14;border:1px solid var(--line);border-radius:7px;padding:5px 12px;font:500 11.5px var(--mono);color:var(--dim);text-align:center}
+  .app{display:flex;align-items:stretch}
+  .nav{width:148px;flex:none;border-right:1px solid var(--line);background:#0f1319;padding:14px 0}
+  @media(max-width:820px){.nav{display:none}}
+  .nav .ni{padding:9px 18px;font-size:13px;color:var(--dim);display:flex;align-items:center;gap:9px;border-left:3px solid transparent}
+  .nav .ni i{width:7px;height:7px;border-radius:50%}
+  .nav .ni.on{color:var(--ink);border-left-color:var(--c-company);background:rgba(189,122,14,.1)}
+  .main{flex:1;min-width:0;padding:20px 22px}
+
+  .eqh{display:flex;align-items:center;gap:15px;flex-wrap:wrap;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:15px 18px}
+  .eqh .tk{font:700 22px var(--mono);color:var(--ink);flex:none}
+  .eqh .nm{font-size:15px;color:var(--dim)}
+  .eqh .nm b{color:var(--ink);font-weight:600}
+  .decpill{font:700 12px var(--mono);border-radius:7px;padding:4px 12px;flex:none}
+  .decpill.buy{background:rgba(194,54,47,.16);color:#f0938b;border:1px solid rgba(194,54,47,.45)}
+  .decpill.sell{background:rgba(47,143,91,.16);color:#7fd0a3;border:1px solid rgba(47,143,91,.45)}
+  .eqh .runsel{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .selbox{display:flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 11px;font:500 12px var(--mono);color:var(--dim)}
+  .selbox .cv{color:var(--ink)} .selbox .cx{color:var(--faint);font-size:10px}
+  .badge{font:700 10px var(--mono);border-radius:5px;padding:3px 8px;letter-spacing:.03em}
+  .badge.ok{background:rgba(47,143,91,.16);color:#7fd0a3;border:1px solid rgba(47,143,91,.4)}
+  .badge.sample{background:rgba(217,164,65,.14);color:#e6c987;border:1px solid rgba(217,164,65,.4)}
+
+  .subtab{display:flex;gap:4px;margin:16px 0 4px;border-bottom:1px solid var(--line)}
+  .subtab .t{font-size:13px;color:var(--dim);padding:8px 14px;border-bottom:2px solid transparent;cursor:default}
+  .subtab .t.on{color:var(--ink);border-bottom-color:var(--c-equity);font-weight:600}
+
+  .runbar{display:flex;flex-wrap:wrap;gap:7px 18px;align-items:center;border:1px solid rgba(122,79,206,.32);border-radius:10px;background:linear-gradient(180deg,rgba(122,79,206,.07),#0f1319);padding:11px 15px;margin:14px 0 4px;font:500 11.5px var(--mono);color:var(--dim)}
+  .runbar .it{display:flex;align-items:center;gap:6px}
+  .runbar .it b{color:var(--ink);font-weight:600}
+  .runbar .k{color:var(--faint);font-size:10px;text-transform:uppercase;letter-spacing:.05em}
+  .lead{font-size:12.5px;color:var(--dim);margin:10px 0 2px;line-height:1.6}.lead b{color:var(--ink)}
+
+  .blk-h{display:flex;align-items:center;gap:9px;margin:18px 0 8px}
+  .blk-h h3{margin:0;font-size:14px}.blk-h .n{font:500 10.5px var(--mono);color:var(--faint)}.blk-h .ln{flex:1;height:1px;background:var(--line)}
+  .blk-h .tag{font:700 10px var(--mono);color:#0e1014;border-radius:5px;padding:3px 9px;background:var(--gold);flex:none}
+
+  table.tr{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
+  table.tr th{text-align:left;font:600 10px var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:.04em;padding:8px 10px;border-bottom:1px solid var(--line)}
+  table.tr td{padding:9px 10px;border-bottom:1px solid rgba(42,49,61,.55);color:var(--ink)}
+  table.tr td.num{font:500 12px var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+  table.tr tr:hover td{background:rgba(255,255,255,.02)}
+  .sidepill{font:700 10px var(--mono);border-radius:5px;padding:2px 8px}
+  .sidepill.buy{background:rgba(194,54,47,.16);color:#f0938b}
+  .sidepill.sell{background:rgba(47,143,91,.16);color:#7fd0a3}
+  .sidepill.hold{background:rgba(138,116,87,.22);color:#cdb892}
+  .hzpill{font:700 10px var(--mono);border-radius:5px;padding:2px 7px;background:rgba(191,138,44,.16);color:#dcb35f}
+  .ret.up{color:var(--gain)}.ret.down{color:var(--loss)}.ret.neu{color:var(--faint)}
+  .rflag{font:600 10px var(--mono);color:#7fd0a3} .rflag.no{color:var(--faint)} .rflag.wait{color:#d6a94a}
+  .honest{margin-top:10px;font-size:11px;color:var(--warn);background:rgba(217,164,65,.08);border:1px solid rgba(217,164,65,.28);border-radius:7px;padding:7px 11px;line-height:1.55}
+  .honest b{color:#e6c987}
+
+  /* 记忆教训卡（核心，主内容） */
+  .memwrap{border:1px solid rgba(122,79,206,.5);border-radius:13px;background:rgba(122,79,206,.07);padding:16px 17px;margin-top:18px}
+  .memtop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:11px}
+  .memtop h3{margin:0;font-size:15px}
+  .memtop .core{margin-left:auto;font:700 10px var(--mono);color:#b7a3e8;background:rgba(122,79,206,.16);border:1px solid rgba(122,79,206,.45);border-radius:6px;padding:3px 9px}
+  .membanner{font:600 11px var(--mono);color:var(--warn);background:rgba(217,164,65,.08);border:1px solid rgba(217,164,65,.28);border-radius:7px;padding:7px 11px;margin-bottom:13px;line-height:1.55}
+  .membanner b{color:#e6c987}
+  .loopline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:600 11.5px var(--mono);color:var(--dim);margin-bottom:14px}
+  .loopline b{color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:3px 9px}
+  .loopline i{color:var(--c-macro);font-style:normal;font-weight:700}
+  .loopline .aw{color:var(--c-media)}.loopline .br{color:var(--c-sector)}
+  .buckets{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:680px){.buckets{grid-template-columns:1fr}}
+  .bucket{border:1px solid var(--line);border-left-width:3px;border-radius:9px;background:var(--panel);padding:11px 13px}
+  .bucket.bull{border-left-color:var(--m-bull)}.bucket.bear{border-left-color:var(--m-bear)}
+  .bucket.trader{border-left-color:var(--m-trader)}.bucket.judge{border-left-color:var(--m-judge)}
+  .bucket.risk{border-left-color:var(--m-risk)}
+  .bucket .bh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+  .bucket .bn{font:700 11px var(--mono)}
+  .bucket.bull .bn{color:#6fd0a0}.bucket.bear .bn{color:#e09a92}.bucket.trader .bn{color:#dcb35f}
+  .bucket.judge .bn{color:#86b8e0}.bucket.risk .bn{color:#e6c987}
+  .bucket .role{font-size:11px;color:var(--faint)}
+  .bucket .pnl{margin-left:auto;font:700 10px var(--mono);border-radius:5px;padding:1px 7px;background:rgba(194,54,47,.16);color:#f0938b}
+  .bucket .lesson{font-size:12px;color:var(--dim);line-height:1.6}
+  .recall{margin-top:13px;border:1px dashed rgba(47,127,196,.45);border-radius:9px;background:rgba(47,127,196,.05);padding:11px 13px}
+  .recall .lab{font:700 10px var(--mono);color:#86b8e0;letter-spacing:.03em;margin-bottom:7px;display:flex;align-items:center;gap:7px}
+  .recall .inj{font:500 11.5px var(--mono);color:var(--dim);background:#0c0f14;border:1px solid var(--line);border-radius:7px;padding:9px 11px;line-height:1.6}
+  .recall .inj .c{color:var(--faint)}.recall .inj .v{color:#9fc3e8}
+
+  /* M2 后续占位（灰） */
+  .soonbox{margin-top:16px;border:1px dashed var(--line);border-radius:12px;background:repeating-linear-gradient(135deg,#12161d,#12161d 10px,#10141a 10px,#10141a 20px);padding:16px 17px;opacity:.85}
+  .soonbox .sh{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:6px}
+  .soonbox .tag{font:700 10px var(--mono);color:#cdd3db;background:#3a414c;border-radius:5px;padding:3px 9px}
+  .soonbox h3{margin:0;font-size:14px;color:var(--dim)}
+  .soonbox p{margin:4px 0 0;font-size:12px;color:var(--faint)}
+
+  .srcleg{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 20px;font-size:12px;color:var(--dim)}
+  .srcleg .it{display:flex;align-items:center;gap:6px}
+  .exp{display:flex;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 17px;margin-bottom:12px}
+  .exp .body{flex:1;min-width:0}.exp h4{margin:0 0 5px;font-size:15px}.exp p{margin:0;font-size:13px;color:var(--dim)}
+  .exp p b{color:var(--ink)} .exp code{font:600 11px var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:#c9d2dd}
+  .exp .from{margin-top:10px;font-size:12px;color:var(--faint);display:flex;align-items:center;gap:6px;flex-wrap:wrap}.exp .from b{color:var(--dim);font-weight:600}
+  .exp.flag{border-color:rgba(217,164,65,.45);background:rgba(217,164,65,.05)}
+
+  .loopfig{border:1px solid var(--line);border-radius:13px;background:linear-gradient(180deg,#12161d,#0f1218);padding:20px 18px}
+  pre{background:#0a0d12;border:1px solid var(--line);border-radius:9px;padding:14px 16px;overflow-x:auto;font:500 11.5px/1.7 var(--mono);color:#c2cad4;margin:10px 0 0;white-space:pre}
+  pre .k{color:#cd8f6a}pre .s{color:#9fd49a}pre .c{color:#5f6b7a}pre .n{color:#d6a94a}pre .hl{color:#e6c987;font-weight:700}
+  .schemagrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.schemagrid{grid-template-columns:1fr}}
+  .schemagrid h4{margin:0 0 2px;font-size:13px}.schemagrid .cap2{font-size:11.5px;color:var(--faint);margin:0}
+
+  /* 路线图 */
+  .road{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.road{grid-template-columns:1fr}}
+  .rcard{border:1px solid var(--line);border-radius:12px;padding:15px 16px;background:var(--panel)}
+  .rcard.core{border-color:rgba(72,153,61,.4);background:linear-gradient(180deg,rgba(72,153,61,.06),transparent 45%)}
+  .rcard.soon{opacity:.92}
+  .rcard h4{margin:0 0 4px;font-size:14px;display:flex;align-items:center;gap:9px}
+  .rcard .lbl{font:700 9px var(--mono);border-radius:5px;padding:2px 7px}
+  .rcard.core .lbl{background:rgba(72,153,61,.2);color:#7fc471}
+  .rcard.soon .lbl{background:#3a414c;color:#cdd3db}
+  .rcard ul{margin:8px 0 0;padding-left:17px;font-size:12.5px;color:var(--dim)}.rcard li{margin:4px 0}
+  .rcard code{font:600 11px var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:#c9d2dd}
+
+  footer{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);font:500 12px var(--mono);color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">Finance_Agent · 前端「回测」功能单元 · v4 实证版 · 601899</div>
+  <h1>回测单元 Demo — M1 核心版（601899 真实记忆环已闭合）</h1>
+  <p class="sub">本版用 <b>601899 紫金矿业</b>的<b>真实数据</b>填充：它已有两次个股分析（06-10 买入 → 06-15 卖出），构成真实决策序列。06-10 的买入持 3 交易日到 06-15，<b>真实兑现 +13.03%</b>（@27.70→@31.31，Tushare qfq），引擎已于今日 18:05 调 <code>reflect_and_remember</code>（=功能 A）把教训写进 5 个记忆桶；<b>功能 B</b> 次日同票分析时召回。前端只渲染<b>决策反思表 + 记忆教训卡</b>。M2 组合模拟留作后续。</p>
+
+  <div class="changes">
+    <div class="h">v4 改动：换成 601899 真实数据（记忆环已实证闭合）</div>
+    <ul>
+      <li><b>不再是 sample</b>：收益 +13.03% 为 Tushare 真实 qfq close 算得；5 桶教训为引擎真实生成并已写入 <code>.kb-vectors/ta-memory</code>（chroma 已含 <code>*_memory__601899</code> 五桶）。<code>report_status: ok</code>。</li>
+      <li><b>记忆环主内容</b>：决策反思表 → <b>记忆教训卡（5 桶 · 真实教训精简）</b> → 次日召回。这是本单元区别于普通回测工具的唯一价值。</li>
+      <li><b>评审 #1 已跑通</b>：教训卡所需的「<code>get_memories</code> 回读 5 桶教训 → 导出」这一步，刚才已只读验证可行；剩下只是把它接进 runner 输出 + 落 KB 文件。</li>
+      <li><b>诚实</b>：教训仍是<b>模型生成·非事实</b>（挂 ⚠ banner）；其余 horizon（06-10 的 5 日、06-15 的卖出）前向不足 → <code>non_evaluable</code> 跳过，已用真实价格层确认。</li>
+    </ul>
+    <div class="capmap">
+      <div class="cap"><span class="k M1">M1</span><span class="d"><b>单决策反思</b> 现有 snapshot 即可跑·不重跑引擎</span></div>
+      <div class="cap"><span class="k A">A</span><span class="d"><b>写半边</b> reflect_and_remember 写 5 桶</span></div>
+      <div class="cap"><span class="k B">B</span><span class="d"><b>读半边</b> 次日召回（已上线）</span></div>
+      <div class="cap"><span class="k MEM">记忆层</span><span class="d"><b>.kb-vectors/ta-memory</b> · text-embedding-v4</span></div>
+      <div class="cap soon"><span class="k">M2</span><span class="d">组合模拟 / 净值曲线 —— <b>后续扩展</b></span></div>
+    </div>
+  </div>
+
+  <!-- ============ 01 · DEMO ============ -->
+  <h2 class="sec"><span class="no">01</span><span class="cn">前端界面 Demo（仿真渲染 · M1 核心）</span></h2>
+
+  <div class="browser">
+    <div class="bbar"><div class="dotr"><i style="background:#e06257"></i><i style="background:#e3b341"></i><i style="background:#54a85a"></i></div>
+      <div class="url">localhost:8000/frontend/ — 个股分析 › 601899 › 回测</div></div>
+    <div class="app">
+      <div class="nav">
+        <div class="ni"><i style="background:#2f7fc4"></i>行业</div>
+        <div class="ni on"><i style="background:#bd7a0e"></i>公司</div>
+        <div class="ni"><i style="background:#7a4fce"></i>宏观</div>
+        <div class="ni"><i style="background:#cd5638"></i>媒体转录</div>
+        <div class="ni"><i style="background:#48993d"></i>论点</div>
+        <div class="ni"><i style="background:#5356cf"></i>组合</div>
+      </div>
+      <div class="main">
+
+        <div class="eqh">
+          <div class="tk">601899</div>
+          <div class="nm"><b>紫金矿业</b> · 上证主板 · 有色金属/黄金</div>
+          <span class="decpill sell">最新决策(06-15) · 卖出</span>
+          <div class="runsel"><div class="selbox">反思运行 <span class="cv">cn/601899-20260615-1805 ▾</span> <span class="cx">M1 · 1 次</span></div></div>
+        </div>
+
+        <div class="subtab">
+          <span class="t">研究报告</span>
+          <span class="t">wiki 深度页</span>
+          <span class="t on">回测 / 记忆环</span>
+        </div>
+
+        <div class="runbar">
+          <div class="it"><span class="k">模式</span><b>M1 单决策反思</b></div>
+          <div class="it"><span class="k">已写教训</span><b>5 条（06-10 买入 × 5 桶）</b></div>
+          <div class="it"><span class="k">真实收益</span><b style="color:var(--gain)">+13.03%（3 交易日）</b></div>
+          <div class="it"><span class="k">最近反思</span><b>2026-06-15 18:05</b></div>
+          <div class="it"><span class="k">DashScope</span><b>探活 OK · v4</b></div>
+          <div class="it"><span class="badge ok">report_status: ok · 真实</span></div>
+        </div>
+        <p class="lead">两块内容，上薄下重：<b>① 决策反思表</b>（这一笔对不对）→ <b>② 记忆教训卡</b>（写进 5 桶、次日召回）。601899 的记忆环<b>已真实闭合</b>，记忆环是主角。</p>
+
+        <!-- ① 决策反思表 -->
+        <div class="blk-h"><span class="tag">M1</span><h3>决策 × horizon 前向收益</h3><span class="n">trades.jsonl · 收益用 Tushare 真实 qfq close</span><span class="ln"></span></div>
+        <table class="tr">
+          <thead><tr><th>snapshot</th><th>决策</th><th>horizon</th><th>入场 close</th><th>评估 close</th><th style="text-align:right">前向收益</th><th>状态</th><th>反思</th></tr></thead>
+          <tbody>
+            <tr><td class="num" style="text-align:left">2026-06-10</td><td><span class="sidepill buy">买入</span></td><td><span class="hzpill">3 日→06-15</span></td><td class="num">27.70</td><td class="num">31.31</td><td class="num ret up">+13.03%</td><td><span class="rflag">可评估</span></td><td><span class="rflag">✓ 已写 5 桶</span></td></tr>
+            <tr><td class="num" style="text-align:left">2026-06-10</td><td><span class="sidepill buy">买入</span></td><td><span class="hzpill">5 日</span></td><td class="num">27.70</td><td class="num">—</td><td class="num ret neu">—</td><td><span class="rflag wait">评估日未来(~06-17)</span></td><td><span class="rflag no">non_evaluable · 跳过</span></td></tr>
+            <tr><td class="num" style="text-align:left">2026-06-15</td><td><span class="sidepill sell">卖出</span></td><td><span class="hzpill">3 / 5 日</span></td><td class="num">31.31</td><td class="num">—</td><td class="num ret neu">—</td><td><span class="rflag wait">评估日未来</span></td><td><span class="rflag no">non_evaluable · 跳过</span></td></tr>
+          </tbody>
+        </table>
+        <div class="honest">收益 = (评估日 close − 入场 close) / 入场 close，<b>仅用 Tushare 前复权真实 close</b>，绝不用引擎可能编造的 target_price。06-10 买入持 3 交易日(到 06-15)真实 +13.03%（@27.70→@31.31），<b>已写入 5 桶</b>。其余 horizon 前向交易日不足 → <code>non_evaluable</code> 跳过（已用真实价格层确认，不杜撰）。<b>06-15 卖出</b>需待未来价格才能评估其对错。<b>只反思买/卖；持有默认跳过</b>（设计文档 §9 待定）。</div>
+
+        <!-- ② 记忆教训卡（核心） -->
+        <div class="memwrap">
+          <div class="memtop"><span class="pin">★</span><h3>记忆教训卡 · 记忆环</h3><span class="core">本单元核心</span></div>
+          <div class="membanner">⚠ <b>模型判断 · 非事实</b>：教训是引擎原生 <code>reflect_and_remember</code> 用真实收益（<b>+13.03%</b>）让 quick-LLM 生成的反思，<b>一次反思给 5 个桶各写一条</b>，已真实写入 <code>*_memory__601899</code>。下方为真实存储教训的<b>精简</b>（完整版是长报告）；是「下次怎么决策」的经验，非已发生事实。runner <b>回读导出</b>后由前端渲染——<b>前端绝不直接读 .kb-vectors</b>。</div>
+          <div class="loopline">
+            <b>06-10 买入</b><i>→</i><b>+13.03%(Tushare)</b><i>→</i><span class="aw">reflect_and_remember【A 写】</span><i>→</i><b>5 记忆桶</b><i>⟳</i><span class="br">次日 get_memories【B 读】</span><i>→</i><b>新决策</b>
+          </div>
+          <div class="buckets">
+            <div class="bucket bull">
+              <div class="bh"><span class="bn">bull_memory</span><span class="role">多头研究员</span><span class="pnl">3 日 +13.03%</span></div>
+              <div class="lesson">在 RSI6=24.92 极度超卖、股价贴布林下轨(27.76)处买入，3 交易日反弹 +13.03%——超卖反弹逻辑兑现。关键是识别 MACD 空头衰竭信号而非追势，极端位置反弹胜率高。</div>
+            </div>
+            <div class="bucket bear">
+              <div class="bh"><span class="bn">bear_memory</span><span class="role">空头研究员</span><span class="pnl">3 日 +13.03%</span></div>
+              <div class="lesson">看空在极度超卖区被证伪：RSI&lt;25 时短期(5-10 日)反弹概率达 80-85%。不应在布林下轨、空头动能衰竭处继续看空/加空，须警惕超卖反弹。</div>
+            </div>
+            <div class="bucket trader">
+              <div class="bh"><span class="bn">trader_memory</span><span class="role">交易员</span><span class="pnl">3 日 +13.03%</span></div>
+              <div class="lesson">27.70 买入、31.31 了结(+13.03%)，时机优秀（超卖买入、反弹高点附近卖出），执行无情绪化。「极端超卖建仓→反弹兑现」节奏可复用，回撤控制在 3-5%。</div>
+            </div>
+            <div class="bucket judge">
+              <div class="bh"><span class="bn">invest_judge_memory</span><span class="role">投资裁判</span><span class="pnl">3 日 +13.03%</span></div>
+              <div class="lesson">采纳多头、结果正确：当技术面极端信号（超卖 + 下轨支撑）足够强时，可压过当时偏空的消息面噪音；裁决偏向强信号一侧是合理的。</div>
+            </div>
+            <div class="bucket risk">
+              <div class="bh"><span class="bn">risk_manager_memory</span><span class="role">风险经理</span><span class="pnl">3 日 +13.03%</span></div>
+              <div class="lesson">风险评分 0.65，买在极端超卖位降低了下行风险，期间最大回撤 3-5% 未触止损。仓位与 confidence=0.75 匹配合理，高确信极端位可适度放宽。</div>
+            </div>
+          </div>
+          <div class="recall">
+            <div class="lab"><span class="sp s4">B</span>次日召回预览 — 同票 601899 再跑分析（depth≥2）时自动注入各 agent</div>
+            <div class="inj"><span class="c"># 多头研究员 prompt 注入 past_memory_str（余弦 Top-K 召回）</span><br>
+              <span class="v">[记忆] 上次类似情形：RSI6≈25 极度超卖 + 贴布林下轨 → 买入 3 日 +13.03%（正确）。<br>教训：极端超卖处识别 MACD 空头衰竭即可建仓，反弹胜率高；勿在超卖区追空。（来源 bull_memory__601899, sim≈0.86）</span></div>
+          </div>
+        </div>
+
+        <!-- M2 后续占位 -->
+        <div class="soonbox">
+          <div class="sh"><span class="tag">M2 · 后续扩展</span><h3>组合表现：净值曲线 / 指标卡 / 组合往返成交</h3></div>
+          <p>需先积累<b>前向决策序列</b>（按节奏跑、攒真·样本外样本）后再接入；不在首版。接入后此处展开净值曲线 + 指标，平仓收益同样喂入上方记忆桶。</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 02 · 解释 ============ -->
+  <h2 class="sec"><span class="no">02</span><span class="cn">对着 Demo 逐块解释（含数据来源）</span></h2>
+  <div class="srcleg">
+    <span style="color:var(--faint);font-weight:600">数据来源：</span>
+    <span class="it"><span class="sp s1">①</span>snapshot（个股分析产出）</span>
+    <span class="it"><span class="sp s2">②</span>Tushare 真实前向收益</span>
+    <span class="it"><span class="sp s3">③</span>run_backtest --mode reflect</span>
+    <span class="it"><span class="sp s4">④</span>记忆桶 .kb-vectors</span>
+    <span class="it"><span class="sp s6">⑥</span>前端 live-parse</span>
+  </div>
+
+  <div class="exp"><span class="pin">1</span><div class="body"><h4>决策 × horizon 反思表</h4>
+    <p>对每个 snapshot 决策按多个 horizon（5/20 日）算<b>固定窗口前向收益</b>，各写一条教训。<b>孤立单 snapshot 即可跑、不重跑引擎、无前瞻偏差</b>——这是它能成为「今天就能验证效果」的首版核心的原因。停牌 / 评估日未来 → <code>non_evaluable</code> 跳过；持有默认跳过。</p>
+    <div class="from"><b>来源</b><span class="sp s1">①</span>snapshot 决策 + <span class="sp s2">②</span>horizon 前向 close → <span class="sp s3">③</span>reflect 产 trades.jsonl → <span class="sp s6">⑥</span>表格</div></div></div>
+
+  <div class="exp"><span class="pin">★</span><div class="body"><h4>记忆教训卡 + 记忆环（核心）</h4>
+    <p>本单元的全部价值。<code>reflect_and_remember(signed_return)</code> 对 5 个组件各发 1 次 quick-LLM，给 <code>bull/bear/trader/invest_judge/risk_manager_memory__&lt;ticker&gt;</code> 五桶各写一条（<b>功能 A</b>）。次日同票分析 <b>功能 B</b> 按余弦相似度 <code>get_memories</code> 召回，注入各 agent 的 <code>past_memory_str</code>——环闭合。教训<b>模型判断非事实</b>，挂 ⚠ banner。</p>
+    <div class="from"><b>来源</b><span class="sp s2">②</span>真实收益 → <span class="sp s3">③</span>reflect_and_remember → <span class="sp s4">④</span>5 桶（A 写/B 读·text-embedding-v4）→ 导出 → <span class="sp s6">⑥</span>卡片</div></div></div>
+
+  <div class="exp flag"><span class="pin" style="background:var(--warn);color:#0e1014">⚠</span><div class="body"><h4>唯一需新增的一步：教训回读导出（已验证可行）</h4>
+    <p>现状：<code>run_backtest.py</code> 跑完只写 <code>trades.jsonl</code> + <code>config.json</code>，教训写进 ChromaDB 后<b>暂未被读出来</b>。本页的 5 桶教训正是<b>刚才直接从 <code>*_memory__601899</code> 读出</b>的（只读验证，证明回读可行）。剩下只需把这步接进 runner 输出：reflect 后用 <code>get_memories(situation)</code> 回读 5 桶 → 导出 <code>lessons[]</code> 落 KB 文件（前端只读它，<b>绝不直读 .kb-vectors</b>）。量很小，但<b>是教训卡的前置硬依赖</b>。</p>
+    <div class="from"><b>动作</b><span class="sp s4">④</span>get_memories 回读 5 桶（已验证）→ 导出 lessons[] → <span class="sp s6">⑥</span>前端渲染</div></div></div>
+
+  <!-- ============ 03 · 记忆环逻辑 ============ -->
+  <h2 class="sec"><span class="no">03</span><span class="cn">实现逻辑：M1 单路记忆环（首版）</span></h2>
+  <p class="sub" style="margin-bottom:16px">首版只有 M1 一条路径，复用 TradingAgents-CN 原生设施，不另起系统。流程一条线：snapshot 决策 → 真实收益 → 写 5 桶（A）→ 次日召回（B）→ 新决策。前端读的是 runner <b>导出</b>的教训文件。</p>
+  <div class="loopfig">
+    <svg viewBox="0 0 900 270" role="img" aria-label="M1 记忆环逻辑图">
+      <defs>
+        <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#7a4fce"/></marker>
+        <marker id="ag" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#5a6470"/></marker>
+        <marker id="aw" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#d9a441"/></marker>
+      </defs>
+      <g font-family="var(--sans)" font-size="12">
+        <rect x="26" y="34" width="172" height="58" rx="10" fill="#1c222c" stroke="#2f7fc4" stroke-width="1.3"/>
+        <text x="112" y="58" text-anchor="middle" fill="#86b8e0" font-weight="700" font-size="13">个股分析（已存在）</text>
+        <text x="112" y="77" text-anchor="middle" fill="#9aa4b2" font-size="10" font-family="ui-monospace,monospace">snapshot：决策+报告+辩论</text>
+
+        <rect x="244" y="34" width="172" height="58" rx="10" fill="rgba(191,138,44,.08)" stroke="#bf8a2c" stroke-width="1.3"/>
+        <text x="330" y="56" text-anchor="middle" fill="#dcb35f" font-weight="700" font-size="12.5">M1 单决策反思</text>
+        <text x="330" y="75" text-anchor="middle" fill="#9aa4b2" font-size="9.5" font-family="ui-monospace,monospace">Tushare 前向收益 ±%</text>
+
+        <rect x="462" y="34" width="172" height="58" rx="10" fill="rgba(205,86,56,.1)" stroke="#cd5638" stroke-width="1.6"/>
+        <text x="548" y="56" text-anchor="middle" fill="#f0a892" font-weight="700" font-size="12.5">功能 A · 写半边</text>
+        <text x="548" y="75" text-anchor="middle" fill="#9aa4b2" font-size="9.5" font-family="ui-monospace,monospace">reflect_and_remember</text>
+
+        <rect x="680" y="22" width="196" height="82" rx="11" fill="rgba(122,79,206,.08)" stroke="#7a4fce" stroke-width="1.6"/>
+        <text x="778" y="42" text-anchor="middle" fill="#b7a3e8" font-weight="700" font-size="12">5 记忆桶 / 票</text>
+        <g font-family="ui-monospace,monospace" font-size="9" text-anchor="middle" fill="#cdd3db">
+          <text x="778" y="60">bull · bear · trader</text>
+          <text x="778" y="76">invest_judge · risk_manager</text>
+          <text x="778" y="94" fill="#8a93a0">.kb-vectors/ta-memory · v4</text>
+        </g>
+
+        <rect x="244" y="158" width="172" height="58" rx="10" fill="rgba(47,127,196,.1)" stroke="#2f7fc4" stroke-width="1.6"/>
+        <text x="330" y="182" text-anchor="middle" fill="#86b8e0" font-weight="700" font-size="12.5">功能 B · 读半边</text>
+        <text x="330" y="201" text-anchor="middle" fill="#9aa4b2" font-size="9.5" font-family="ui-monospace,monospace">次日 get_memories 召回</text>
+
+        <rect x="462" y="158" width="172" height="58" rx="10" fill="rgba(217,164,65,.07)" stroke="#d9a441" stroke-width="1.4" stroke-dasharray="5 3"/>
+        <text x="548" y="178" text-anchor="middle" fill="#e6c987" font-weight="700" font-size="11.5">⚠ 教训回读导出</text>
+        <text x="548" y="196" text-anchor="middle" fill="#9aa4b2" font-size="9" font-family="ui-monospace,monospace">get_memories→lessons[]（需新增）</text>
+
+        <rect x="680" y="158" width="196" height="58" rx="10" fill="#13171e" stroke="#2a313d" stroke-width="1.1"/>
+        <text x="778" y="182" text-anchor="middle" fill="#cdd3db" font-weight="650" font-size="12">前端教训卡</text>
+        <text x="778" y="201" text-anchor="middle" fill="#9aa4b2" font-size="9" font-family="ui-monospace,monospace">读导出文件，不读 .kb-vectors</text>
+      </g>
+      <g stroke-width="1.6" fill="none">
+        <path d="M198,63 L242,63" stroke="#5a6470" marker-end="url(#ag)"/>
+        <path d="M416,63 L460,63" stroke="#5a6470" marker-end="url(#ag)"/>
+        <path d="M634,63 L678,63" stroke="#7a4fce" marker-end="url(#ah)"/>
+        <!-- 桶 → B（次日召回闭环） -->
+        <path d="M680,80 C470,120 440,130 416,165" stroke="#2f7fc4" stroke-dasharray="6 4" marker-end="url(#ag)"/>
+        <!-- B → 个股分析（注入，闭环） -->
+        <path d="M244,180 C150,180 112,140 112,96" stroke="#2f7fc4" marker-end="url(#ag)"/>
+        <!-- 桶 → 导出 → 前端 -->
+        <path d="M700,104 C640,130 600,135 584,156" stroke="#d9a441" stroke-dasharray="4 3" marker-end="url(#aw)"/>
+        <path d="M634,187 L678,187" stroke="#5a6470" marker-end="url(#ag)"/>
+      </g>
+      <text x="455" y="128" fill="#86b8e0" font-size="10" font-family="ui-monospace,monospace">⟳ 次日召回（闭环）</text>
+    </svg>
+    <div class="honest" style="margin-top:13px">关键不变量：① <b>A 写的桶 = B 读的桶</b>——persist dir / namespace=ticker / text-embedding-v4 逐项一致。② <b>DashScope 仅做 Embedding</b>，reflect 的 quick-LLM 走 claude-max-proxy:5678。③ 写前<b>探活</b> 防零向量；<b>幂等台账</b>记 (ticker,date,horizon) 防重复写。④ 黄色虚线的<b>教训回读导出</b>是首版唯一需新增的一步。</div>
+  </div>
+
+  <!-- ============ 04 · 数据契约 ============ -->
+  <h2 class="sec"><span class="no">04</span><span class="cn">前端读的数据契约（M1 首版）</span></h2>
+  <p class="sub" style="margin-bottom:14px">前端 <code>kb-parse.js</code> 解析 <code>raw/analysis/backtests/cn/&lt;ticker&gt;-&lt;runid&gt;.md</code> → <code>companies[].backtests[]</code>。标量进 frontmatter；<b>数组（trades / lessons）进正文 <code>```json</code> 块</b>（mini-YAML 会把嵌套结构退化成字符串）。首版无 equity_curve。</p>
+  <div class="schemagrid">
+    <div>
+      <h4>① backtest-report frontmatter（标量）</h4>
+      <p class="cap2">M1 首版：mode=reflect，无组合指标</p>
+<pre><span class="k">type:</span> backtest-report
+<span class="k">ticker:</span> <span class="s">"601899"</span>
+<span class="k">mode:</span> reflect
+<span class="k">run_status:</span> ok
+<span class="k">snapshot_date:</span> <span class="s">"2026-06-10"</span>
+<span class="k">horizons:</span> <span class="s">"3,5"</span>
+<span class="k">n_reflected:</span> <span class="n">1</span>
+<span class="k">n_non_evaluable:</span> <span class="n">3</span>
+<span class="k">sources:</span>
+  - raw/data/backtests/cn/601899-.../trades.jsonl</pre>
+    </div>
+    <div>
+      <h4>② 正文 json 块</h4>
+      <p class="cap2">trades 现成；<span style="color:#e6c987">lessons 需新增导出</span></p>
+<pre><span class="c">// trades（reflect 行 · 现有 run_backtest 已产）</span>
+[{<span class="k">"snapshot_date"</span>:<span class="s">"2026-06-10"</span>,<span class="k">"side"</span>:<span class="s">"buy"</span>,
+  <span class="k">"horizon"</span>:<span class="n">3</span>,<span class="k">"entry_close"</span>:<span class="n">27.70</span>,
+  <span class="k">"exit_close"</span>:<span class="n">31.31</span>,<span class="k">"signed_return"</span>:<span class="n">0.1303</span>,
+  <span class="k">"reflected"</span>:<span class="k">true</span>},
+ {<span class="k">"horizon"</span>:<span class="n">5</span>,<span class="k">"non_evaluable"</span>:<span class="k">true</span>,
+  <span class="k">"skip_reason"</span>:<span class="s">"insufficient_forward"</span>}]
+
+<span class="hl">// lessons（⚠ 需新增：get_memories 回读导出）</span>
+[{<span class="k">"bucket"</span>:<span class="s">"bull_memory"</span>,<span class="k">"horizon"</span>:<span class="n">3</span>,
+  <span class="k">"outcome_pnl"</span>:<span class="n">0.1303</span>,<span class="k">"lesson"</span>:<span class="s">"RSI超卖贴下轨买入→反弹兑现…"</span>}, ...]</pre>
+    </div>
+  </div>
+
+  <!-- ============ 05 · 路线图 ============ -->
+  <h2 class="sec"><span class="no">05</span><span class="cn">范围：首版核心 vs 后续扩展</span></h2>
+  <div class="road">
+    <div class="rcard core">
+      <h4><span class="lbl">首版核心</span>M1 记忆环最小闭环</h4>
+      <ul>
+        <li><b>已实现</b>：<code>run_backtest.py --mode reflect</code>（价格层 / curr_state 重建 / reflect_and_remember / 幂等台账）+ 功能 B 读半边（已上线）。</li>
+        <li><b>需新增（小）</b>：① 教训 <code>get_memories</code> 回读导出 <code>lessons[]</code>；② <code>backtest-report</code>(reflect) 落盘经 raw-intake；③ 前端 <code>renderBacktest()</code> 渲染反思表 + 教训卡 + kb-parse 分支 + serve.sh manifest。</li>
+        <li><b>效果已实证</b>：601899 06-10 买入持 3 日 +13.03%，已 reflect 写入 5 桶（chroma 含 <code>*_memory__601899</code>），次日分析即可召回。教训回读已只读验证可行。</li>
+      </ul>
+    </div>
+    <div class="rcard soon">
+      <h4><span class="lbl">后续扩展</span>逐步加，保证不返工</h4>
+      <ul>
+        <li><b>M2 组合模拟</b>：净值曲线 + 指标卡 + 组合往返成交（需前向累积决策序列；引擎层已实现，待接前端）。</li>
+        <li><b>触发器</b>：Option A 复制命令（零新增服务）→ 可选 127.0.0.1 SSE 桥（需确认）。</li>
+        <li><b>多 horizon / 卖出 / 持有口径</b>：HOLD 怎么记、horizon 取值（设计文档 §9）。</li>
+        <li><b>ontology + wiki/reports 编译</b>：Backtest 节点 + finance-ingest 两步 CoT。</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    <span>Finance_Agent · docs/tradingagents-cn/backtest/backtest-frontend-demo.html</span>
+    <span>回测前端单元 Demo v4 · M1 核心版 · 601899 真实实证</span>
+  </footer>
+
+</div>
+</body>
+</html>

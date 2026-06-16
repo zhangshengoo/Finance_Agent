@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>前端「媒体转录」Demo v3.1 · 类型化知识点树 — Finance_Agent</title>
+<style>
+  :root{
+    --c-media:#cd5638; --c-macro:#7a4fce; --c-sector:#2f7fc4; --gold:#bf8a2c; --c-thesis:#48993d;
+    --c-long:#3f9d6b; --c-short:#c2493f; --c-ai:#3f86c4;
+    --s1:#cd5638; --s2:#b79be6; --s3:#bf8a2c; --s4:#5a6470; --s5:#2f7fc4;
+    --bg:#0e1014; --panel:#161a21; --panel2:#1c222c; --line:#2a313d;
+    --ink:#e8ebf0; --dim:#9aa4b2; --faint:#6b7480; --warn:#d9a441;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft Yahei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:
+      radial-gradient(1200px 600px at 80% -10%,rgba(205,86,56,.08),transparent 60%),
+      radial-gradient(900px 500px at -10% 10%,rgba(47,127,196,.07),transparent 55%),var(--bg);
+    color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto;padding:42px 26px 90px}
+  .kicker{font:600 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--c-media);margin-bottom:13px}
+  h1{font-size:27px;margin:0 0 8px}
+  .sub{color:var(--dim);font-size:14px;max-width:850px}
+  .changes{margin-top:15px;border:1px solid rgba(63,134,196,.3);background:rgba(63,134,196,.06);border-radius:11px;padding:13px 16px}
+  .changes .h{font:700 11px var(--mono);color:#8fc0e8;letter-spacing:.06em;margin-bottom:8px}
+  .changes ul{margin:0;padding-left:18px;font-size:12.5px;color:var(--dim)}.changes li{margin:4px 0}
+  .changes b{color:var(--ink)}
+  .ntlegend{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
+
+  h2.sec{font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);
+    margin:46px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:12px}
+  h2.sec .no{font:700 13px var(--mono);color:var(--c-media)}
+  h2.sec .cn{color:var(--ink);font-size:18px;letter-spacing:normal;text-transform:none;font-weight:650}
+
+  .pin{display:inline-grid;place-items:center;width:21px;height:21px;border-radius:50%;background:var(--c-media);color:#fff;font:700 11px var(--mono);flex:none;vertical-align:middle}
+  .sp{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:5px;font:700 10px var(--mono);color:#0e1014;vertical-align:middle}
+  .sp.s1{background:var(--s1)}.sp.s2{background:var(--s2)}.sp.s3{background:var(--s3)}.sp.s4{background:var(--s4);color:#cdd3db}.sp.s5{background:var(--s5)}
+
+  /* 节点类型 chip */
+  .ntype{font:700 10px var(--mono);border-radius:5px;padding:2px 7px;white-space:nowrap;flex:none}
+  .nt-fact{background:rgba(106,116,128,.2);color:#aab3bf}
+  .nt-logic{background:rgba(47,127,196,.16);color:#86b8e0}
+  .nt-view{background:rgba(122,79,206,.2);color:#bda6ea}
+  .nt-trend{background:rgba(63,157,107,.16);color:#6fd0a0}
+  .nt-action{background:rgba(205,86,56,.2);color:#f0a892}
+  .nt-risk{background:rgba(217,164,65,.16);color:#e6c987}
+
+  /* ===== 浏览器窗口（flex + min-width:0，杜绝撑歪）===== */
+  .browser{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#0d1116;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+  .bbar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#11151c;border-bottom:1px solid var(--line)}
+  .bbar .dotr{display:flex;gap:6px}.bbar .dotr i{width:11px;height:11px;border-radius:50%}
+  .bbar .url{flex:1;min-width:0;background:#0c0f14;border:1px solid var(--line);border-radius:7px;padding:5px 12px;font:500 11.5px var(--mono);color:var(--dim);text-align:center}
+  .app{display:flex;align-items:stretch}
+  .nav{width:148px;flex:none;border-right:1px solid var(--line);background:#0f1319;padding:14px 0}
+  @media(max-width:760px){.nav{display:none}}
+  .nav .ni{padding:9px 18px;font-size:13px;color:var(--dim);display:flex;align-items:center;gap:9px;border-left:3px solid transparent}
+  .nav .ni i{width:7px;height:7px;border-radius:50%}
+  .nav .ni.on{color:var(--ink);border-left-color:var(--c-media);background:rgba(205,86,56,.08)}
+  .main{flex:1;min-width:0;padding:20px 22px}        /* min-width:0 是关键 */
+
+  /* 创作者头卡 */
+  .mh{display:flex;align-items:center;gap:16px;flex-wrap:wrap;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:15px 18px}
+  .ava{width:46px;height:46px;border-radius:50%;border:1px solid var(--c-media);display:grid;place-items:center;color:var(--c-media);font-size:20px;flex:none}
+  .mh .nm{font-size:18px}.mh .meta{font:500 11px var(--mono);color:var(--faint);margin-top:3px}
+  .mh .stats{display:flex;gap:16px;margin-left:auto;flex-wrap:wrap}
+  .mh .s{text-align:center}.mh .s .v{font-size:18px;font-weight:650}.mh .s .l{font-size:10px;color:var(--faint)}
+
+  .sh{display:flex;align-items:center;gap:9px;margin:22px 0 12px}
+  .sh h3{margin:0;font-size:14px}.sh .n{font:500 11px var(--mono);color:var(--faint)}.sh .ln{flex:1;height:1px;background:var(--line)}
+
+  /* 时间线卡：纯块状纵向 */
+  .tc{display:block;width:100%;border:1px solid var(--line);border-radius:11px;background:var(--panel);overflow:hidden;margin-bottom:8px}
+  .tc.open{border-left:3px solid var(--c-media)}
+  .row1{display:flex;align-items:center;gap:9px;padding:11px 14px}
+  .row1 .chev{color:var(--faint);font-size:11px;flex:none}
+  .row1 .dt{font:600 12px var(--mono);color:var(--faint);flex:none}
+  .row1 .kind{font:600 10px var(--mono);border-radius:5px;padding:2px 6px;flex:none}
+  .kind.v{background:var(--c-media);color:#0e1014}.kind.d{background:#c08f4e;color:#0e1014}
+  .row1 .ti-inline{font-size:13.5px;color:var(--ink);font-weight:550;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row1 .gap{flex:1;min-width:0}
+  .row1 .sdots{display:flex;gap:4px;flex:none}.row1 .sdots i{width:8px;height:8px;border-radius:50%}
+  .row1 .dur{font:500 11px var(--mono);color:var(--faint);flex:none}
+  .sdots .l{background:var(--c-long)}.sdots .s{background:var(--c-short)}
+  .row-title{display:block;padding:0 14px;font-size:15.5px;font-weight:600;line-height:1.45}
+  .row-sum{display:block;padding:7px 14px 0;font-size:12px;color:var(--dim)}
+  .cbody{display:block;padding:13px 14px 15px}
+
+  /* 知识点树 */
+  .kt-h{font:700 11px var(--mono);letter-spacing:.04em;color:var(--gold);margin-bottom:11px}
+  .tag-v2{font:700 9px var(--mono);background:rgba(91,141,239,.16);color:#9fc3e8;border:1px solid rgba(91,141,239,.4);border-radius:4px;padding:1px 5px}
+  .topic{display:block;margin-bottom:9px}
+  .topic .th{display:block;font-weight:600;font-size:13.5px;padding:6px 11px;border-radius:7px;background:var(--panel2)}
+  .kids{display:block;margin:5px 0 0 14px;padding-left:14px;border-left:1px solid var(--line)}
+  /* 单个知识点：类型标签 + 精炼短语 + 一两行细节 */
+  .knode{display:block;padding:8px 0}
+  .knode + .knode{border-top:1px solid rgba(42,49,61,.5)}
+  .nline{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .nhead{font-weight:600;color:var(--ink);font-size:13px}
+  .ndetail{margin-top:4px;color:var(--dim);font-size:12px;line-height:1.55}
+  .st-tag{font:700 10px var(--mono);padding:1px 6px;border-radius:4px;white-space:nowrap;flex:none}
+  .st-tag.long{background:rgba(63,157,107,.16);color:#6fd0a0}
+  .st-tag.short{background:rgba(194,73,63,.16);color:#e09a92}
+  .px-tag{font:500 10px var(--mono);color:var(--dim);background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+  /* 逻辑因果链 */
+  .chain{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .chain b{font-weight:600;color:var(--ink);background:rgba(47,127,196,.1);border:1px solid rgba(47,127,196,.3);border-radius:6px;padding:2px 8px;font-size:12px}
+  .chain i{color:#86b8e0;font-style:normal;font-weight:700}
+
+  /* 立场徽章 */
+  .stance-row{margin-top:14px;border:1px dashed rgba(205,86,56,.4);border-radius:9px;background:rgba(205,86,56,.05);padding:10px 12px}
+  .stance-row .lab{font:700 10px var(--mono);color:var(--c-media);letter-spacing:.04em;margin-bottom:8px;line-height:1.5}
+  .stances{display:flex;flex-wrap:wrap;gap:8px}
+  .stance{display:flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:12px}
+  .stance .t{font-weight:650;color:var(--ink)}
+  .stance .dir{font:700 10px var(--mono);padding:1px 6px;border-radius:4px}
+  .dir.long{background:rgba(63,157,107,.18);color:#6fd0a0}.dir.short{background:rgba(194,73,63,.18);color:#e09a92}
+  .stance .px{font:500 11px var(--mono);color:var(--dim)}
+  .wiki-opt{margin-top:11px;font-size:11.5px;color:var(--faint)}.wiki-opt a{color:#8aa0b4}
+
+  /* 演化图 */
+  .ev-head{display:flex;align-items:center;gap:9px;margin:24px 0 0;flex-wrap:wrap}
+  .ev-head .chev{color:var(--faint);font-size:12px}.ev-head h3{margin:0;font-size:14px}.ev-head .n{font:500 11px var(--mono);color:var(--faint)}
+  .dom-pick{display:flex;gap:7px;flex-wrap:wrap;margin:11px 0}
+  .dom{font:600 12px var(--sans);border-radius:8px;padding:5px 12px;border:1px solid var(--line);background:var(--panel);color:var(--dim);display:flex;align-items:center;gap:7px}
+  .dom i{width:8px;height:8px;border-radius:50%}.dom.on{border-color:var(--c-media);background:rgba(205,86,56,.12);color:var(--ink)}.dom.off{opacity:.55}
+  .chart{border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,#12161d,#0f1218);padding:14px 16px}
+  .ctool{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+  .seg{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+  .seg b{background:var(--c-media);color:#0e1014;font:600 11px var(--sans);padding:5px 11px}
+  .seg span{background:var(--panel);color:var(--dim);font:600 11px var(--sans);padding:5px 11px}
+  .honest{margin-top:9px;font-size:11px;color:var(--warn);background:rgba(217,164,65,.08);border:1px solid rgba(217,164,65,.28);border-radius:7px;padding:6px 10px}
+  svg{display:block;width:100%;height:auto}
+
+  /* 解释 */
+  .exp{display:flex;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 17px;margin-bottom:12px}
+  .exp .body{flex:1;min-width:0}.exp h4{margin:0 0 5px;font-size:15px}.exp p{margin:0;font-size:13px;color:var(--dim)}
+  .exp .from{margin-top:9px;font-size:12px;color:var(--faint);display:flex;align-items:center;gap:6px;flex-wrap:wrap}.exp .from b{color:var(--dim);font-weight:600}
+  pre{background:#0a0d12;border:1px solid var(--line);border-radius:9px;padding:13px 15px;overflow-x:auto;font:500 11.5px/1.7 var(--mono);color:#c2cad4;margin:10px 0 0}
+  pre .k{color:#cd8f6a}pre .s{color:#9fd49a}pre .c{color:#5f6b7a}
+  .srcleg{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 20px;font-size:12px;color:var(--dim)}.srcleg .it{display:flex;align-items:center;gap:6px}.srcleg .muted{opacity:.7}
+  footer{margin-top:52px;padding-top:18px;border-top:1px solid var(--line);font:500 12px var(--mono);color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">Finance_Agent · 前端「媒体转录」· v3.1</div>
+  <h1>Demo + 逐块解释 — 类型化知识点树</h1>
+  <p class="sub">方案 A（主题大纲树）落地版。每个知识点 = <b>类型标签 + 精炼短语 + 一两行细节（≤100 字）</b>，按类型差异化渲染，适配各种内容场景。本版修复了展开区排版（全部整行、不留空白）。</p>
+
+  <div class="changes">
+    <div class="h">本版要点</div>
+    <ul>
+      <li><b>排版修复</b>：浏览器主区改 <code>flex + min-width:0</code>，卡片内部纯块状纵向——不再出现标题竖排 / 大片空白。</li>
+      <li><b>节点新格式</b>：类型标签 + 精炼短语（粗体）+ 一两行专业细节，单条 ≤100 字。</li>
+      <li><b>类型化</b>：📌事实 · 🔗逻辑 · 💡观点 · 📈趋势 · ⚡操作 · ⚠风险（可扩展）；🔗 渲染因果链 A→B→C。</li>
+      <li><b>立场萃取</b>：📈趋势 + ⚡操作 节点 → 立场徽章 / 演化图，统一走 ②③，不依赖 wiki。</li>
+    </ul>
+    <div class="ntlegend">
+      <span class="ntype nt-fact">📌 事实</span><span class="ntype nt-logic">🔗 逻辑</span><span class="ntype nt-view">💡 观点</span>
+      <span class="ntype nt-trend">📈 趋势</span><span class="ntype nt-action">⚡ 操作</span><span class="ntype nt-risk">⚠ 风险</span>
+    </div>
+  </div>
+
+  <!-- ============ 1 · DEMO ============ -->
+  <h2 class="sec"><span class="no">01</span><span class="cn">前端界面 Demo（仿真渲染）</span></h2>
+
+  <div class="browser">
+    <div class="bbar"><div class="dotr"><i style="background:#e06257"></i><i style="background:#e3b341"></i><i style="background:#54a85a"></i></div>
+      <div class="url">localhost:8000/frontend/ — 媒体转录</div></div>
+    <div class="app">
+      <div class="nav">
+        <div class="ni"><i style="background:#2f7fc4"></i>行业</div>
+        <div class="ni"><i style="background:#bd7a0e"></i>公司</div>
+        <div class="ni"><i style="background:#7a4fce"></i>宏观</div>
+        <div class="ni on"><i style="background:#cd5638"></i>媒体转录</div>
+        <div class="ni"><i style="background:#48993d"></i>论点</div>
+        <div class="ni"><i style="background:#5356cf"></i>组合</div>
+      </div>
+      <div class="main">
+
+        <!-- ❶ 头卡 -->
+        <div class="mh">
+          <div class="ava">战</div>
+          <div><div class="nm"><span class="pin" style="margin-right:7px">1</span>战国时代_姜汁汽水</div><div class="meta">bilibili · UID 12345 · 时间线 + 类型化知识树</div></div>
+          <div class="stats">
+            <div class="s"><div class="v" style="color:var(--c-media)">50</div><div class="l">条目</div></div>
+            <div class="s"><div class="v">8</div><div class="l">视频</div></div>
+            <div class="s"><div class="v">42</div><div class="l">动态</div></div>
+            <div class="s"><div class="v" style="color:var(--gold)">5</div><div class="l">活跃标的</div></div>
+          </div>
+        </div>
+
+        <div class="sh"><span class="pin">2</span><h3>时间线</h3><span class="n">默认折叠 · 点开见知识点树</span><span class="ln"></span></div>
+
+        <!-- 折叠态 -->
+        <div class="tc"><div class="row1"><span class="chev">▸</span><span class="dt">06-02</span><span class="kind d">动态</span><span class="ti-inline">减持纽约金期货杠杆，止损下移至 4480</span><span class="sdots"><i class="l"></i></span></div></div>
+        <div class="tc"><div class="row1"><span class="chev">▸</span><span class="dt">05-28</span><span class="kind v">视频</span><span class="ti-inline">近期热点(1)：美伊停战？+ 金银走势与应对</span><span class="sdots"><i class="l"></i></span></div></div>
+
+        <!-- 展开态 -->
+        <div class="tc open">
+          <div class="row1"><span class="chev">▾</span><span class="dt">05-31</span><span class="kind v">视频</span><span class="gap"></span><span class="sdots"><i class="l"></i><i class="l"></i><i class="s"></i></span><span class="dur">33:34</span></div>
+          <div class="row-title">近期热点(2)：金银，川普与普京访问，债务+流动性+AI</div>
+          <div class="row-sum">一句话：黄金 4600 加仓、目标 5000–5200；美债长端看空；AI 板块向应用层轮动。</div>
+          <div class="cbody">
+            <div class="kt-h"><span class="pin" style="margin-right:6px">3</span>知识点树（类型化）<span class="tag-v2">preview v3</span></div>
+
+            <div class="topic"><div class="th">💰 黄金 · 白银（操作复盘）</div>
+              <div class="kids">
+                <div class="knode">
+                  <div class="nline"><span class="ntype nt-trend">📈 趋势</span><span class="nhead">黄金中长期看 5000–5200</span><span class="st-tag long">看多</span></div>
+                  <div class="ndetail">破 4600 为关键确认位；无论盘中踩破 4600、还是回踩 4400–4000 区间，中长期看涨逻辑均不改变，只是节奏不同。</div>
+                </div>
+                <div class="knode">
+                  <div class="nline"><span class="ntype nt-action">⚡ 操作</span><span class="nhead">黄金破 4600 → 加仓</span><span class="px-tag">目标 5000-5200</span><span class="px-tag">止损 4600</span></div>
+                  <div class="ndetail">盘中冲破 4600 即在该位加仓，作为本轮加仓触发点；策略为分批越跌越买，回踩不破则继续持有。</div>
+                </div>
+                <div class="knode">
+                  <div class="nline"><span class="ntype nt-risk">⚠ 风险</span><span class="nhead">跌破 4600 且无法收回则破位</span></div>
+                  <div class="ndetail">若回踩跌破 4600 且无法快速收回，中期看涨结构被破坏，应主动降杠杆规避，不再越跌越买。</div>
+                </div>
+                <div class="knode">
+                  <div class="nline"><span class="ntype nt-action">⚡ 操作</span><span class="nhead">白银未破 72 → 持有</span><span class="px-tag">止损 72</span></div>
+                  <div class="ndetail">白银与黄金同向，止损严格设在 72；未跌破前维持现有杠杆持仓，一旦跌破即离场不恋战。</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="topic"><div class="th">🏛 美债 · 全球化</div>
+              <div class="kids">
+                <div class="knode">
+                  <div class="nline"><span class="ntype nt-logic">🔗 逻辑</span><span class="chain"><b>全球化瓦解</b><i>→</i><b>财政赤字货币化</b><i>→</i><b>长端利率上行</b></span></div>
+                  <div class="ndetail">去全球化削弱海外对美债的外部需求，财政赤字只能靠货币化承接，从而系统性推升长端利率，是本轮债市主线。</div>
+                </div>
+                <div class="knode">
+                  <div class="nline"><span class="ntype nt-fact">📌 事实</span><span class="nhead">30Y 美债收益率达 5%</span></div>
+                  <div class="ndetail">30 年期美债收益率升至 5%，被视为本轮缩表空间见顶、长端定价压力外显的直接信号。</div>
+                </div>
+                <div class="knode">
+                  <div class="nline"><span class="ntype nt-view">💡 观点</span><span class="nhead">美联储缩表概率极低</span><span class="st-tag short">美债看空</span></div>
+                  <div class="ndetail">AI 资本开支正与国债争夺金融机构资金，流动性偏紧，联储难以主动缩表，长端利率易上难下。</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="topic"><div class="th">🤖 AI 板块轮动</div>
+              <div class="kids">
+                <div class="knode">
+                  <div class="nline"><span class="ntype nt-logic">🔗 逻辑</span><span class="chain"><b>GPU</b><i>→</i><b>CPU/HBM</b><i>→</i><b>光模块</b><i>→</i><b>边缘</b></span></div>
+                  <div class="ndetail">算力需求沿产业链向外溢出，资金从 GPU 依次轮动至 CPU/HBM、光模块，最终扩散到边缘侧。</div>
+                </div>
+                <div class="knode">
+                  <div class="nline"><span class="ntype nt-view">💡 观点</span><span class="nhead">美股靠"应用层涨价"自证 AI</span></div>
+                  <div class="ndetail">硬件叙事已充分定价，后续须靠应用层涨价兑现真实盈利，才能支撑 AI 故事的可持续性与估值。</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ❹ 立场徽章 -->
+            <div class="stance-row">
+              <div class="lab"><span class="pin" style="width:18px;height:18px;font-size:10px;margin-right:6px">4</span>立场（自 📈趋势 + ⚡操作 节点萃取 · UP 主观点·非事实）</div>
+              <div class="stances">
+                <div class="stance"><span class="t">黄金</span><span class="dir long">看多</span><span class="px">目标5000-5200 · 止损4600 · ⚡加仓</span></div>
+                <div class="stance"><span class="t">白银</span><span class="dir long">看多</span><span class="px">止损72 · ⚡持有</span></div>
+                <div class="stance"><span class="t">美债</span><span class="dir short">看空</span><span class="px">长端 · 观点</span></div>
+              </div>
+            </div>
+            <div class="wiki-opt">🔗 <a href="#">wiki 深度页</a> ·（可选·Agent 独立解读，<b>不参与立场/演化</b>）</div>
+          </div>
+        </div>
+
+        <!-- ❺ 演化图 -->
+        <div class="ev-head"><span class="pin">5</span><span class="chev">▾</span><h3>观点演化</h3><span class="n">按领域选择</span></div>
+        <div class="dom-pick">
+          <span class="dom on"><i style="background:var(--gold)"></i>黄金</span>
+          <span class="dom off"><i style="background:#c9c9c9"></i>白银</span>
+          <span class="dom off"><i style="background:var(--c-short)"></i>美债</span>
+          <span class="dom off"><i style="background:var(--c-ai)"></i>AI</span>
+        </div>
+        <div class="chart">
+          <div class="ctool"><div class="seg"><b>仓位/止损轴</b><span>多空泳道</span></div></div>
+          <svg viewBox="0 0 760 210" role="img" aria-label="黄金观点演化">
+            <g font-family="ui-monospace,monospace" font-size="9" fill="#6b7480">
+              <line x1="64" y1="22" x2="64" y2="178" stroke="#2a313d"/><line x1="64" y1="178" x2="730" y2="178" stroke="#2a313d"/>
+              <text x="30" y="54">5200</text><line x1="64" y1="50" x2="730" y2="50" stroke="#1c222c"/>
+              <text x="30" y="76">5000</text><line x1="64" y1="72" x2="730" y2="72" stroke="#1c222c"/>
+              <text x="30" y="110">4665</text><text x="30" y="162">4200</text>
+            </g>
+            <rect x="64" y="50" width="666" height="22" fill="rgba(72,153,61,.13)" stroke="rgba(72,153,61,.4)" stroke-dasharray="4 3"/>
+            <text x="74" y="44" font-size="10" fill="#7fc471">目标 5000–5200（全程未变）</text>
+            <rect x="600" y="22" width="78" height="156" fill="rgba(217,164,65,.06)" stroke="rgba(217,164,65,.25)" stroke-dasharray="3 3"/>
+            <text x="639" y="192" text-anchor="middle" font-family="ui-monospace,monospace" font-size="8" fill="#d9a441">无preview</text>
+            <polyline points="64,106 520,106 520,114 560,114 560,130 730,130 730,162" fill="none" stroke="var(--gold)" stroke-width="2.5"/>
+            <g font-family="ui-monospace,monospace" font-size="9" fill="#cdb892">
+              <text x="240" y="100">止损4665</text><text x="524" y="128">4600</text><text x="566" y="146">4480</text><text x="688" y="176">4200</text></g>
+            <g font-family="var(--sans)" font-size="10">
+              <circle cx="64" cy="86" r="6" fill="none" stroke="var(--c-media)" stroke-width="2"/><text x="64" y="74" text-anchor="middle" fill="#e8ebf0">建仓</text>
+              <circle cx="520" cy="86" r="7" fill="var(--c-media)"/><text x="520" y="91" text-anchor="middle" font-size="8" fill="#0e1014">⚡</text><text x="520" y="74" text-anchor="middle" fill="#e8ebf0">加仓</text>
+              <circle cx="560" cy="86" r="7" fill="var(--c-media)"/><text x="560" y="91" text-anchor="middle" font-size="8" fill="#0e1014">⚡</text><text x="560" y="74" text-anchor="middle" fill="#e8ebf0">减持</text>
+              <line x1="560" y1="22" x2="560" y2="178" stroke="var(--c-short)" stroke-width="1" stroke-dasharray="3 3" opacity=".7"/><text x="560" y="34" text-anchor="middle" font-size="8" fill="var(--c-short)">⚠转向</text>
+              <circle cx="730" cy="86" r="6" fill="none" stroke="var(--c-macro)" stroke-width="2"/><text x="730" y="74" text-anchor="middle" fill="#e8ebf0">重定</text></g>
+            <g font-family="ui-monospace,monospace" font-size="9" fill="#9aa4b2" text-anchor="middle">
+              <text x="64" y="196">05-07</text><text x="520" y="196">05-31</text><text x="560" y="208">06-02</text><text x="730" y="196">06-09</text></g>
+          </svg>
+          <div class="honest">⚠ Y 轴是 UP 自报的目标/止损位，<b>不是成交价</b>。仅反映其主观立场与仓位演化，非投资建议。</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 2 · 解释 ============ -->
+  <h2 class="sec"><span class="no">02</span><span class="cn">对着 Demo 逐块解释</span></h2>
+  <div class="srcleg">
+    <span style="color:var(--faint);font-weight:600">内容来源：</span>
+    <span class="it"><span class="sp s1">①</span>采集raw</span><span class="it"><span class="sp s2">②</span>预览</span>
+    <span class="it"><span class="sp s3">③</span>聚合timeline</span><span class="it muted"><span class="sp s4">④</span>wiki(降级·可选)</span><span class="it"><span class="sp s5">⑤</span>前端live</span>
+  </div>
+
+  <div class="exp"><span class="pin">1</span><div class="body"><h4>创作者头卡</h4>
+    <p>头像/名称/UID + 统计（条目·视频·动态·活跃标的）。"活跃标的"= 有立场记录的标的数。</p>
+    <div class="from"><b>来源</b><span class="sp s1">①</span>名称/UID ＋ <span class="sp s3">③</span>计数 ＋ <span class="sp s5">⑤</span>去重</div></div></div>
+
+  <div class="exp"><span class="pin">2</span><div class="body"><h4>时间线（默认折叠·按行排版）</h4>
+    <p>折叠态一行：时间 + 类型 + 标题 + 立场色点。展开后：元信息行 / 标题行 / 总结行 / 知识树 各自整行。</p>
+    <div class="from"><b>来源</b><span class="sp s1">①</span>时间/标题 ＋ <span class="sp s2">②</span>一句话总结 ＋ <span class="sp s3">③</span>立场色点</div></div></div>
+
+  <div class="exp"><span class="pin">3</span><div class="body"><h4>类型化知识点树（核心）</h4>
+    <p>主题下挂带类型节点，每条 = <b>类型标签 + 精炼短语 + 一两行细节（≤100字）</b>：📌事实 / 🔗逻辑(因果链) / 💡观点 / 📈趋势 / ⚡操作 / ⚠风险。视频内容是什么，就用对应类型装，类型集可扩展。</p>
+    <div class="from"><b>来源</b><span class="sp s2">②</span>raw-preview 产 typed nodes → <span class="sp s3">③</span>结构化进 timeline → <span class="sp s5">⑤</span>差异化渲染</div></div></div>
+
+  <div class="exp"><span class="pin">4</span><div class="body"><h4>立场徽章（自节点萃取）</h4>
+    <p>把树里 📈趋势 + ⚡操作 节点（带方向/价位）聚合成立场。立场是知识树特定类型节点的投影，一份数据两处用，统一走 ②③。</p>
+    <div class="from"><b>来源</b><span class="sp s2">②</span>趋势/操作节点 → <span class="sp s3">③</span>timeline.stances[] → <span class="sp s5">⑤</span>渲染（<span class="sp s4">④</span>不参与）</div></div></div>
+
+  <div class="exp"><span class="pin">5</span><div class="body"><h4>观点演化图（按领域折叠）</h4>
+    <p>领域 chips 折叠选择（默认黄金）。仓位/止损轴为默认，可切多空泳道。数据按标的聚合各条目立场成时间序列。</p>
+    <div class="from"><b>来源</b><span class="sp s5">⑤</span>stanceIndex 按标的聚合 ← <span class="sp s3">③</span>各条目 stances[]（自趋势/操作节点）</div></div></div>
+
+  <!-- ============ 3 · preview 模版 ============ -->
+  <h2 class="sec"><span class="no">03</span><span class="cn">对应的 preview 模版（typed nodes）</span></h2>
+  <p class="sub" style="margin-bottom:4px">每节点带 <code>type</code> + <code>head</code>(精炼短语) + <code>detail</code>(一两行)；趋势/操作节点带方向价位 → 自动萃取立场。逻辑节点用 <code>chain</code> 画因果链。值取自真实正文，缺失留空。</p>
+  <pre><span class="k">topics:</span>
+  - <span class="k">t:</span> 黄金·白银（操作复盘）   <span class="k">icon:</span> <span class="s">💰</span>
+    <span class="k">nodes:</span>
+      - {<span class="k">type:</span>trend,  <span class="k">target:</span>黄金, <span class="k">dir:</span>long, <span class="k">head:</span>中长期看5000-5200, <span class="k">detail:</span>破4600为关键确认位}
+      - {<span class="k">type:</span>action, <span class="k">target:</span>黄金, <span class="k">action:</span>加仓, <span class="k">target_price:</span><span class="s">'5000-5200'</span>, <span class="k">stop_loss:</span><span class="s">'4600'</span>, <span class="k">head:</span>破4600加仓, <span class="k">detail:</span>分批越跌越买}
+      - {<span class="k">type:</span>risk,   <span class="k">target:</span>黄金, <span class="k">head:</span>跌破4600且收不回则破位}
+      - {<span class="k">type:</span>action, <span class="k">target:</span>白银, <span class="k">action:</span>持有, <span class="k">stop_loss:</span><span class="s">'72'</span>, <span class="k">head:</span>未破72持有}
+  - <span class="k">t:</span> 美债·全球化
+    <span class="k">nodes:</span>
+      - {<span class="k">type:</span>logic, <span class="k">chain:</span>[全球化瓦解, 财政赤字货币化, 长端利率上行]}
+      - {<span class="k">type:</span>fact,  <span class="k">head:</span>30Y美债收益率达5%}
+      - {<span class="k">type:</span>view,  <span class="k">target:</span>美债, <span class="k">dir:</span>short, <span class="k">head:</span>缩表概率极低, <span class="k">detail:</span>AI资本开支与国债争资金}
+  - <span class="k">t:</span> AI板块轮动
+    <span class="k">nodes:</span>
+      - {<span class="k">type:</span>logic, <span class="k">chain:</span>[GPU, CPU/HBM, 光模块, 边缘]}
+      - {<span class="k">type:</span>view,  <span class="k">head:</span>美股靠应用层涨价自证AI, <span class="k">detail:</span>需应用层兑现盈利支撑估值}
+<span class="c"># 立场 = 解析时从 type∈{trend,action} 且带 dir 的节点自动萃取，不重复手写</span></pre>
+
+  <footer>
+    <span>Finance_Agent · docs/tradingagents-cn/media-transcription/media-frontend-demo.html</span>
+    <span>Demo v3.1 · 排版修复 + 节点新格式</span>
+  </footer>
+
+</div>
+</body>
+</html>

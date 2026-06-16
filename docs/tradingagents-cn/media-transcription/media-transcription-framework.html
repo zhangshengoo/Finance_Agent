@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>媒体转录 · 完整链路流程图 — Finance_Agent</title>
+<style>
+  :root{
+    --c-media:#cd5638; --c-sector:#2f7fc4; --gold:#bf8a2c; --teal:#2f7d6b; --c-thesis:#48993d;
+    --bg:#0e1014; --panel:#161a21; --panel2:#1c222c; --line:#2a313d;
+    --ink:#e8ebf0; --dim:#9aa4b2; --faint:#6b7480;
+    --ok:#48993d; --warn:#d9a441; --wait:#5b8def; --todo:#cd5638;
+    --radius:14px; --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft Yahei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:
+      radial-gradient(1200px 600px at 80% -10%,rgba(205,86,56,.08),transparent 60%),
+      radial-gradient(900px 500px at -10% 10%,rgba(47,127,196,.07),transparent 55%),
+      var(--bg);
+    color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto;padding:44px 28px 90px}
+  header.top{margin-bottom:30px}
+  .kicker{font:600 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--c-media);margin-bottom:14px}
+  h1{font-size:30px;margin:0 0 8px;letter-spacing:-.01em}
+  .sub{color:var(--dim);font-size:15px;max-width:780px}
+
+  h2.sec{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);
+    margin:54px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--line);
+    display:flex;align-items:baseline;gap:12px}
+  h2.sec .no{font:700 13px var(--mono);color:var(--c-media)}
+  h2.sec .cn{color:var(--ink);font-size:18px;letter-spacing:normal;text-transform:none;font-weight:650}
+
+  /* 图例 */
+  .legend{display:flex;flex-wrap:wrap;gap:18px;margin:0 0 22px;font-size:13px;color:var(--dim)}
+  .legend .it{display:flex;align-items:center;gap:7px}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .d-ok{background:var(--ok)} .d-warn{background:var(--warn)} .d-wait{background:var(--wait)} .d-todo{background:var(--todo)}
+
+  /* ---------- 流程图 ---------- */
+  .flow{background:linear-gradient(180deg,#13171e,#10141a);border:1px solid var(--line);
+    border-radius:var(--radius);padding:34px 30px 40px}
+  .lane{max-width:760px;margin:0 auto}
+
+  .step{position:relative;border:1px solid var(--line);border-radius:14px;background:var(--panel);
+    padding:18px 22px;display:flex;gap:18px;align-items:flex-start}
+  .step .ico{flex:0 0 52px;height:52px;border-radius:13px;display:grid;place-items:center;
+    font-size:25px;background:color-mix(in srgb,var(--ac) 18%,transparent);
+    border:1px solid color-mix(in srgb,var(--ac) 45%,transparent)}
+  .step .main{flex:1;min-width:0}
+  .step .tl{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .step .num{font:700 12px var(--mono);color:var(--ac)}
+  .step h3{margin:0;font-size:17px}
+  .step .role{font-size:12.5px;color:var(--faint)}
+  .step .st{margin-left:auto;display:flex;align-items:center;gap:6px;font:600 11px var(--mono);color:var(--dim)}
+  .step p{margin:9px 0 0;font-size:13.5px;color:var(--dim)}
+  .step p b{color:var(--ink);font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+  .chip{font:500 12px var(--sans);color:var(--dim);background:var(--panel2);
+    border:1px solid var(--line);border-radius:8px;padding:4px 10px}
+  .chip.hot{color:#f0b6a4;border-color:color-mix(in srgb,var(--c-media) 45%,transparent);background:rgba(205,86,56,.10)}
+
+  /* 箭头 */
+  .arrow{display:flex;flex-direction:column;align-items:center;padding:9px 0}
+  .arrow .lbl{font:500 12px var(--sans);color:var(--dim);background:var(--bg);
+    border:1px solid var(--line);border-radius:999px;padding:5px 14px}
+  .arrow .ar{font-size:18px;line-height:1.2;color:var(--c-media)}
+
+  /* 可选支路 */
+  .branch{margin:9px auto 0;max-width:760px;border:1px dashed var(--line);border-radius:11px;
+    background:rgba(122,79,206,.05);padding:11px 16px;font-size:13px;color:var(--dim)}
+  .branch b{color:#b79be6}
+
+  /* 双轨 */
+  .tracks{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:13px}
+  .track{border-radius:10px;padding:12px 14px;font-size:13px;color:var(--dim)}
+  .track.raw{background:rgba(191,138,44,.08);border:1px solid rgba(191,138,44,.3)}
+  .track.depth{background:rgba(47,125,107,.10);border:1px solid rgba(47,125,107,.35)}
+  .track .th{font:700 13px var(--sans);margin-bottom:4px}
+  .track.raw .th{color:var(--gold)} .track.depth .th{color:#6fd0b6}
+
+  /* ---------- 组件卡 ---------- */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:780px){.grid2{grid-template-columns:1fr}.tracks{grid-template-columns:1fr}.step{flex-direction:column;gap:12px}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px 20px}
+  .card h4{margin:0 0 12px;font-size:15px;display:flex;align-items:center;gap:9px}
+  .card .accent{width:9px;height:9px;border-radius:3px}
+  .card ul{margin:0;padding-left:2px;list-style:none}
+  .card li{margin:9px 0;font-size:13.5px;color:var(--dim);display:flex;gap:9px;align-items:flex-start}
+  .card li b{color:var(--ink);font-weight:600}
+  .card li .lead{flex:0 0 auto;color:var(--faint);font:600 12px var(--mono);margin-top:1px}
+
+  /* ---------- Todo 看板 ---------- */
+  .todo-intro{font-size:13.5px;color:var(--dim);margin:0 0 18px}
+  .kanban{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+  .todo-card{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--todo);
+    border-radius:11px;padding:15px 17px}
+  .todo-card .pri{font:700 10px var(--mono);letter-spacing:.08em;color:var(--todo);text-transform:uppercase}
+  .todo-card h4{margin:6px 0 7px;font-size:15px}
+  .todo-card p{margin:0;font-size:13px;color:var(--dim)}
+  .todo-card.done{border-left-color:var(--ok);opacity:.7}
+  .todo-card.done .pri{color:var(--ok)}
+  .todo-card.p2{border-left-color:var(--warn)} .todo-card.p2 .pri{color:var(--warn)}
+
+  /* ---------- 联动演示 ---------- */
+  .link-row{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:stretch;margin-bottom:14px}
+  @media(max-width:780px){.link-row{grid-template-columns:1fr}}
+  .src-box{border-radius:12px;padding:15px 17px}
+  .src-box.raw{background:rgba(191,138,44,.07);border:1px solid rgba(191,138,44,.32)}
+  .src-box.wiki{background:rgba(72,153,61,.07);border:1px solid rgba(72,153,61,.34)}
+  .src-box .lab{font:700 11px var(--mono);letter-spacing:.05em;display:flex;align-items:center;gap:7px}
+  .src-box.raw .lab{color:var(--gold)} .src-box.wiki .lab{color:#7fc471}
+  .src-box .file{font:500 11.5px var(--mono);color:var(--faint);margin:7px 0 9px;word-break:break-all}
+  .src-box p{margin:0;font-size:13px;color:var(--dim)}
+  .match{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    border:1px dashed var(--line);border-radius:12px;padding:14px 18px;min-width:170px;background:var(--panel2)}
+  .match .k{font:700 11px var(--mono);color:var(--c-media);text-align:center}
+  .match .rule{font-size:12px;color:var(--dim);text-align:center}
+  .match .arr{font-size:16px;color:var(--c-media)}
+  .match-out{text-align:center;font-size:13px;color:var(--dim);margin-bottom:26px}
+  .match-out b{color:#7fc471}
+
+  /* 仿真前端卡片 */
+  .demo-wrap{display:grid;grid-template-columns:1fr 232px;gap:18px;align-items:start}
+  @media(max-width:820px){.demo-wrap{grid-template-columns:1fr}}
+  .ui{background:#11151b;border:1px solid var(--line);border-radius:16px;padding:18px;position:relative}
+  .ui-tag{position:absolute;top:-10px;left:16px;font:600 11px var(--mono);color:var(--faint);
+    background:#11151b;border:1px solid var(--line);border-radius:999px;padding:3px 11px}
+  /* 创作者头卡 */
+  .m-head{display:flex;align-items:center;gap:16px;flex-wrap:wrap;border:1px solid var(--line);
+    border-radius:12px;background:var(--panel);padding:16px 18px;margin-bottom:13px}
+  .m-ava{width:46px;height:46px;border-radius:50%;border:1px solid var(--c-media);display:grid;place-items:center;
+    color:var(--c-media);font-size:20px;flex:none}
+  .m-head .nm{font-size:18px} .m-head .meta{font:500 11px var(--mono);color:var(--faint);margin-top:3px}
+  .m-stats{display:flex;gap:18px;margin-left:auto;flex-wrap:wrap}
+  .m-stats .s{text-align:center} .m-stats .s .v{font-size:19px;font-weight:650} .m-stats .s .l{font-size:10.5px;color:var(--faint)}
+  /* 时间线卡 */
+  .tl-card{border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:12px;background:var(--panel);padding:15px 17px}
+  .tl-card.deep{border-left-color:var(--c-thesis)}
+  .tl-top{display:flex;align-items:center;gap:10px}
+  .tl-date{font:600 12px var(--mono);color:var(--faint)}
+  .deep-badge{margin-left:auto;font:700 11px var(--sans);color:#0e1014;background:var(--c-thesis);
+    border:none;border-radius:7px;padding:4px 10px;cursor:default}
+  .tl-card h5{margin:9px 0 10px;font-size:15.5px;line-height:1.4}
+  .dchips{display:flex;flex-wrap:wrap;gap:7px}
+  .dchip{font:600 11px var(--sans);border-radius:7px;padding:3px 9px}
+  .dchip.video{background:var(--c-media);color:#0e1014}
+  .dchip.trade{background:var(--warn);color:#0e1014}
+  .dchip.mut{background:var(--panel2);color:var(--dim);border:1px solid var(--line)}
+  .dchip.ment{background:var(--panel2);color:var(--dim);border:1px solid var(--line);display:flex;align-items:center;gap:6px}
+  .dchip.ment i{width:7px;height:7px;border-radius:50%;background:var(--macro,#7a4fce);background:#7a4fce}
+  .kp{margin:11px 0 0;padding-left:18px;font-size:13px;color:var(--dim)} .kp li{margin:3px 0}
+  .acts{margin-top:11px;display:flex;flex-wrap:wrap;gap:8px}
+  .acts .act{font-size:12px;background:rgba(217,164,65,.1);border:1px solid rgba(217,164,65,.3);border-radius:7px;padding:3px 9px;color:#e2c07e}
+  .deep-body{margin-top:13px;border-top:1px dashed var(--line);padding-top:12px;
+    background:rgba(72,153,61,.05);border-radius:0 0 9px 9px;padding:12px 13px}
+  .deep-body .dh{font:700 12px var(--sans);color:#7fc471;margin-bottom:6px}
+  .deep-body .dtx{font-size:13px;color:var(--ink)}
+  .deep-body .src{font:500 11px var(--mono);color:var(--faint);margin-top:8px}
+  /* 标注侧栏 */
+  .anno{display:flex;flex-direction:column;gap:11px}
+  .anno .a{display:flex;gap:10px;font-size:12.5px;color:var(--dim)}
+  .anno .a .n{flex:0 0 22px;height:22px;border-radius:6px;display:grid;place-items:center;font:700 11px var(--mono);color:#0e1014}
+  .anno .a .n.raw{background:var(--gold)} .anno .a .n.wiki{background:var(--c-thesis)}
+  .anno .a b{color:var(--ink)}
+  .badge-inline{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:5px;
+    font:700 10px var(--mono);color:#0e1014;vertical-align:middle}
+  .badge-inline.raw{background:var(--gold)} .badge-inline.wiki{background:var(--c-thesis)}
+
+  /* ---------- 内容来源对照表 ---------- */
+  .sub-h{font-size:15px;font-weight:650;margin:30px 0 12px;color:var(--ink);display:flex;align-items:center;gap:9px}
+  .sub-h .bar{width:4px;height:16px;border-radius:3px;background:var(--c-media)}
+  .maptbl{width:100%;border-collapse:collapse;font-size:13px;background:var(--panel);
+    border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .maptbl th,.maptbl td{text-align:left;padding:10px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+  .maptbl th{font:600 11px var(--mono);letter-spacing:.05em;color:var(--faint);background:var(--panel2);text-transform:uppercase}
+  .maptbl tr:last-child td{border-bottom:none}
+  .maptbl td.el{font-weight:600;color:var(--ink)}
+  .maptbl .src-mini{font:500 11.5px var(--mono);color:var(--dim)}
+  .stg{display:inline-block;font:700 11px var(--mono);border-radius:6px;padding:2px 8px;color:#0e1014;white-space:nowrap}
+  .tpl-yes{color:#7fc471;font-weight:600} .tpl-no{color:var(--faint)}
+  .stage-key{display:flex;flex-wrap:wrap;gap:9px;margin:0 0 14px}
+  .stage-key .sk{font:600 11.5px var(--mono);color:var(--dim);display:flex;align-items:center;gap:6px}
+  .stage-key .sk i{width:11px;height:11px;border-radius:3px;display:inline-block}
+  /* 模版卡内字段列表 */
+  .tpl-card code{font:500 11.5px var(--mono);color:#cdb892;background:rgba(191,138,44,.08);
+    border:1px solid rgba(191,138,44,.18);border-radius:5px;padding:1px 6px}
+  .tpl-card .fld{margin:9px 0 0;font-size:12.5px;color:var(--dim);line-height:1.9}
+  .tpl-tag{font:700 10px var(--mono);border-radius:5px;padding:2px 7px;margin-left:auto}
+
+  footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);
+    font:500 12px var(--mono);color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="kicker">Finance_Agent · 媒体采集与转录</div>
+    <h1>媒体转录 · 完整链路流程图</h1>
+    <p class="sub">从一个 B 站 / 公众号链接出发，经「采集 → 归档 → 审阅摄入 → 编译 → 展示」五步，把外部媒体变成可检索的知识。下面一张图看清整条链路。</p>
+  </header>
+
+  <!-- ============ 1. 完整链路流程图 ============ -->
+  <h2 class="sec"><span class="no">01</span><span class="cn">完整链路流程图</span></h2>
+
+  <div class="legend">
+    <span class="it"><i class="dot d-ok"></i>已实装</span>
+    <span class="it"><i class="dot d-wait"></i>按需运行</span>
+    <span class="it"><i class="dot d-warn"></i>部分完成</span>
+    <span class="it"><i class="dot d-todo"></i>规划中</span>
+  </div>
+
+  <div class="flow">
+    <div class="lane">
+
+      <!-- 入口 -->
+      <div class="step" style="--ac:var(--faint)">
+        <div class="ico">🔗</div>
+        <div class="main">
+          <div class="tl"><span class="num">输入</span><h3>用户给出链接</h3>
+            <span class="st"><i class="dot d-ok"></i>实装</span></div>
+          <p>一条 B 站视频 / UP 主主页 / 公众号文章链接，并说出「采集 / 归档 / 抓一下」之类的意图。</p>
+        </div>
+      </div>
+
+      <div class="arrow"><span class="lbl">识别意图，决定抓什么</span><span class="ar">↓</span></div>
+
+      <!-- ① 采集 -->
+      <div class="step" style="--ac:var(--c-media)">
+        <div class="ico">🎬</div>
+        <div class="main">
+          <div class="tl"><span class="num">① 采集</span><h3>抓取并转录</h3>
+            <span class="role">media-archive 技能</span>
+            <span class="st"><i class="dot d-ok"></i>实装</span></div>
+          <p>抓下视频元信息与<b>字幕转录</b>、动态、公众号正文，图片一并下载到本地。转录遵循三层优先级策略（见 §02）：<b>优先取 B 站官方字幕</b>（cc-zh › ai-zh）；无官方字幕则走 <b>bcut-asr</b>（B站必剪云端）；仍无结果则 <b>Qwen3-ASR-Flash</b> 兜底转写。</p>
+          <div class="chips">
+            <span class="chip hot">字幕三层策略</span>
+            <span class="chip">UP 主动态（按天聚合）</span>
+            <span class="chip">公众号正文</span>
+            <span class="chip">图片本地化</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow"><span class="lbl">存为不可修改的原始素材</span><span class="ar">↓</span></div>
+
+      <!-- ② raw -->
+      <div class="step" style="--ac:var(--gold)">
+        <div class="ico">📦</div>
+        <div class="main">
+          <div class="tl"><span class="num">② 归档</span><h3>原始层（raw）</h3>
+            <span class="role">只进不改</span>
+            <span class="st"><i class="dot d-ok"></i>实装 · 有真实数据</span></div>
+          <p>转录文本、动态、文章、图片按「创作者 / 年月」分目录归档为<b>不可变源</b>。时间、作者一律来自接口，<b>不编造</b>。同时生成一份创作者时间线供预览。</p>
+        </div>
+      </div>
+
+      <div class="branch">可选支路（不进知识库）：<b>预览</b> 生成人读摘要与要点 ｜ <b>图片描述</b> 给配图补一句话说明</div>
+
+      <div class="arrow"><span class="lbl">用户确认后再摄入（不自动）</span><span class="ar">↓</span></div>
+
+      <!-- ③ 摄入 -->
+      <div class="step" style="--ac:var(--c-thesis)">
+        <div class="ico">⚗️</div>
+        <div class="main">
+          <div class="tl"><span class="num">③ 摄入</span><h3>两步审阅式编译</h3>
+            <span class="role">finance-ingest 技能</span>
+            <span class="st"><i class="dot d-wait"></i>按需运行</span></div>
+          <p><b>先分析、后生成</b>，中间留人工确认停点。逐句区分「事实 / 观察 / 观点 / 操作记录」——<b>事实进正文，主观判断与操作单列「非事实」段落</b>，避免把作者立场当成客观数据。</p>
+        </div>
+      </div>
+
+      <div class="arrow"><span class="lbl">编译成知识页 + 关系图谱</span><span class="ar">↓</span></div>
+
+      <!-- ④ wiki -->
+      <div class="step" style="--ac:var(--c-sector)">
+        <div class="ico">📚</div>
+        <div class="main">
+          <div class="tl"><span class="num">④ 编译</span><h3>知识库（wiki）</h3>
+            <span class="role">带出处的实体页</span>
+            <span class="st"><i class="dot d-wait"></i>按需产出</span></div>
+          <p>生成带出处的摘要页，关联到对应的公司 / 行业 / 宏观条目，并把关系追加进知识图谱。</p>
+        </div>
+      </div>
+
+      <div class="arrow"><span class="lbl">本地浏览器实时呈现</span><span class="ar">↓</span></div>
+
+      <!-- ⑤ 前端 -->
+      <div class="step" style="--ac:var(--c-media)">
+        <div class="ico">🖥️</div>
+        <div class="main">
+          <div class="tl"><span class="num">⑤ 展示</span><h3>前端「媒体转录」视图</h3>
+            <span class="role">本地实时浏览</span>
+            <span class="st"><i class="dot d-ok"></i>实装</span></div>
+          <p>本地起服务、浏览器直接读知识库渲染，<b>改完刷新即见，无需编译</b>。媒体视图用双轨时间线呈现：</p>
+          <div class="tracks">
+            <div class="track raw"><div class="th">左轨 · 原始概要</div>全部条目按创作者排成时间线：日期、要点、是否涉及交易。</div>
+            <div class="track depth"><div class="th">右轨 · 深度叠加</div>已摄入的条目亮起「深度 ↗」徽章，展开看观点 / 操作与图谱关联。</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /lane -->
+  </div><!-- /flow -->
+
+  <!-- ============ 2. 字幕获取策略 ============ -->
+  <h2 class="sec"><span class="no">02</span><span class="cn">字幕获取策略 · 优先级链</span></h2>
+
+  <p class="todo-intro" style="margin-bottom:24px">
+    B 站视频的字幕覆盖率参差不齐——部分 UP 主全无字幕轨（如靳卫萍老师 ~80% 视频），部分有 AI 字幕。
+    采集脚本按下图<b>三层顺序</b>尝试获取文字，越靠后越耗时也越耗费 API 额度，
+    <b>前一层成功则不继续</b>。
+  </p>
+
+  <!-- 优先级流 -->
+  <div class="flow" style="padding:30px 30px 36px">
+  <div class="lane">
+
+    <!-- Tier 1 -->
+    <div class="step" style="--ac:#2f7fc4">
+      <div class="ico" style="font-size:22px">🏛️</div>
+      <div class="main">
+        <div class="tl">
+          <span class="num" style="color:#2f7fc4">Tier 1</span>
+          <h3>B 站官方 API</h3>
+          <span class="role">fetch_bilibili.py · bilibili-api-python</span>
+          <span class="st"><i class="dot d-ok"></i>实装</span>
+        </div>
+        <p>调用 <code>/x/player/wbi/v2</code>（WBI 签名）→ <code>get_subtitle(cid=cid)</code>，拉取视频字幕轨列表。优先选 <b>cc-zh</b>（UP 主手工上传），其次 <b>ai-zh</b>（B 站 AI 自动生成）。速度约 1 s，质量最佳，无需下载音频。</p>
+        <div class="chips">
+          <span class="chip" style="color:#9fc3e8;border-color:rgba(47,127,196,.4)">cc-zh 人工字幕 优先</span>
+          <span class="chip" style="color:#9fc3e8;border-color:rgba(47,127,196,.4)">ai-zh AI 字幕 次选</span>
+          <span class="chip">需 BILIBILI_SESSDATA</span>
+          <span class="chip">~1 s / 条</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow">
+      <span class="lbl" style="color:#d9a441">Tier 1 无字幕轨（subtitle_source: none）→ 尝试 Tier 2</span>
+      <span class="ar">↓</span>
+    </div>
+
+    <!-- Tier 2 -->
+    <div class="step" style="--ac:#bf8a2c">
+      <div class="ico" style="font-size:22px">☁️</div>
+      <div class="main">
+        <div class="tl">
+          <span class="num" style="color:#bf8a2c">Tier 2</span>
+          <h3>bcut-asr · B 站必剪云端 ASR</h3>
+          <span class="role">SocialSisterYi/bcut-asr · 免费 · 无 GPU</span>
+          <span class="st"><i class="dot d-warn"></i>按需</span>
+        </div>
+        <p>把音频 URL 或本地文件提交到 B 站自家「必剪」ASR 接口，返回带时间轴的字幕。<b>免费、无需 GPU</b>，中文识别质量接近官方 ai-zh。缺点：维护薄弱，偶有 412 上传报错，使用前先实测。</p>
+        <div class="chips">
+          <span class="chip" style="color:#cdb892;border-color:rgba(191,138,44,.4)">免费无额度限制</span>
+          <span class="chip" style="color:#cdb892;border-color:rgba(191,138,44,.4)">带时间轴</span>
+          <span class="chip">需先下载音频</span>
+          <span class="chip">偶发 412 风控</span>
+        </div>
+        <p style="margin-top:10px"><b>调用</b>（示例）：</p>
+        <pre style="background:#10141a;border:1px solid var(--line);border-radius:8px;padding:12px 14px;font:13px/1.6 var(--mono);color:#b0bac8;margin:8px 0 0;overflow-x:auto">pip install git+https://github.com/SocialSisterYi/bcut-asr.git
+# 提交任务
+asr = BcutASR(audio_url)      # 或 BcutASR(filepath=path)
+asr.upload()                   # 如报 412 换 Tier 3
+result = asr.result()
+print(result.get_srt())</pre>
+      </div>
+    </div>
+
+    <div class="arrow">
+      <span class="lbl" style="color:#cd5638">Tier 2 失败或质量不足 → 兜底 Qwen3-ASR</span>
+      <span class="ar">↓</span>
+    </div>
+
+    <!-- Tier 3 -->
+    <div class="step" style="--ac:#7b5ea7">
+      <div class="ico" style="font-size:22px">🧠</div>
+      <div class="main">
+        <div class="tl">
+          <span class="num" style="color:#b79be6">Tier 3</span>
+          <h3>DashScope Qwen3-ASR-Flash · 兜底</h3>
+          <span class="role">transcribe_bilibili.py · Third_Party/bili2text</span>
+          <span class="st"><i class="dot d-ok"></i>实装</span>
+        </div>
+        <p>当前两层均无法获取字幕时，<b>付费调用 DashScope Qwen3-ASR-Flash</b> 进行云端 ASR。
+          通过 <code>bili2text</code>（<code>Third_Party/bili2text/</code>，已集成 <code>DashScopeQwenTranscriber</code>）封装：
+          ffmpeg 解码音频（绕开 librosa Intel Mac 兼容问题） →
+          超 170 s 自动切块 → 并行 API 调用 → 幻觉过滤 → 合并全文。</p>
+        <div class="chips">
+          <span class="chip" style="color:#c4a8e8;border-color:rgba(123,94,167,.5)">消耗 DASHSCOPE_API_KEY</span>
+          <span class="chip" style="color:#c4a8e8;border-color:rgba(123,94,167,.5)">Intel Mac 可用</span>
+          <span class="chip">需先下载音频</span>
+          <span class="chip">长音频自动分块</span>
+        </div>
+        <p style="margin-top:10px"><b>调用</b>（Skill 脚本）：</p>
+        <pre style="background:#10141a;border:1px solid var(--line);border-radius:8px;padding:12px 14px;font:13px/1.6 var(--mono);color:#b0bac8;margin:8px 0 0;overflow-x:auto">DASHSCOPE_API_KEY=sk-... \
+uv run --project Third_Party/bili2text \
+  python3 .claude/skills/media-archive/scripts/transcribe_bilibili.py \
+  --audio-file /path/to/audio.m4a \
+  --bvid BV1xxxxxx \
+  --kb-root Knowledge_Wiki \
+  --prompt "金融 A股 半导体"    # 可选：领域术语提示，提升准确率</pre>
+        <p style="margin-top:10px;font-size:12.5px;color:var(--faint)">
+          输出：更新 raw JSON 的 <code>subtitle</code> / <code>subtitle_source: asr-qwen3-asr-flash</code> 字段，
+          或在 <code>raw/transcripts/bilibili/_asr_only/</code> 创建 skeleton JSON。
+        </p>
+      </div>
+    </div>
+
+    <div class="arrow">
+      <span class="lbl" style="color:var(--ok)">任一层成功 → subtitle_source 写入 raw JSON</span>
+      <span class="ar">↓</span>
+    </div>
+
+    <!-- 结果 -->
+    <div class="step" style="--ac:var(--ok)">
+      <div class="ico" style="font-size:22px">✅</div>
+      <div class="main">
+        <div class="tl">
+          <span class="num" style="color:var(--ok)">输出</span>
+          <h3>raw/ JSON · subtitle 字段</h3>
+          <span class="role">下游：raw-preview / finance-ingest</span>
+        </div>
+        <p>raw JSON 的 <code>subtitle</code> 填入全文，<code>subtitle_source</code> 标记来源（<code>cc-zh</code> / <code>ai-zh</code> / <code>asr-bcut</code> / <code>asr-qwen3-asr-flash</code>），供 raw-preview 提炼要点、finance-ingest 编译 wiki。</p>
+        <div class="chips">
+          <span class="chip">cc-zh → 最高质量</span>
+          <span class="chip">ai-zh → 高质量</span>
+          <span class="chip">asr-bcut → 中等</span>
+          <span class="chip" style="color:#c4a8e8;border-color:rgba(123,94,167,.5)">asr-qwen3 → 兜底</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /lane -->
+  </div><!-- /flow -->
+
+  <!-- 决策表 -->
+  <table class="maptbl" style="margin-top:22px">
+    <thead><tr>
+      <th>场景</th><th>字幕来源</th><th>工具/命令</th><th>耗时</th><th>费用</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td class="el">视频有人工 CC 字幕</td>
+        <td class="src-mini">cc-zh</td>
+        <td><code>fetch_bilibili.py --with-subtitle</code></td>
+        <td>~1 s</td>
+        <td>免费</td>
+      </tr>
+      <tr>
+        <td class="el">视频有 AI 字幕</td>
+        <td class="src-mini">ai-zh</td>
+        <td><code>fetch_bilibili.py --with-subtitle</code></td>
+        <td>~1 s</td>
+        <td>免费</td>
+      </tr>
+      <tr>
+        <td class="el">无字幕，B站 ASR 可用</td>
+        <td class="src-mini">asr-bcut</td>
+        <td><code>bcut-asr</code>（Python API）</td>
+        <td>~30–120 s</td>
+        <td>免费</td>
+      </tr>
+      <tr style="background:rgba(123,94,167,.08)">
+        <td class="el">无字幕，bcut-asr 失败</td>
+        <td class="src-mini" style="color:#c4a8e8">asr-qwen3-asr-flash</td>
+        <td><code>transcribe_bilibili.py</code></td>
+        <td>~10–60 s</td>
+        <td>计量 DashScope</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ============ 3. 前端视图 ⇄ 知识库 联动演示 ============ -->
+  <h2 class="sec"><span class="no">03</span><span class="cn">前端「媒体转录」视图 ⇄ 知识库 联动演示</span></h2>
+
+  <p class="todo-intro" style="margin-bottom:20px">
+    前端不预编译数据，浏览器读取知识库两类文件后<b>当场对齐</b>：一条原始时间线条目，去找有没有对应的知识库摘要页——找到了就给这条点亮「深度 ↗」并把摘要叠加上去。下面先看对齐规则，再看渲染出来的真实卡片。
+  </p>
+
+  <!-- 3.1 联动原理 -->
+  <div class="link-row">
+    <div class="src-box raw">
+      <div class="lab">◆ 原始层 · 时间线</div>
+      <div class="file">raw/transcripts/bilibili/&lt;创作者&gt;/_previews/timeline.json</div>
+      <p>每位创作者一条时间线，<b>全覆盖</b>。每个条目带：日期、标题、要点、提及主题、是否交易、对应的原始文件。</p>
+    </div>
+    <div class="match">
+      <div class="k">对齐键</div>
+      <div class="rule">① 按<b>原始文件路径</b>精确匹配<br>② 视频再回退按 <b>BV 号</b> 匹配</div>
+      <div class="arr">⇄</div>
+    </div>
+    <div class="src-box wiki">
+      <div class="lab">◆ 知识库 · 摘要页</div>
+      <div class="file">wiki/filings-summary/&lt;日期&gt;-bilibili-&lt;创作者&gt;-&lt;BV&gt;.md</div>
+      <p>摄入后才有，<b>选择性</b>。页内出处（sources）指回原始文件，正文含深度摘要、观点 / 操作与图谱关联。</p>
+    </div>
+  </div>
+  <div class="match-out">命中 → 该条标记为<b>「深度」</b>，叠加摘要；未命中 → 仅显示原始概要。统计里的「深度」数 = 命中条数。</div>
+
+  <!-- 3.2 视图演示 -->
+  <div class="demo-wrap">
+    <div class="ui">
+      <span class="ui-tag">前端「媒体转录」视图（真实渲染示意）</span>
+
+      <!-- 创作者头卡 -->
+      <div class="m-head">
+        <div class="m-ava">战</div>
+        <div>
+          <div class="nm">战国时代_姜汁汽水</div>
+          <div class="meta">bilibili · UID 12345 · raw 时间线 + wiki 深度</div>
+        </div>
+        <div class="m-stats">
+          <div class="s"><div class="v" style="color:var(--c-media)">50</div><div class="l">条目</div></div>
+          <div class="s"><div class="v">8</div><div class="l">视频</div></div>
+          <div class="s"><div class="v">42</div><div class="l">动态</div></div>
+          <div class="s"><div class="v" style="color:var(--c-thesis)">3</div><div class="l">深度</div></div>
+          <div class="s"><div class="v">12</div><div class="l">关联主题</div></div>
+        </div>
+      </div>
+
+      <!-- 时间线卡（命中深度 · 展开态）-->
+      <div class="tl-card deep">
+        <div class="tl-top">
+          <span class="tl-date">2026-05-31</span>
+          <button class="deep-badge">深度 ↗</button>
+        </div>
+        <h5>近期热点：金银、川普与普京访问、债务 + 流动性 + AI</h5>
+        <div class="dchips">
+          <span class="dchip video">视频</span>
+          <span class="dchip trade">trade-log</span>
+          <span class="dchip mut">20:15</span>
+        </div>
+        <ul class="kp">
+          <li>金价中长期目标 5000–5200，给出两条路径假设</li>
+          <li>美债流动性与 AI 资本开支是本轮主线</li>
+        </ul>
+        <div class="acts">
+          <span class="act"><b>纽约金期货</b> 杠杆减持 · 4549</span>
+        </div>
+        <div class="dchips" style="margin-top:12px">
+          <span class="dchip ment"><i></i>黄金</span>
+          <span class="dchip ment"><i></i>美债</span>
+          <span class="dchip ment"><i></i>AI 算力</span>
+        </div>
+        <!-- 点击「深度 ↗」展开 -->
+        <div class="deep-body">
+          <div class="dh">wiki 深度摘要</div>
+          <div class="dtx">事实数据入正文；作者的金价目标判断与减持操作归入「来自媒体源的观察与观点（非事实）」段，并回链到原始视频。</div>
+          <div class="src">wiki/filings-summary/2026-05-31-bilibili-jiangzhi-BV1y4VJ6YEbr.md</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 数据来源标注 -->
+    <div class="anno">
+      <div class="a"><span class="n raw">R</span><span><b>原始层</b>提供的部分：头卡统计、日期、标题、要点、操作、提及主题——全部来自 <b>timeline.json</b>。</span></div>
+      <div class="a"><span class="n wiki">W</span><span><b>知识库</b>叠加的部分：<b>深度 ↗</b> 徽章、绿色左边框、底部「深度摘要」与出处路径——来自匹配上的 <b>摘要页</b>。</span></div>
+      <div class="a"><span class="n raw">R</span><span>未命中的条目只显示原始概要，没有 <span class="badge-inline wiki">W</span> 徽章；要点为空时显示「待预览生成」。</span></div>
+      <div class="a"><span class="n wiki">W</span><span>头卡「深度 = 3」即这位创作者有 3 条命中知识库，点徽章就地展开 / 收起，不跳页。</span></div>
+    </div>
+  </div>
+
+  <!-- 3.3 展示内容 × 生成环节 × 模版 -->
+  <div class="sub-h"><span class="bar"></span>视图里每块内容 · 来自哪个环节 · 有没有模版</div>
+  <div class="stage-key">
+    <span class="sk"><i style="background:#cd5638"></i>① 采集（media-archive 抓取）</span>
+    <span class="sk"><i style="background:#b79be6"></i>② 预览（raw-preview）</span>
+    <span class="sk"><i style="background:#bf8a2c"></i>③ 聚合（build_timeline）</span>
+    <span class="sk"><i style="background:#48993d"></i>④ 摄入（finance-ingest）</span>
+    <span class="sk"><i style="background:#2f7fc4"></i>⑤ 前端（浏览器 live）</span>
+  </div>
+  <table class="maptbl">
+    <thead><tr><th>展示元素</th><th>来源文件</th><th>生成环节</th><th>有无模版</th></tr></thead>
+    <tbody>
+      <tr><td class="el">创作者名 / 头像 / UID</td><td class="src-mini">raw 视频/动态 JSON</td><td><span class="stg" style="background:#cd5638">①&nbsp;采集</span></td><td class="tpl-yes">有 · raw 信封字段</td></tr>
+      <tr><td class="el">日期 · 标题 · 时长 / 条数</td><td class="src-mini">raw JSON（权威字段）</td><td><span class="stg" style="background:#cd5638">①&nbsp;采集</span></td><td class="tpl-no">字段直取</td></tr>
+      <tr><td class="el">TL;DR 要点列表</td><td class="src-mini">_previews/*.md 的 abstract callout</td><td><span class="stg" style="background:#b79be6">②&nbsp;预览</span></td><td class="tpl-yes">有 · 固定 callout</td></tr>
+      <tr><td class="el">关联主题 chips（mentions）</td><td class="src-mini">_previews/*.md frontmatter</td><td><span class="stg" style="background:#b79be6">②&nbsp;预览</span></td><td class="tpl-yes">有 · mentions 结构</td></tr>
+      <tr><td class="el">UP 主操作（标的 / 动作 / 计划）</td><td class="src-mini">_previews/*.md「UP 主操作」表</td><td><span class="stg" style="background:#b79be6">②&nbsp;预览</span></td><td class="tpl-yes">有 · 固定表头</td></tr>
+      <tr><td class="el">trade-log 标记 · 统计计数</td><td class="src-mini">timeline.json（算出来）</td><td><span class="stg" style="background:#bf8a2c">③&nbsp;聚合</span></td><td class="tpl-no">规则计算</td></tr>
+      <tr><td class="el">「深度 ↗」徽章 + 绿框</td><td class="src-mini">前端匹配命中标记</td><td><span class="stg" style="background:#2f7fc4">⑤&nbsp;前端</span></td><td class="tpl-no">实时计算</td></tr>
+      <tr><td class="el">wiki 深度摘要 + 出处</td><td class="src-mini">wiki/filings-summary/*.md</td><td><span class="stg" style="background:#48993d">④&nbsp;摄入</span></td><td class="tpl-yes">有 · 摘要页 schema</td></tr>
+    </tbody>
+  </table>
+  <p class="todo-intro" style="margin:12px 0 0">
+    一句话：<b>头部与时间线骨架来自①采集</b>（原始权威字段）；<b>要点 / 主题 / 操作来自②预览</b>（raw-preview 按固定模版从字幕提炼）；<b>③聚合</b>把两者拼成 timeline.json 并算出 trade 标记；<b>深度摘要来自④摄入</b>；<b>⑤前端</b>只做对齐与渲染，不产数据。
+  </p>
+
+  <!-- 3.4 三处模版 -->
+  <div class="sub-h"><span class="bar"></span>三处模版（决定前端能渲染出什么）</div>
+  <div class="grid2">
+    <div class="card tpl-card">
+      <h4><span class="accent" style="background:#b79be6"></span>预览模版 <span class="tpl-tag" style="color:#b79be6;border:1px solid #b79be6">② raw-preview</span></h4>
+      <div class="fld">
+        frontmatter：<code>mentions: {companies / indicators / macro / sectors}</code> · <code>subtitle_chars</code><br>
+        正文：<code>&gt; [!abstract] TL;DR</code> 要点 callout<br>
+        操作表：固定表头 <code>标的｜当前位置｜动作｜目标/止损｜风险/失效条件</code><br>
+        署名：<code>generator: raw-preview</code>
+      </div>
+      <p style="margin-top:11px;font-size:12.5px;color:var(--faint)">③ 聚合脚本严格按这套结构解析；没有预览的源 → 要点为空，前端显示「待预览生成」。</p>
+    </div>
+    <div class="card tpl-card">
+      <h4><span class="accent" style="background:#48993d"></span>摘要页模版 <span class="tpl-tag" style="color:#7fc471;border:1px solid #48993d">④ finance-ingest</span></h4>
+      <div class="fld">
+        frontmatter：<code>title</code> · <code>summary</code> · <code>sources[]</code>（指回原始文件，前端靠它对齐）· <code>content_quality</code> · <code>related[]</code><br>
+        正文：「核心结论」+ 固定段「<b>来自媒体源的观察与观点（非事实）</b>」（Opinions / Trade Actions）
+      </div>
+      <p style="margin-top:11px;font-size:12.5px;color:var(--faint)">前端取 <code>summary</code> 作深度摘要、<code>sources[]</code> 作匹配键；schema 由知识库校验脚本把关。</p>
+    </div>
+    <div class="card tpl-card">
+      <h4><span class="accent" style="background:#bf8a2c"></span>时间线 schema <span class="tpl-tag" style="color:#cdb892;border:1px solid #bf8a2c">③ build_timeline</span></h4>
+      <div class="fld">
+        顶层：<code>uploader · uid · count · n_videos · n_dynamics · items[]</code><br>
+        每条：<code>date · kind · title · tldr · mentions · up_actions · is_trade · stats · src · preview · link</code>
+      </div>
+      <p style="margin-top:11px;font-size:12.5px;color:var(--faint)">这是前端读取的单一数据契约（派生镜像，可随时重建，不写 wiki）。</p>
+    </div>
+    <div class="card tpl-card">
+      <h4><span class="accent" style="background:#2f7fc4"></span>前端不持有模版 <span class="tpl-tag" style="color:#9fc3e8;border:1px solid #2f7fc4">⑤ live</span></h4>
+      <div class="fld">
+        浏览器只做两件事：① 读 <code>timeline.json</code> 渲染左轨；② 读 <code>filings-summary</code> 按 <code>sources[]</code> / BV 号对齐右轨深度。<br>
+        <b>不预编译、不生成中间数据</b>，所有内容都源自上游模版产物。
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 4. 实现状态 & Todo 看板 ============ -->
+  <h2 class="sec"><span class="no">04</span><span class="cn">实现状态 &amp; Todo 看板</span></h2>
+
+  <p class="todo-intro">
+    跟踪媒体转录链路的待办。<b>新增一条 Todo</b>：复制下方任一卡片，改优先级、标题与描述即可——优先级用类名区分：默认 = P1（红）、加 <b>p2</b> = P2（黄）、加 <b>done</b> = 已完成（绿）。
+  </p>
+
+  <div class="kanban" id="todo-board">
+
+    <!-- TODO 卡片模板（复制此块新增） -->
+    <div class="todo-card done">
+      <div class="pri">DONE · 转录</div>
+      <h4>无字幕时的语音转写兜底</h4>
+      <p>DashScope Qwen3-ASR-Flash 已集成为 Tier 3 兜底（<code>transcribe_bilibili.py</code> + <code>Third_Party/bili2text</code>），Intel Mac 可用，长音频自动分块并行。</p>
+    </div>
+    <!-- /模板 -->
+
+    <div class="todo-card p2">
+      <div class="pri">P2 · 采集</div>
+      <h4>公众号抓取端到端验证</h4>
+      <p>脚本已就绪，需用真实文章跑通正文 + 配图本地化，确认归档无误。</p>
+    </div>
+
+    <div class="todo-card p2">
+      <div class="pri">P2 · 前端</div>
+      <h4>双轨「深度」联动</h4>
+      <p>让时间线条目自动匹配到已摄入页，点亮「深度 ↗」并展开摘要与关联。</p>
+    </div>
+
+    <div class="todo-card">
+      <div class="pri">P1 · 摄入</div>
+      <h4>长字幕摄入压测</h4>
+      <p>用真实长转录跑全流程，验证「事实 / 观点 / 操作」分离与回滚稳定。</p>
+    </div>
+
+    <div class="todo-card done">
+      <div class="pri">DONE · 采集</div>
+      <h4>B 站视频字幕转录入库</h4>
+      <p>抓取并拼接 B 站字幕，已产出真实转录样本。</p>
+    </div>
+
+    <div class="todo-card done">
+      <div class="pri">DONE · 前端</div>
+      <h4>本地实时渲染</h4>
+      <p>本地起服务、浏览器直读知识库，改完刷新即见，无需编译。</p>
+    </div>
+
+  </div>
+
+  <footer>
+    <span>Finance_Agent · 媒体转录</span>
+    <span>完整链路 · 一图速览</span>
+  </footer>
+
+</div>
+</body>
+</html>

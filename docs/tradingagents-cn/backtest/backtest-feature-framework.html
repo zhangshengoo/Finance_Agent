@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>回测 + 功能A 记忆环 · 方案框架与技术框架图</title>
+<style>
+  :root{
+    --void:#faf8f3; --panel:#ffffff; --ink:#1c1c1c; --muted:#6f6a60;
+    --line:#e3ded3; --line2:#cfc8b8;
+    --accent:#0e8f80; --accent-soft:#e4f3f0;
+    --buy:#c2362f; --buy-soft:#f7e7e5;
+    --sell:#2f8f5b; --sell-soft:#e6f3ec;
+    --warn:#bd8419; --warn-soft:#f7eed9;
+    --new:#0e6f8f; --new-soft:#e2eef4;
+    --exist:#7a7363; --exist-soft:#efece4;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--void);color:var(--ink);
+    font-family:"Songti SC","Source Han Serif SC",Georgia,"Times New Roman",serif;
+    line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:40px 28px 80px}
+  code,.mono{font-family:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+    font-size:.86em}
+  h1{font-size:30px;margin:0 0 6px;letter-spacing:.5px}
+  h2{font-size:21px;margin:48px 0 6px;padding-bottom:8px;border-bottom:2px solid var(--line2);
+    display:flex;align-items:baseline;gap:10px}
+  h2 .n{font-family:"SF Mono",monospace;font-size:14px;color:var(--accent);
+    background:var(--accent-soft);padding:2px 9px;border-radius:5px}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 4px}
+  p{margin:10px 0}
+  .lead{font-size:15px;color:#33302a}
+  a{color:var(--accent)}
+
+  /* scope banner */
+  .scope{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0 8px}
+  .scope .card{flex:1;min-width:240px;background:var(--panel);border:1px solid var(--line);
+    border-left:4px solid var(--accent);border-radius:8px;padding:14px 16px}
+  .scope .card .k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+  .scope .card .v{font-size:17px;font-weight:600;margin:3px 0 4px}
+  .scope .card .d{font-size:13px;color:#4a463e}
+  .pill{display:inline-block;font-family:"SF Mono",monospace;font-size:11px;padding:2px 8px;
+    border-radius:20px;border:1px solid var(--line2);vertical-align:middle}
+  .pill.lock{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+  .pill.defer{background:#f3f1ea;color:var(--muted)}
+
+  /* generic box */
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:13px 15px}
+  .box .t{font-weight:600;font-size:14.5px;margin-bottom:3px;display:flex;align-items:center;gap:7px}
+  .box .desc{font-size:12.5px;color:#544f46;line-height:1.5}
+  .box.exist{border-color:var(--exist);background:var(--exist-soft)}
+  .box.new{border-color:var(--new);background:var(--new-soft)}
+  .box.mem{border-color:var(--accent);background:var(--accent-soft)}
+  .box.kb{border-color:var(--warn);background:var(--warn-soft)}
+  .tag{font-family:"SF Mono",monospace;font-size:10px;padding:1px 6px;border-radius:4px;
+    background:#fff;border:1px solid var(--line2);color:var(--muted)}
+
+  /* flow diagram */
+  .flow{display:flex;flex-direction:column;align-items:center;gap:0;margin:18px 0}
+  .layer{width:100%;display:flex;flex-direction:column;align-items:center}
+  .layer-label{font-family:"SF Mono",monospace;font-size:11px;color:var(--muted);
+    align-self:flex-start;margin:2px 0 6px;letter-spacing:.5px}
+  .row{display:flex;gap:12px;width:100%;justify-content:center;flex-wrap:wrap}
+  .row > .box{flex:1;min-width:170px}
+  .arrow{font-size:20px;color:var(--line2);line-height:1;margin:7px 0}
+  .arrow .lbl{font-family:"SF Mono",monospace;font-size:10.5px;color:var(--muted);
+    display:block;text-align:center;margin-bottom:-3px}
+  .split{display:flex;gap:12px;width:100%}
+  .split > div{flex:1;display:flex;flex-direction:column;align-items:center}
+  .legend{display:flex;flex-wrap:wrap;gap:16px;margin:14px 0 0;font-size:12.5px;color:#4a463e}
+  .legend .li{display:flex;align-items:center;gap:6px}
+  .sw{width:14px;height:14px;border-radius:4px;border:1px solid var(--line2)}
+
+  /* memory cycle */
+  .cycle{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin:16px 0 6px;
+    background:linear-gradient(180deg,#fff,#fbfaf6);border:1px dashed var(--accent);
+    border-radius:12px;padding:18px 14px;position:relative}
+  .node{flex:1;min-width:120px;background:#fff;border:1px solid var(--line2);border-radius:8px;
+    padding:10px;text-align:center;font-size:12.5px;display:flex;flex-direction:column;
+    justify-content:center;gap:3px}
+  .node b{font-size:13px}
+  .node .mc{font-family:"SF Mono",monospace;font-size:10.5px;color:var(--accent)}
+  .carr{display:flex;align-items:center;color:var(--accent);font-size:20px;padding:0 4px}
+  .loopnote{width:100%;text-align:center;margin-top:12px;font-size:12.5px;color:var(--accent);
+    font-family:"SF Mono",monospace}
+
+  /* steps */
+  .steps{counter-reset:s;margin:14px 0}
+  .step{display:flex;gap:14px;padding:11px 0;border-bottom:1px dashed var(--line)}
+  .step:last-child{border-bottom:0}
+  .step .num{counter-increment:s;flex:none;width:30px;height:30px;border-radius:50%;
+    background:var(--new-soft);border:1.5px solid var(--new);color:var(--new);
+    display:flex;align-items:center;justify-content:center;font-family:"SF Mono",monospace;
+    font-size:13px;font-weight:600}
+  .step .num::before{content:counter(s)}
+  .step .body{font-size:13.5px}
+  .step .body b{color:#1c1c1c}
+  .guard{display:inline-block;font-size:11px;font-family:"SF Mono",monospace;color:var(--buy);
+    background:var(--buy-soft);border:1px solid #e8cfcc;border-radius:4px;padding:0 6px;margin-left:4px}
+
+  /* storage tree */
+  .tree{background:#1f1d1a;color:#e8e3d8;border-radius:9px;padding:18px 20px;
+    font-family:"SF Mono",monospace;font-size:12.5px;line-height:1.85;overflow-x:auto}
+  .tree .im{color:#d98a7a}   /* immutable raw */
+  .tree .mk{color:#7fb8a8}   /* machine */
+  .tree .wi{color:#d9b97a}   /* wiki */
+  .tree .cmt{color:#857f72}
+  .tree .nw{color:#7fa8d9}
+
+  /* invariants chips */
+  .chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px;margin:14px 0}
+  .chip{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 13px;
+    font-size:12.8px}
+  .chip .h{font-weight:600;display:flex;align-items:center;gap:7px;margin-bottom:2px}
+  .chip .h .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
+  .chip .b{color:#544f46;line-height:1.5}
+
+  /* phases */
+  .phases{display:flex;flex-direction:column;gap:8px;margin:14px 0}
+  .phase{display:flex;gap:14px;align-items:stretch;background:var(--panel);border:1px solid var(--line);
+    border-radius:9px;overflow:hidden}
+  .phase .id{flex:none;width:64px;background:var(--new-soft);color:var(--new);
+    display:flex;align-items:center;justify-content:center;font-family:"SF Mono",monospace;
+    font-weight:700;font-size:17px;border-right:1px solid var(--line)}
+  .phase.done .id{background:var(--exist-soft);color:var(--exist)}
+  .phase.opt .id{background:#f3f1ea;color:var(--muted)}
+  .phase .c{padding:11px 14px;flex:1}
+  .phase .c .pt{font-weight:600;font-size:14.5px}
+  .phase .c .pd{font-size:12.8px;color:#544f46;margin-top:2px}
+  .phase .c .meta{font-family:"SF Mono",monospace;font-size:11px;color:var(--muted);margin-top:5px}
+
+  .foot{margin-top:50px;padding-top:18px;border-top:1px solid var(--line);
+    font-size:12.5px;color:var(--muted)}
+  .kbd{font-family:"SF Mono",monospace;background:#fff;border:1px solid var(--line2);
+    border-radius:4px;padding:1px 6px;font-size:11.5px}
+  .warnbar{background:var(--warn-soft);border:1px solid #e8d6a8;border-left:4px solid var(--warn);
+    border-radius:8px;padding:12px 15px;font-size:13px;margin:14px 0}
+  .okbar{background:var(--sell-soft);border:1px solid #c6e2d2;border-left:4px solid var(--sell);
+    border-radius:8px;padding:12px 15px;font-size:13px;margin:14px 0}
+
+  /* comparison table */
+  table.cmp{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px;background:var(--panel);
+    border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  table.cmp th,table.cmp td{text-align:left;padding:9px 13px;border-bottom:1px solid var(--line);
+    vertical-align:top}
+  table.cmp thead th{background:#f4f1ea;font-size:12px;letter-spacing:.5px;color:#3a362e}
+  table.cmp tr:last-child td{border-bottom:0}
+  table.cmp td.m1{color:#544f46}
+  table.cmp td.m2{color:var(--new);background:var(--new-soft)}
+  table.cmp .rh{font-weight:600;color:#1c1c1c;white-space:nowrap}
+
+  /* portfolio state machine */
+  .psm{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0}
+  .psm > .box{flex:1;min-width:200px;background:#fff}
+  .psm .box.new{background:var(--new-soft)}
+  .fml{font-family:"SF Mono",monospace;font-size:11.5px;background:#1f1d1a;color:#e8e3d8;
+    padding:2px 6px;border-radius:4px;display:inline-block;margin-top:3px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>回测 + 交易模拟 + 记忆功能 A</h1>
+  <p class="sub">方案框架与技术框架图 · Finance_Agent · 2026-06-12 · 配套 <a href="backtest-feature-design.md">backtest-feature-design.md</a></p>
+
+  <div class="scope">
+    <div class="card">
+      <div class="k">范围决策 1 · 回测语义</div>
+      <div class="v">M1 单决策反思 <span class="pill lock">LOCKED</span></div>
+      <div class="d">对已有 snapshot 算前向真实收益 → 调原生 reflect 写教训 → 功能 B 次日召回。<b>无引擎重跑、无净值曲线</b>，最小闭环。</div>
+    </div>
+    <div class="card">
+      <div class="k">范围决策 2 · 前端交互</div>
+      <div class="v">只读展示，无触发 <span class="pill lock">LOCKED</span></div>
+      <div class="d">面板渲染已跑好的结果；触发走<b>手动命令行</b>。SSE 桥 / 一键触发本期不做。</div>
+    </div>
+    <div class="card" style="border-left-color:var(--new)">
+      <div class="k">后续阶段 · 架构已预留</div>
+      <div class="v" style="font-size:15px;color:var(--new)">M2 前向组合模拟 <span class="pill defer">本期外·已设计</span></div>
+      <div class="d">M2 真·交易模拟（净值曲线）架构见 <b>§05</b>，向前累积样本外、复用 paper.py 公式。M3 历史重跑 / SSE 桥仍 DEFERRED。</div>
+    </div>
+  </div>
+
+  <div class="okbar" style="margin-top:18px">
+    ✅ <b>实现状态（2026-06-12）</b>：<b>M1 + M2 引擎已实现并验证</b>，代码 <code>.claude/skills/backtest-analysis/</code>。
+    M1 reflect 写→跨进程读回 5/5 桶 sim=1.000；M2 组合账目逐笔核对正确、reflect-on-close 600519 +1.02% 真实持有期收益 5/5 桶 sim=1.000。
+    实现中发现并修复一个静默拖垮功能 A/B 的<b>嵌入超长零向量 bug</b>（改为<b>分段归一化均值池化</b>，见设计文档 §11）。
+    <b>P2（KB 编译 raw-intake→finance-ingest→wiki/ontology）/ P3（前端面板）待实现</b>。
+  </div>
+
+  <!-- ============ 1 定位 ============ -->
+  <h2><span class="n">01</span> 三层定位 · 一条主线</h2>
+  <p class="lead">A 是<b>“决策 → 真实收益 → 写教训 → 下次召回”</b>的闭环内核；回测是在历史上批量产生决策并度量收益的引擎；前端是只读渲染。三者全部复用 TradingAgents-CN 原生设施，<b>不另起记忆/回测系统</b>。</p>
+  <div class="row" style="margin-top:8px">
+    <div class="box mem"><div class="t">① 功能 A · 记忆写半边 <span class="tag">内核</span></div>
+      <div class="desc">原生 <code>reflect_and_remember()</code> 早已存在但休眠（全仓库唯一引用是 main.py 一行注释）。补上它即闭合记忆环。</div></div>
+    <div class="box new"><div class="t">② 回测 / 交易模拟 <span class="tag">M1</span></div>
+      <div class="desc">以个股分析决策（买/持/卖）为信号，从 Tushare 取前向真实收益，模拟单笔成交并算收益。</div></div>
+    <div class="box exist"><div class="t">③ 前端只读面板 <span class="tag">展示</span></div>
+      <div class="desc">成交表 + 指标卡 + 记忆教训卡，渲染 runner 导出的 KB 文件。本期不含触发按钮。</div></div>
+  </div>
+
+  <!-- ============ 2 技术框架图 ============ -->
+  <h2><span class="n">02</span> 总体技术框架图</h2>
+  <p class="sub">数据自上而下：既有个股分析产出 snapshot → 新增回测引擎 → 双路写出（记忆桶 + KB 产物）→ 编译进 wiki/ontology → 前端渲染。</p>
+
+  <div class="flow">
+
+    <div class="layer">
+      <div class="layer-label">L0 · 既有：个股分析（不改动）</div>
+      <div class="box exist" style="width:100%">
+        <div class="t">stock-analysis skill → run_stock_analysis.py → 引擎 propagate <span class="tag">已上线</span></div>
+        <div class="desc">产出 snapshot：<code>raw/data/stock-snapshots/cn/&lt;ticker&gt;-&lt;date&gt;.json</code>（schema <code>stock-analysis-runner/v1</code>）—— 含 decision + 4 份报告 + 两个辩论 state，<b>重建 curr_state 所需一切都在内</b>。</div>
+      </div>
+    </div>
+
+    <div class="arrow"><span class="lbl">决策 + 报告 + 辩论 state（重建 curr_state 的 8 个字段）</span>▼</div>
+
+    <div class="layer">
+      <div class="layer-label">L1 · 新增：回测引擎 run_backtest.py --mode reflect（M1）</div>
+      <div class="box new" style="width:100%;padding:15px">
+        <div class="t" style="margin-bottom:10px">.claude/skills/backtest-analysis/scripts/run_backtest.py <span class="tag">项目根 skill · TA venv(py3.10)</span></div>
+        <div class="row">
+          <div class="box" style="background:#fff"><div class="t">env preamble<br><span class="tag">复用 runner</span></div><div class="desc">import 前置 Mongo/Redis off；设 persist dir；chdir + sys.path + dotenv。singleton 一次定生死。</div></div>
+          <div class="box" style="background:#fff"><div class="t">价格层 · Tushare</div><div class="desc"><code>get_historical_data</code>（qfq 前复权）取一段区间，贴最近交易日；停牌/超 gap 标“不可评估”。</div></div>
+          <div class="box" style="background:#fff"><div class="t">收益计算</div><div class="desc"><code>(close_exit−close_entry)/close_entry</code>，按动作签名（买+/卖−）。<b>只用真实 close，不用编造的 target_price</b>。</div></div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <div class="box" style="background:#fff"><div class="t">curr_state 重建</div><div class="desc">8 字段映射，<b>None→''</b>（reflect 硬下标，缺键 KeyError）。key 改名：reports.sentiment→sentiment_report…</div></div>
+          <div class="box mem" style="background:var(--accent-soft)"><div class="t">功能 A · reflect_and_remember()</div><div class="desc">设 <code>ta.curr_state</code> → 调原生。5×quick-LLM（anthropic:5678）。<b>跑前探活 DashScope</b> 防零向量。</div></div>
+          <div class="box" style="background:#fff"><div class="t">幂等台账</div><div class="desc">记 <code>(ticker,date,horizon)</code> 已 reflect；append-only 无去重，防重复写记忆。</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"><span class="lbl">双路写出</span>▼</div>
+
+    <div class="split">
+      <div>
+        <div class="layer-label">L2a · 记忆桶（ChromaDB，gitignored）</div>
+        <div class="box mem" style="width:100%">
+          <div class="t">.kb-vectors/ta-memory/</div>
+          <div class="desc"><code>bull_memory__&lt;ticker&gt;</code> / bear / trader / invest_judge / risk_manager。<b>= 功能 B 读的同一批桶</b>（namespace=ticker，嵌入 text-embedding-v4 1024 维 必须一致）。</div>
+        </div>
+        <div class="arrow" style="color:var(--accent)"><span class="lbl" style="color:var(--accent)">功能 B 次日 get_memories 召回</span>↩ 回流 L0</div>
+      </div>
+      <div>
+        <div class="layer-label">L2b · KB 机器产物（raw/，不可变）</div>
+        <div class="box kb" style="width:100%">
+          <div class="t">raw/data/backtests/cn/&lt;ticker&gt;-&lt;runid&gt;/</div>
+          <div class="desc"><code>config.json</code> · <code>trades.jsonl</code>（一行一笔，含 reflected 标记 + 教训串）。重跑=新 runid，绝不覆盖。</div>
+        </div>
+        <div class="arrow"><span class="lbl">raw-intake（envelope + ledger 溯源 sha256）</span>▼</div>
+        <div class="box kb" style="width:100%">
+          <div class="t">raw/analysis/backtests/cn/&lt;ticker&gt;-&lt;runid&gt;.md</div>
+          <div class="desc"><code>type: backtest-report</code>（新类型）。flat frontmatter 指标 atoms + 正文 ```json 块装 trades（数组进不了 mini-YAML）。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"><span class="lbl">finance-ingest 两步 CoT · graph_append.py</span>▼</div>
+
+    <div class="layer">
+      <div class="layer-label">L3 · 编译进 wiki / ontology</div>
+      <div class="row">
+        <div class="box kb"><div class="t">wiki/reports/&lt;date&gt;-&lt;ticker&gt;-backtest.md</div><div class="desc"><code>type: report</code> · 6 必填字段 + <code>sources[]</code> 回指 raw。过 <code>build_index.py --validate</code>。</div></div>
+        <div class="box kb"><div class="t">ontology · 1×Backtest 节点</div><div class="desc"><code>graph_append.py create/relate</code>：Backtest −COVERS→ Company。<b>绝不给每笔成交建节点</b>；先登记 schema.yaml。</div></div>
+      </div>
+    </div>
+
+    <div class="arrow"><span class="lbl">serve.sh manifest + kb-parse.js 分支（live-parse）</span>▼</div>
+
+    <div class="layer">
+      <div class="layer-label">L4 · 前端只读面板（localhost only）</div>
+      <div class="box exist" style="width:100%">
+        <div class="t">renderBacktest() —— equity 页签的第 3 个子视图</div>
+        <div class="desc">SVG 手绘成交/收益（复用 constellation 画法） · <code>inst()</code> 指标卡 · 买红/卖绿 pill · <b>记忆教训卡</b>（runner 导出，<b>前端绝不读 .kb-vectors</b>） · sample/partial/ok 诚实 badge。本期<b>无触发按钮</b>。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="li"><span class="sw" style="background:var(--exist-soft);border-color:var(--exist)"></span>既有/不改</div>
+    <div class="li"><span class="sw" style="background:var(--new-soft);border-color:var(--new)"></span>新增代码</div>
+    <div class="li"><span class="sw" style="background:var(--accent-soft);border-color:var(--accent)"></span>功能 A / 记忆</div>
+    <div class="li"><span class="sw" style="background:var(--warn-soft);border-color:var(--warn)"></span>KB 落盘</div>
+    <div class="li"><span class="mono" style="color:var(--accent)">↩</span> 回流 = 记忆环闭合</div>
+  </div>
+
+  <!-- ============ 3 记忆环 ============ -->
+  <h2><span class="n">03</span> 功能 A 记忆环（A 写 · B 读 闭环）</h2>
+  <p class="sub">M1 补上的就是下图标红的“写半边”。B 的读半边已上线；A 一旦写入，环即闭合，同一标的次日分析自动复用历史教训。</p>
+  <div class="cycle">
+    <div class="node"><b>个股分析决策</b><span class="mc">买入 / 卖出</span><span style="font-size:11px;color:var(--muted)">snapshot</span></div>
+    <div class="carr">→</div>
+    <div class="node"><b>+N 交易日真实收益</b><span class="mc">Tushare qfq close</span><span style="font-size:11px;color:var(--muted)">signed return</span></div>
+    <div class="carr">→</div>
+    <div class="node" style="border-color:var(--buy);background:var(--buy-soft)"><b style="color:var(--buy)">A · reflect 写教训</b><span class="mc" style="color:var(--buy)">reflect_and_remember</span><span style="font-size:11px;color:var(--buy)">5×quick-LLM · 本期新增</span></div>
+    <div class="carr">→</div>
+    <div class="node" style="border-color:var(--accent);background:var(--accent-soft)"><b>记忆桶</b><span class="mc">bull_memory__&lt;ticker&gt;…</span><span style="font-size:11px;color:var(--muted)">ChromaDB 持久</span></div>
+    <div class="carr">→</div>
+    <div class="node"><b>B · 次日召回</b><span class="mc">get_memories</span><span style="font-size:11px;color:var(--muted)">已上线</span></div>
+    <div class="carr">→</div>
+    <div class="node"><b>注入多空/风险辩论</b><span class="mc">n_matches=2</span><span style="font-size:11px;color:var(--muted)">影响新决策</span></div>
+    <div class="loopnote">↺ 闭环：A 写 → B 读 → 更好的决策 → 新收益 → A 再写</div>
+  </div>
+  <div class="warnbar">
+    ⚠️ <b>静默写垃圾的坑</b>：DashScope 欠费/缺 key 时 <code>get_embedding</code> 返回 1024 维<b>零向量</b>，<code>add_situations</code> 仍“成功”但该行永远召不回。<b>A 跑前必须探活 DashScope</b>。且 DashScope <b>仅做 Embedding</b>——reflect 的 5 次对话调用走 anthropic/claude-max-proxy:5678，计费独立。
+  </div>
+
+  <!-- ============ 4 M1 流程 ============ -->
+  <h2><span class="n">04</span> M1 单决策反思 · 执行流程</h2>
+  <p class="sub">run_backtest.py --mode reflect 对每个 (snapshot, horizon) 的 7 步。<b>不重跑引擎</b>，只算收益 + 5 次轻量 reflect。</p>
+  <div class="steps">
+    <div class="step"><div class="num"></div><div class="body"><b>读 snapshot</b>；若 <code>status==failed</code> 或 <code>action==持有 且 confidence/risk==0.5/0.5</code>（解析回退指纹）<span class="guard">→ 跳过</span></div></div>
+    <div class="step"><div class="num"></div><div class="body"><b>查幂等台账</b>，已 reflect 过 <code>(ticker,date,horizon)</code> <span class="guard">→ 跳过（除非 --force）</span></div></div>
+    <div class="step"><div class="num"></div><div class="body"><b>取价格</b> <code>get_historical_data(ticker, date−3d, date+horizon+5d)</code>，贴最近交易日取 entry/exit close；停牌或超 max-gap <span class="guard">→ 标不可评估并跳过</span></div></div>
+    <div class="step"><div class="num"></div><div class="body"><b>算签名收益</b>：买入→+raw_ret，卖出→−raw_ret，持有→0/相对基准；生成 <code>returns_losses</code> 短串（含方向+%+天数+动作）</div></div>
+    <div class="step"><div class="num"></div><div class="body"><b>重建 curr_state</b>（8 字段映射，None→''）</div></div>
+    <div class="step"><div class="num"></div><div class="body"><b>探活 DashScope</b> → 建图 <code>TradingAgentsGraph(config, memory_enabled=True)</code> → <code>ta.curr_state=state</code> → <code>ta.reflect_and_remember(returns_losses)</code></div></div>
+    <div class="step"><div class="num"></div><div class="body"><b>落盘</b>：追加 <code>trades.jsonl</code> 一行 + 幂等台账一行</div></div>
+  </div>
+
+  <!-- ============ 5 M2 设计 ============ -->
+  <h2><span class="n">05</span> M2 · 前向纸面交易（组合模拟）设计 <span class="pill defer" style="font-size:11px">本期外 · 架构预留</span></h2>
+  <p class="lead">M2 是 M1 的自然延伸：把“单笔决策反思”升级成<b>随时间推进的组合模拟</b>，产出净值曲线与组合指标，并在<b>每次平仓</b>时用真实持有期收益喂功能 A。关键取舍——<b>只向前（forward paper-test），不重跑古早历史</b>，从而<b>方法论干净</b>（真·样本外）且天然补齐“现状每票仅 1 个 snapshot”的序列缺口。</p>
+
+  <div class="okbar">
+    ✅ <b>为什么 M2 向前而非向后？</b> 引擎 <code>online_tools=True</code>，舆情分析师抓的是<b>当前</b>新闻/情绪。在过去日期重跑（M3）会泄漏未来 → 前瞻偏差。<b>M2 从今天起按节奏跑、向前累积</b>，每个决策都是当时真实信息做出的样本外决策 → 净值曲线可信。这也是 M2 优先于 M3 的根本原因。
+  </div>
+
+  <table class="cmp">
+    <thead><tr><th style="width:130px">维度</th><th style="width:42%">M1 单决策反思（本期）</th><th>M2 前向组合模拟（本期外）</th></tr></thead>
+    <tbody>
+      <tr><td class="rh">引擎重跑</td><td class="m1">❌ 复用已有 snapshot</td><td class="m2">✅ 按节奏对 universe 跑分析（成本旋钮）</td></tr>
+      <tr><td class="rh">产出</td><td class="m1">单笔成交 + 教训</td><td class="m2">组合净值曲线 + 胜率/Sharpe/回撤</td></tr>
+      <tr><td class="rh">收益口径</td><td class="m1">固定 horizon（5/20 日）前向收益</td><td class="m2">实际<b>持有期</b>真实 PnL（开仓→平仓）</td></tr>
+      <tr><td class="rh">reflect 时机</td><td class="m1">每个 (snapshot, horizon)</td><td class="m2">每次<b>平仓</b>，用真实持有期收益</td></tr>
+      <tr><td class="rh">新增状态</td><td class="m1">幂等台账</td><td class="m2">组合状态机（现金/持仓/净值）+ 节奏驱动</td></tr>
+      <tr><td class="rh">方法论</td><td class="m1">干净（事后量收益）</td><td class="m2">干净（真·样本外，向前）</td></tr>
+    </tbody>
+  </table>
+
+  <div class="flow">
+    <div class="layer">
+      <div class="layer-label">M2-L0 · 节奏驱动（手动 / cron · 成本旋钮 = 周期 × 标的数）</div>
+      <div class="box new" style="width:100%">
+        <div class="t">rebalance 触发（如每周/每月）→ 对 universe 每只票跑 run_stock_analysis.py <span class="tag">复用既有 runner</span></div>
+        <div class="desc">每个 rebalance 日产出一批 snapshot → <b>向前累积真·样本外决策序列</b>（同时补齐 KB 的多日序列缺口）。周期与标的数是成本旋钮——引擎重跑贵（~5–17min/票），周/月级而非日级。</div>
+      </div>
+    </div>
+
+    <div class="arrow"><span class="lbl">decision(买/持/卖) + confidence + risk_score 序列</span>▼</div>
+
+    <div class="layer">
+      <div class="layer-label">M2-L1 · 组合状态机 portfolio simulator（复用 paper.py 公式，不复用其 MongoDB 数据路径）</div>
+      <div class="psm">
+        <div class="box new"><div class="t">现金 cash</div><div class="desc">买入按 <b>confidence/risk_score 定仓</b>；扣手续费（可配）。</div></div>
+        <div class="box new"><div class="t">持仓 positions[]</div><div class="desc"><code>{ticker, qty, avg_cost, available_qty}</code>；买入加权 avg_cost；<b>A 股 T+1</b>：当日买入不可卖（available_qty）。<span class="fml">realized_pnl = (price − avg_cost) × qty</span></div></div>
+        <div class="box new"><div class="t">每日 mark-to-market</div><div class="desc">每交易日用 Tushare 收盘价重估：<span class="fml">equity = cash + Σ positions × close</span> → 写 equity_curve。</div></div>
+      </div>
+      <div class="box new" style="width:100%;margin-top:4px">
+        <div class="t">产出 equity_curve[]</div>
+        <div class="desc"><code>[{date, equity, benchmark_equity, drawdown}]</code> —— 基准默认沪深300 <code>000300.SH</code> 同步建仓叠加，算超额。</div>
+      </div>
+    </div>
+
+    <div class="arrow"><span class="lbl">每笔平仓：真实持有期收益</span>▼</div>
+
+    <div class="split">
+      <div>
+        <div class="layer-label">M2-L2a · 功能 A（与 M1 同一原生入口）</div>
+        <div class="box mem" style="width:100%">
+          <div class="t">平仓 → reflect_and_remember(holding_period_return)</div>
+          <div class="desc">用<b>实际开仓→平仓</b>的真实收益（比 M1 固定 horizon 更贴近真实持有），重建该决策的 curr_state 后调原生 reflect，写进同一批 <code>*_memory__&lt;ticker&gt;</code> 桶。</div>
+        </div>
+      </div>
+      <div>
+        <div class="layer-label">M2-L2b · 组合指标</div>
+        <div class="box new" style="width:100%">
+          <div class="t">total_return / CAGR / Sharpe / max_drawdown / win_rate / vs_benchmark</div>
+          <div class="desc">全部从 equity_curve + trades 真实算出；<b>永不编造</b>，缺=null。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"><span class="lbl">落盘 + 编译</span>▼</div>
+
+    <div class="layer">
+      <div class="layer-label">M2-L3 · KB 落盘（在 M1 布局上增量）</div>
+      <div class="row">
+        <div class="box kb"><div class="t">+ equity_curve.json</div><div class="desc">入 <code>raw/data/backtests/cn/&lt;id&gt;/</code>，与 trades.jsonl 并列（不可变）。</div></div>
+        <div class="box kb"><div class="t">报告含净值/指标</div><div class="desc">raw/analysis/backtests 报告正文 ```json 块装 equity_curve；frontmatter 加 cagr/sharpe/maxDD atoms。</div></div>
+        <div class="box kb"><div class="t">ontology Portfolio 节点</div><div class="desc">可建 1×Portfolio（组合终态）<code>HOLDS</code>→Company（复用既有 HOLDS 边）；仍不给每笔成交/每净值点建节点。</div></div>
+      </div>
+    </div>
+
+    <div class="arrow"><span class="lbl">renderBacktest() 增量</span>▼</div>
+
+    <div class="layer">
+      <div class="layer-label">M2-L4 · 前端（在 M1 只读面板上增量）</div>
+      <div class="box exist" style="width:100%">
+        <div class="t">SVG 净值曲线 + 回撤带 + 基准叠加 + 指标卡</div>
+        <div class="desc">复用 constellation 手绘 SVG：<code>&lt;polyline&gt;</code> 画 equity_curve，<code>--accent</code> 净值 / <code>--c-company</code> 基准 / <code>--warn</code> 回撤带；<code>inst()</code> 卡片展示 Sharpe/CAGR/maxDD/胜率。仍<b>无交互触发</b>，仍<b>不读 .kb-vectors</b>。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="warnbar">
+    ⚠️ <b>M2 的两个工程约束</b>：① 引擎重跑贵 + claude-max-proxy:5678 token 易过期 → 节奏化（周/月）+ <code>run_in_background</code> 轮询，跑前 curl 探活；② Tushare 限频 → 每票一次宽区间拉取 + 24h 缓存 + 退避。M2 不改这两条 M1 已有的防护，只是放大了调用量。
+  </div>
+
+  <!-- ============ 6 存储 ============ -->
+  <h2><span class="n">06</span> KB 存储布局（守不变量）</h2>
+  <div class="tree">
+Knowledge_Wiki/
+├─ raw/                                  <span class="cmt"># 不可变 · build_index SKIP · 不校验</span>
+│  ├─ data/
+│  │  ├─ stock-snapshots/cn/&lt;ticker&gt;-&lt;date&gt;.json     <span class="cmt"># 既有 · 回测输入</span>
+│  │  └─ <span class="nw">backtests/cn/&lt;ticker&gt;-&lt;runid&gt;/</span>            <span class="cmt"># 新增 · 机器产物</span>
+│  │     ├─ <span class="mk">config.json</span>      <span class="cmt"># 输入参数</span>
+│  │     └─ <span class="mk">trades.jsonl</span>     <span class="cmt"># 一行一笔成交 + reflected 标记</span>
+│  ├─ analysis/
+│  │  ├─ stocks/&lt;ticker&gt;-&lt;date&gt;.md                  <span class="cmt"># 既有 · 个股报告</span>
+│  │  └─ <span class="nw">backtests/cn/&lt;ticker&gt;-&lt;runid&gt;.md</span>          <span class="im"># 新增 type: backtest-report</span>
+│  └─ .intake/ledger.jsonl               <span class="cmt"># raw-intake 溯源(sha256)</span>
+├─ wiki/
+│  └─ reports/<span class="nw">&lt;date&gt;-&lt;ticker&gt;-backtest.md</span>          <span class="wi"># type: report + sources[] · finance-ingest 编译</span>
+├─ ontology/
+│  ├─ schema.yaml                        <span class="cmt"># 先登记 Backtest 节点 + COVERS 边</span>
+│  └─ graph.jsonl                        <span class="cmt"># append-only · 只经 graph_append.py</span>
+└─ .kb-vectors/ta-memory/                <span class="cmt"># gitignored · A 写 / B 读 · 前端绝不碰</span>
+   └─ bull_memory__&lt;ticker&gt; …
+  </div>
+
+  <!-- ============ 7 不变量 ============ -->
+  <h2><span class="n">07</span> 不变量合规</h2>
+  <div class="chips">
+    <div class="chip"><div class="h"><span class="dot"></span>本地 only，绝不公网</div><div class="b">前端 serve.sh 仅 localhost；本期无任何网络触发组件；外发前停确认。</div></div>
+    <div class="chip"><div class="h"><span class="dot"></span>raw/ 不可变</div><div class="b">回测产物写 raw/data + raw/analysis，重跑=新 runid，绝不覆盖。</div></div>
+    <div class="chip"><div class="h"><span class="dot"></span>不直接写 wiki/</div><div class="b">analysis → raw-intake → finance-ingest → wiki/reports。</div></div>
+    <div class="chip"><div class="h"><span class="dot"></span>ontology 只经 graph_append.py</div><div class="b">1×Backtest 节点 + COVERS 边；不给成交/净值点建节点；先登记 schema.yaml。</div></div>
+    <div class="chip"><div class="h"><span class="dot"></span>永不编造</div><div class="b">指标全部 sources[] 可溯；缺=null/[UNSOURCED]；sample badge 诚实标注。</div></div>
+    <div class="chip"><div class="h"><span class="dot"></span>DashScope 仅 Embedding</div><div class="b">reflect 5 次对话走 anthropic:5678；嵌入走 dashscope；跑前探活防零向量。</div></div>
+    <div class="chip"><div class="h"><span class="dot"></span>引擎重跑很贵</div><div class="b">M1 不重跑引擎；只 5 次轻量 reflect + 1 次 Tushare 区间拉取。</div></div>
+    <div class="chip"><div class="h"><span class="dot"></span>幂等防污染</div><div class="b">sidecar 台账记 (ticker,date,horizon)；P1 先用 temp persist dir 验证再正式跑。</div></div>
+  </div>
+
+  <!-- ============ 8 阶段 ============ -->
+  <h2><span class="n">08</span> 分阶段落地（本期 = P0→P3）</h2>
+  <div class="phases">
+    <div class="phase"><div class="id">P0</div><div class="c"><div class="pt">价格层 + 收益计算</div><div class="pd">Tushare 同步 wrapper + 交易日贴齐 + 停牌守卫；对现有 3 个 snapshot 算前向收益打印验证。</div><div class="meta">无 LLM · 可独立验证 · 零引擎成本</div></div></div>
+    <div class="phase"><div class="id">P1</div><div class="c"><div class="pt">功能 A（M1 内核）</div><div class="pd">curr_state 重建 + DashScope 探活 + reflect_and_remember + trades.jsonl + 幂等台账。<b>temp persist dir 验证写→读命中</b>（仿功能 B 验证），确认不污染正式记忆库。</div><div class="meta">记忆环闭合 · 5×quick-LLM/决策</div></div></div>
+    <div class="phase"><div class="id">P2</div><div class="c"><div class="pt">KB 落盘 + 报告</div><div class="pd">raw/data/backtests 布局 + raw-intake handoff + backtest-report 新类型 + finance-ingest → wiki/reports + ontology 节点。过 build_index --validate。</div><div class="meta">守 raw 不可变 / 不直写 wiki</div></div></div>
+    <div class="phase"><div class="id">P3</div><div class="c"><div class="pt">前端只读面板</div><div class="pd">prototype-backtest.html → renderBacktest() + kb-parse 分支 + serve.sh manifest + binding §2c。成交/指标/记忆教训卡。<b>无交互触发</b>。</div><div class="meta">live-parse · localhost only</div></div></div>
+    <div class="phase opt"><div class="id">P4</div><div class="c"><div class="pt">M2 前向组合模拟 <span class="pill defer">本期外 · 架构见 §05</span></div><div class="pd">节奏驱动 + 组合状态机（现金/持仓/T+1）+ 净值曲线 + 平仓时真实持有期收益喂 A；按节奏向前积累真·样本外序列。</div><div class="meta">复用 paper.py PnL 公式 · forward-only 干净</div></div></div>
+    <div class="phase opt"><div class="id">P5</div><div class="c"><div class="pt">127.0.0.1 SSE 桥 / M3 历史重跑 <span class="pill defer">需确认</span></div><div class="pd">一键触发（claude -p stream-json，仅绑 loopback）；M3 含前瞻偏差标注。建前需按本地 only 不变量显式批准。</div><div class="meta">新网络组件 · 方法论受限</div></div></div>
+  </div>
+
+  <div class="foot">
+    触发方式（本期）：手动跑 <span class="kbd">TradingAgents-CN/.venv/bin/python .claude/skills/backtest-analysis/scripts/run_backtest.py --ticker 600519 --mode reflect --horizons 5,20</span>。
+    完整设计与坑位见 <a href="backtest-feature-design.md">docs/backtest-feature-design.md</a>。本文件为本地可视化，遵循 KB 本地 only 不变量。
+  </div>
+
+</div>
+</body>
+</html>
