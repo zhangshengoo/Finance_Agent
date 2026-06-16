@@ -208,6 +208,135 @@ a{color:inherit;text-decoration:none}
 .deep-body .src{font-family:var(--mono); font-size:10px; color:var(--faint); margin-top:9px; word-break:break-all}
 .mgrp{font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); margin:24px 0 12px}
 
+/* ===== media 时间线 v0.3：折叠卡 + 类型化知识点树 + 立场 + 演化 ===== */
+.mt-card{background:var(--ink); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); margin-bottom:9px; overflow:hidden; transition:.2s}
+.mt-card:hover{border-color:var(--line-2)}
+.mt-card.open{border-left:3px solid var(--c-media)}
+.mt-row{display:flex; align-items:center; gap:11px; padding:13px 16px; cursor:pointer; user-select:none}
+.mt-chev{color:var(--ghost); font-size:11px; flex:none; transition:transform .2s}
+.mt-card.open .mt-chev{transform:rotate(90deg); color:var(--c-media)}
+.mt-date{font-family:var(--mono); font-size:11.5px; color:var(--accent); letter-spacing:.06em; flex:none}
+.mt-kind{font-family:var(--mono); font-size:9.5px; font-weight:700; letter-spacing:.04em; border-radius:5px; padding:2px 7px; flex:none; color:#fff}
+.mt-kind.video{background:var(--c-media)} .mt-kind.dyn{background:#c08f4e}
+.mt-ti{flex:1; min-width:0; font-family:var(--serif); font-size:15px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.mt-ti.muted{color:var(--faint); font-style:italic; font-family:var(--sans); font-size:13.5px}
+.mt-trade{font-family:var(--mono); font-size:8.5px; font-weight:700; letter-spacing:.04em; color:var(--warn); border:1px solid rgba(189,122,14,.4); border-radius:4px; padding:1px 5px; flex:none}
+.mt-dots{display:flex; gap:4px; flex:none}
+.mt-dots i{width:8px; height:8px; border-radius:50%}
+.mt-dots i.long{background:var(--c-thesis)} .mt-dots i.short{background:var(--c-media)} .mt-dots i.flat{background:var(--ghost)}
+.mt-dur{font-family:var(--mono); font-size:10.5px; color:var(--faint); flex:none}
+/* 展开体 */
+.mt-body{display:none; padding:0 16px 16px; border-top:1px solid var(--line)}
+.mt-card.open .mt-body{display:block; animation:rise .4s ease both}
+.mt-sum{font-family:var(--serif); font-size:13.5px; color:var(--mute); line-height:1.62; padding:13px 0 4px}
+.mt-sum b{color:var(--accent-hi); font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; margin-right:7px}
+/* 知识点树 */
+.mt-tree{margin-top:8px}
+.mt-tree-h{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin:6px 0 12px; display:flex; align-items:center; gap:8px}
+.mt-tree-h .v{color:var(--accent-hi); border:1px solid var(--line-2); border-radius:20px; padding:2px 8px; font-size:9px}
+.mt-topic{margin-bottom:11px}
+.mt-th{font-family:var(--serif); font-weight:600; font-size:14px; color:var(--text); padding:7px 12px; border-radius:8px; background:var(--ink-2)}
+.mt-kids{margin:5px 0 0 13px; padding-left:14px; border-left:1px solid var(--line)}
+.mt-node{padding:9px 0}
+.mt-node + .mt-node{border-top:1px solid var(--line)}
+.mt-nline{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
+.mt-nhead{font-weight:600; color:var(--text); font-size:13px}
+.mt-ndetail{margin-top:4px; color:var(--mute); font-size:12px; line-height:1.6}
+/* 类型 chip（可扩展，未知类型兜底 .nt-other 「其他」） */
+.ntype{font-family:var(--mono); font-weight:700; font-size:9.5px; border-radius:5px; padding:2px 7px; white-space:nowrap; flex:none}
+.nt-fact{background:var(--ink-3); color:var(--mute)}
+.nt-logic{background:rgba(47,127,196,.12); color:#2f7fc4}
+.nt-view{background:rgba(122,79,206,.13); color:#7a4fce}
+.nt-trend{background:rgba(72,153,61,.14); color:#2f8f3d}
+.nt-action{background:rgba(205,86,56,.13); color:#cd5638}
+.nt-risk{background:rgba(189,122,14,.15); color:#9a6c10}
+.nt-data{background:rgba(15,156,140,.12); color:var(--accent-hi)}
+.nt-event{background:rgba(83,86,207,.12); color:#5356cf}
+.nt-other{background:var(--ink-3); color:var(--faint)}
+/* 价位 / 方向 小标签 */
+.mt-px{font-family:var(--mono); font-size:10px; color:var(--mute); background:var(--ink-2); border:1px solid var(--line); border-radius:4px; padding:1px 6px}
+.mt-st{font-family:var(--mono); font-weight:700; font-size:9.5px; border-radius:4px; padding:1px 6px; white-space:nowrap}
+.mt-st.long{background:rgba(72,153,61,.14); color:#2f8f3d} .mt-st.short{background:rgba(194,54,47,.12); color:#c2362f}
+/* 因果链 */
+.mt-chain{display:flex; align-items:center; gap:6px; flex-wrap:wrap}
+.mt-chain b{font-weight:600; color:var(--text); background:rgba(47,127,196,.08); border:1px solid rgba(47,127,196,.28); border-radius:6px; padding:2px 8px; font-size:12px}
+.mt-chain i{color:#2f7fc4; font-style:normal; font-weight:700}
+/* 立场徽章 */
+.mt-stances{margin-top:13px; border:1px dashed rgba(205,86,56,.4); border-radius:9px; background:rgba(205,86,56,.045); padding:10px 12px}
+.mt-stances .lab{font-family:var(--mono); font-size:9.5px; letter-spacing:.03em; color:var(--c-media); margin-bottom:8px; line-height:1.5}
+.mt-srow{display:flex; flex-wrap:wrap; gap:8px}
+.mt-stance{display:flex; align-items:center; gap:7px; background:var(--ink); border:1px solid var(--line); border-radius:8px; padding:5px 10px; font-size:12px}
+.mt-stance .t{font-weight:650; color:var(--text)}
+.mt-stance .px{font-family:var(--mono); font-size:10.5px; color:var(--mute)}
+.mt-wiki{margin-top:11px; font-family:var(--mono); font-size:11px; color:var(--faint)}
+.mt-wiki a{color:var(--accent-hi)} .mt-wiki .src{color:var(--ghost); word-break:break-all}
+/* fallback tldr / empty */
+.mt-tldr{list-style:none; display:grid; gap:8px; margin-top:12px}
+.mt-tldr li{display:flex; gap:10px; font-size:13px; color:var(--mute); line-height:1.5}
+.mt-tldr li::before{content:"›"; color:var(--accent); font-family:var(--mono); flex:none}
+.mt-empty{font-family:var(--mono); font-size:11.5px; color:var(--faint); font-style:italic; padding:12px 0}
+/* 观点演化（默认折叠 · 按标的选择） */
+.mt-ev{margin:18px 0 6px; border:1px solid var(--line); border-radius:14px; background:var(--ink); box-shadow:var(--shadow); overflow:hidden}
+.mt-ev-h{display:flex; align-items:center; gap:11px; padding:15px 18px; cursor:pointer; user-select:none}
+.mt-ev-h .chev{color:var(--ghost); font-size:12px; transition:transform .2s; flex:none}
+.mt-ev.open .mt-ev-h .chev{transform:rotate(90deg); color:var(--c-media)}
+.mt-ev-h h4{font-family:var(--serif); font-weight:500; font-size:18px}
+.mt-ev-h .n{font-family:var(--mono); font-size:10.5px; color:var(--faint); margin-left:auto}
+.mt-ev-body{display:none; padding:0 18px 18px}
+.mt-ev.open .mt-ev-body{display:block; animation:rise .4s ease both}
+.mt-doms{display:flex; gap:7px; flex-wrap:wrap; margin:4px 0 13px}
+.mt-dom{font-family:var(--sans); font-size:12px; border-radius:20px; padding:5px 13px; border:1px solid var(--line); background:var(--ink); color:var(--mute); cursor:pointer; display:flex; align-items:center; gap:7px; transition:.15s}
+.mt-dom:hover{border-color:var(--line-2); color:var(--text)}
+.mt-dom i{width:8px; height:8px; border-radius:50%}
+.mt-dom.on{border-color:var(--c-media); background:rgba(205,86,56,.08); color:var(--text)}
+.mt-chart{border:1px solid var(--line); border-radius:12px; background:var(--ink-2); padding:14px 14px 6px}
+.mt-chart svg{display:block; width:100%; height:auto}
+.mt-chart .none{font-family:var(--mono); font-size:11.5px; color:var(--faint); padding:26px 8px; text-align:center}
+.mt-honest{margin-top:10px; font-size:11px; color:#9a6c10; background:rgba(189,122,14,.08); border:1px solid rgba(189,122,14,.25); border-radius:8px; padding:7px 11px; line-height:1.5}
+.mt-honest b{font-weight:600}
+/* 时间线工具条：类型筛选 + 计数 + 显示更多 */
+.mt-toolbar{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:2px 0 16px}
+.mt-fil{display:flex; gap:7px; flex-wrap:wrap}
+.mt-fch{font-family:var(--mono); font-size:11px; letter-spacing:.03em; padding:7px 13px; border-radius:20px; border:1px solid var(--line); color:var(--mute); cursor:pointer; transition:.18s; background:var(--ink); display:flex; align-items:center; gap:7px; user-select:none}
+.mt-fch:hover{border-color:var(--line-2); color:var(--text)}
+.mt-fch.on{background:var(--c-media); border-color:var(--c-media); color:#fff; box-shadow:0 1px 8px rgba(205,86,56,.25)}
+.mt-fch.on i{box-shadow:0 0 0 2px rgba(255,255,255,.5)}
+.mt-fch i{width:7px; height:7px; border-radius:50%; flex:none}
+.mt-count{margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--faint); letter-spacing:.02em}
+.mt-more{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; font-family:var(--mono); font-size:11.5px; letter-spacing:.05em; color:var(--c-media); background:var(--ink); border:1px dashed var(--line-2); border-radius:11px; padding:12px; cursor:pointer; transition:.18s; margin-top:4px}
+.mt-more:hover{background:rgba(205,86,56,.05); border-color:var(--c-media)}
+
+/* ===== 多UP主选择布局 ===== */
+.up-shell{display:grid; grid-template-columns:220px 1fr; gap:22px; align-items:start}
+.up-rail{position:sticky; top:24px; display:flex; flex-direction:column; gap:8px}
+.up-btn{display:flex; align-items:center; gap:11px; padding:12px 14px; border-radius:12px; border:1px solid var(--line); background:var(--ink); cursor:pointer; transition:.2s; user-select:none; box-shadow:var(--shadow)}
+.up-btn:hover{border-color:var(--line-2); background:var(--ink-2); transform:translateX(2px)}
+.up-btn.on{border-color:var(--c-media); background:rgba(205,86,56,.07); transform:translateX(3px)}
+.up-btn.on .up-av{border-color:var(--c-media); color:var(--c-media)}
+.up-av{width:38px; height:38px; border-radius:50%; border:1.5px solid var(--ghost); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:18px; color:var(--mute); flex:none; transition:.2s}
+.up-btn-info{flex:1; min-width:0}
+.up-btn-name{font-family:var(--serif); font-size:14px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.up-btn-meta{font-family:var(--mono); font-size:10px; color:var(--faint); margin-top:3px}
+/* 单UP时隐藏 rail */
+.up-rail:empty,.up-rail[data-single]{display:none}
+/* 主面板 */
+.up-header{display:flex; align-items:center; gap:18px; background:var(--ink); border:1px solid var(--line); border-left:3px solid var(--c-media); border-radius:14px; padding:20px 22px; margin-bottom:14px; flex-wrap:wrap; box-shadow:var(--shadow)}
+.up-av-lg{width:54px; height:54px; border-radius:50%; border:2px solid var(--c-media); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:24px; color:var(--c-media); flex:none; box-shadow:0 0 16px rgba(205,86,56,.18)}
+.up-header-info{flex:1; min-width:140px}
+.up-header-name{font-family:var(--serif); font-size:22px; color:var(--text); line-height:1.15}
+.up-header-src{font-family:var(--mono); font-size:11px; color:var(--mute); margin-top:4px; letter-spacing:.02em}
+.up-header-stats{display:flex; gap:22px; flex-wrap:wrap}
+.up-tl-bar{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:12px 0 14px}
+/* 演化区标题中显示 UP 名 */
+.mt-ev .mt-ev-h .up-tag{font-family:var(--mono); font-size:10px; color:var(--faint); border:1px solid var(--line); border-radius:10px; padding:2px 8px; white-space:nowrap}
+/* responsive */
+@media(max-width:820px){
+  .up-shell{grid-template-columns:1fr}
+  .up-rail{position:static; flex-direction:row; overflow-x:auto; gap:6px; margin-bottom:6px; padding-bottom:4px}
+  .up-btn{flex-direction:column; align-items:center; text-align:center; min-width:110px; padding:10px 12px; flex:none; transform:none!important}
+  .up-btn-meta{white-space:nowrap}
+}
+
 .kp{list-style:none; margin-top:14px; display:grid; gap:9px}
 .kp li{display:flex; gap:11px; font-size:13.5px; color:#cdd2dc; line-height:1.5}
 .kp li::before{content:"›"; color:var(--accent); font-family:var(--mono); flex:none; margin-top:1px}
@@ -446,6 +575,27 @@ a{color:inherit;text-decoration:none}
 .eq-rbadge.wiki{color:var(--accent-hi); background:rgba(15,156,140,.08)}
 .eq-rmeta{font:500 11.5px/1.5 var(--mono); color:var(--faint); letter-spacing:.01em; display:flex; align-items:center; gap:8px; flex-wrap:wrap}
 .eq-runsel{font:500 11px/1 var(--mono); border:1px solid var(--line); border-radius:6px; padding:4px 7px; background:var(--ink); color:var(--text); cursor:pointer}
+/* 回测 / 记忆环 */
+.bt-sech{font:600 11.5px var(--mono); color:var(--mute); margin:18px 0 9px; letter-spacing:.03em}
+.bt-table{width:100%; border-collapse:collapse; font-size:12.5px; margin-bottom:6px}
+.bt-table th{text-align:left; font:600 9.5px var(--mono); color:var(--faint); text-transform:uppercase; letter-spacing:.04em; padding:7px 9px; border-bottom:1px solid var(--line)}
+.bt-table td{padding:8px 9px; border-bottom:1px solid var(--line); color:var(--text)}
+.bt-table tr:hover td{background:var(--ink-2)}
+.bt-num{font-family:var(--mono); text-align:right; font-variant-numeric:tabular-nums}
+.bt-dim{color:var(--faint)}
+.bt-ok{color:#2f8f5b; font:600 11px var(--mono)}
+.bt-buckets{display:grid; grid-template-columns:1fr 1fr; gap:9px}
+.bt-bucket{border:1px solid var(--line); border-left:3px solid var(--c-company); border-radius:9px; background:var(--ink); padding:11px 13px}
+.bt-bh{display:flex; align-items:center; gap:7px; margin-bottom:5px; flex-wrap:wrap}
+.bt-bn{font:700 11px var(--mono); color:var(--c-company)}
+.bt-role{font-size:11px; color:var(--faint)}
+.bt-lesson{font-size:12px; color:var(--mute); line-height:1.6}
+.bt-genbar{display:flex; align-items:center; gap:11px; margin:14px 0 4px; flex-wrap:wrap}
+.bt-gen{font:600 12px var(--mono); color:#fff; background:var(--c-company); border:none; border-radius:7px; padding:7px 14px; cursor:pointer}
+.bt-gen:hover{filter:brightness(1.06)}
+.bt-gen:disabled{opacity:.55; cursor:default}
+.bt-genstatus{font:500 11.5px var(--mono); color:var(--mute)}
+@media(max-width:680px){.bt-buckets{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -535,9 +685,10 @@ a{color:inherit;text-decoration:none}
 
     <!-- MEDIA -->
     <section class="view" id="v-media">
-      <div id="media-head"></div>
-      <div class="section-h"><h3>时间线</h3><span class="n">raw 概要 · wiki 深度叠加</span><span class="ln"></span></div>
-      <div class="tl" id="media-tl"></div>
+      <div class="up-shell" id="up-shell">
+        <nav class="up-rail" id="up-rail"></nav>
+        <div class="up-main" id="up-main"></div>
+      </div>
     </section>
 
     <!-- MACRO -->
@@ -587,7 +738,7 @@ a{color:inherit;text-decoration:none}
   </main>
 </div>
 
-<script src="kb-parse.js"></script>
+<script src="kb-parse.js?v=bt1"></script>
 <script>
 const TC={media:'var(--c-media)',macro:'var(--c-macro)',sector:'var(--c-sector)',company:'var(--c-company)'};
 let KB=null;
@@ -829,62 +980,256 @@ function renderMacro(){
     </div>`).join('');
 }
 
-/* ---------- media（按 UP 主分组的 raw 时间线 + wiki 深度叠加）---------- */
+/* ---------- media（UP 主时间线 v0.3：折叠卡 + 类型化知识点树 + 立场 + 演化）---------- */
 const MK={video:'视频',dynamic:'日动态'};
+/* 节点类型注册表（可扩展）；未知类型兜底「其他」→ .nt-other */
+const NT={fact:{i:'📌',l:'事实'},logic:{i:'🔗',l:'逻辑'},view:{i:'💡',l:'观点'},
+  trend:{i:'📈',l:'趋势'},action:{i:'⚡',l:'操作'},risk:{i:'⚠',l:'风险'},
+  data:{i:'🔢',l:'数据'},event:{i:'📅',l:'事件'}};
+function ntInfo(t){return NT[t]||{i:'•',l:'其他'};}
 function mhStat(v,l,color){return `<div class="mh-stat"><div class="v"${color?` style="color:${color}"`:''}>${v}</div><div class="l">${l}</div></div>`;}
 function fmtDur(d){if(d==null)return null;if(typeof d==='string'&&d.includes(':'))return d;const n=+d;if(!n)return null;const m=Math.floor(n/60),s=n%60;return `${m}:${String(s).padStart(2,'0')}`;}
-function renderMediaItem(i){
-  const kindCls=i.kind==='dynamic'?'dyn':'video';
-  const stat=i.kind==='video'?fmtDur(i.stats&&i.stats.duration):((i.stats&&i.stats.total!=null)?`${i.stats.total} 条`:null);
-  const imgs=(i.stats&&i.stats.images)?` · ${i.stats.images} 图`:'';
-  const tldr=(i.tldr||[]).slice(0,3);
-  const acts=(i.up_actions||[]).map(a=>
-    `<span class="act"><b>${a.target}</b>${a.action?`<span class="a">${a.action}</span>`:''}${a.plan?`<span style="color:var(--mute)">${a.plan}</span>`:''}</span>`).join('');
-  const ment=(i.mentions||[]).slice(0,8).map(x=>`<span class="chip"><i style="background:var(--c-macro)"></i>${x}</span>`).join('');
-  const moreM=(i.mentions||[]).length>8?`<span class="chip muted">+${i.mentions.length-8}</span>`:'';
-  const deep=i.has_wiki&&i.wiki;
-  return `<div class="tl-item ${deep?'deep':''}"><div class="tl-card">
-    <div class="tl-head"><div class="tl-date">${i.date}</div>${deep?`<button class="deep-badge" data-deep>深度 ↗</button>`:''}</div>
-    <h4>${i.title}</h4>
-    <div class="chips">
-      <span class="chip k ${kindCls}">${MK[i.kind]||i.kind}</span>
-      ${i.is_trade?'<span class="chip k trade">trade-log</span>':''}
-      ${stat?`<span class="chip muted">${stat}${imgs}</span>`:''}
-    </div>
-    ${tldr.length?`<ul class="kp">${tldr.map(t=>`<li>${t}</li>`).join('')}</ul>`:'<div class="tl-empty">— 暂无概要 · 待 raw-preview 生成 —</div>'}
-    ${acts?`<div class="acts">${acts}</div>`:''}
-    ${ment?`<div class="chips" style="margin-top:14px">${ment}${moreM}</div>`:''}
-    ${deep?`<div class="deep-body"><b style="color:var(--c-thesis)">wiki 深度摘要</b><div style="margin-top:7px">${i.wiki.summary||''}</div><div class="src">${i.wiki.rel}</div></div>`:''}
-  </div></div>`;
+
+/* —— 单个知识点：类型 chip + 精炼短语（粗体）/ 因果链 + 方向/价位 + 一两行细节 —— */
+function mtNode(n){
+  const t=(n&&n.type)||'other';
+  const info=ntInfo(t), cls=NT[t]?`nt-${t}`:'nt-other';
+  const chip=`<span class="ntype ${cls}">${info.i} ${info.l}</span>`;
+  let head;
+  if(Array.isArray(n.chain)&&n.chain.length){
+    head=`<span class="mt-chain">${n.chain.map((c,k)=>`<b>${esc(c)}</b>${k<n.chain.length-1?'<i>→</i>':''}`).join('')}</span>`;
+  }else{ head=n.head?`<span class="mt-nhead">${esc(n.head)}</span>`:''; }
+  const tags=[];
+  if(n.dir==='long')tags.push('<span class="mt-st long">看多</span>');
+  else if(n.dir==='short')tags.push('<span class="mt-st short">看空</span>');
+  if(n.target_price)tags.push(`<span class="mt-px">目标 ${esc(n.target_price)}</span>`);
+  if(n.stop_loss)tags.push(`<span class="mt-px">止损 ${esc(n.stop_loss)}</span>`);
+  return `<div class="mt-node"><div class="mt-nline">${chip}${head}${tags.join('')}</div>`+
+    `${n.detail?`<div class="mt-ndetail">${esc(n.detail)}</div>`:''}</div>`;
 }
+function mtTopic(tp){
+  const icon=tp.icon?esc(tp.icon)+' ':'';
+  return `<div class="mt-topic"><div class="mt-th">${icon}${esc(tp.t||'')}</div>`+
+    `<div class="mt-kids">${(tp.nodes||[]).map(mtNode).join('')}</div></div>`;
+}
+function mtDots(stances){
+  return (stances||[]).slice(0,5).map(s=>
+    `<i class="${s.dir==='long'?'long':s.dir==='short'?'short':'flat'}"></i>`).join('');
+}
+function mtStances(stances){
+  if(!stances||!stances.length)return '';
+  const row=stances.map(s=>{
+    const dir=s.dir==='long'?'<span class="mt-st long">看多</span>':s.dir==='short'?'<span class="mt-st short">看空</span>':'';
+    const bits=[];
+    if(s.target_price)bits.push('目标'+s.target_price);
+    if(s.stop_loss)bits.push('止损'+s.stop_loss);
+    if(s.actions&&s.actions.length)bits.push('⚡'+s.actions.join('/'));
+    return `<span class="mt-stance"><span class="t">${esc(s.target)}</span>${dir}`+
+      `${bits.length?`<span class="px">${esc(bits.join(' · '))}</span>`:''}</span>`;
+  }).join('');
+  return `<div class="mt-stances"><div class="lab">立场（自 📈趋势 + ⚡操作 节点萃取 · UP 主观点·非事实）</div><div class="mt-srow">${row}</div></div>`;
+}
+function renderMediaItem(i,idx){
+  const kindCls=i.kind==='dynamic'?'dyn':'video';
+  const dur=i.kind==='video'?fmtDur(i.stats&&i.stats.duration):((i.stats&&i.stats.total!=null)?`${i.stats.total} 条`:'');
+  const topics=i.topics||[], stances=i.stances||[], deep=i.has_wiki&&i.wiki;
+  /* 折叠行标题须带信息：日期/类型已是 chip → 视频用标题；动态标题多为"日期 动态聚合"冗余，
+     改用 summary > 首条 tldr > 兜底（弱化）。 */
+  const hl=i.kind==='dynamic' ? (i.summary || (i.tldr&&i.tldr[0]) || null) : (i.title||null);
+  const tiText=hl || (i.kind==='dynamic'?'当日碎片更新 · 无要点摘要':(i.title||'—'));
+  const row=`<div class="mt-row">`+
+    `<span class="mt-chev">▸</span>`+
+    `<span class="mt-date">${i.date}</span>`+
+    `<span class="mt-kind ${kindCls}">${MK[i.kind]||i.kind}</span>`+
+    `<span class="mt-ti${hl?'':' muted'}">${esc(tiText)}</span>`+
+    `${i.is_trade?'<span class="mt-trade">TRADE</span>':''}`+
+    `<span class="mt-dots">${mtDots(stances)}</span>`+
+    `${dur?`<span class="mt-dur">${dur}</span>`:''}</div>`;
+  let tree;
+  if(topics.length){
+    tree=`<div class="mt-tree"><div class="mt-tree-h">知识点树（类型化）<span class="v">preview v0.3</span></div>${topics.map(mtTopic).join('')}</div>`;
+  }else if((i.tldr||[]).length){
+    tree=`<ul class="mt-tldr">${i.tldr.slice(0,4).map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`;
+  }else{ tree='<div class="mt-empty">— 暂无知识点树 · 待 raw-preview v0.3 生成 —</div>'; }
+  /* 动态已把 summary 用作折叠标题 → 展开区不重复；视频折叠标题是 title → 展开区补 summary */
+  const sum=(i.summary&&i.summary!==hl)?`<div class="mt-sum"><b>一句话</b>${esc(i.summary)}</div>`:'';
+  const wiki=deep?`<div class="mt-wiki">🔗 <a href="${KB_PREFIX}${i.wiki.rel}" target="_blank">wiki 深度页</a> ·（可选·Agent 独立解读，<b>不参与立场/演化</b>）<div class="src">${i.wiki.rel}</div></div>`:'';
+  return `<div class="mt-card" data-idx="${idx}">${row}<div class="mt-body">${sum}${tree}${mtStances(stances)}${wiki}</div></div>`;
+}
+
+/* —— 观点演化：按标的把各条目立场聚成时间序列（统一走 ②③，不依赖 wiki）—— */
+function mtNum(s){if(s==null)return null;const m=String(s).match(/-?\d+(?:\.\d+)?/);return m?+m[0]:null;}
+function mtRange(s){if(s==null)return null;const m=String(s).match(/(\d+(?:\.\d+)?)\s*[-–~]\s*(\d+(?:\.\d+)?)/);if(m)return [+m[1],+m[2]];const n=mtNum(s);return n!=null?[n,n]:null;}
+function mtBuildSeries(items){
+  const map={};
+  (items||[]).forEach(it=>(it.stances||[]).forEach(s=>{
+    (map[s.target]||(map[s.target]=[])).push({date:it.date,dir:s.dir||null,
+      sl:mtNum(s.stop_loss),tp:mtRange(s.target_price),
+      action:(s.actions||[]).join('/'),kind:it.kind});
+  }));
+  Object.values(map).forEach(a=>a.sort((x,y)=>x.date<y.date?-1:x.date>y.date?1:0));
+  return map;
+}
+function mtChartSVG(target,pts){
+  pts=pts||[];
+  const sl=pts.filter(p=>p.sl!=null);
+  if(sl.length<2){
+    return `<div class="none">「${esc(target)}」止损数据点不足（n=${sl.length}），暂不绘制演化线<br>—— 需 ≥2 个带止损位的条目（避免单点臆造趋势）</div>`;
+  }
+  const W=720,H=210,L=58,R=18,T=26,B=34;
+  const xs=sl.map((p,k)=>L+(W-L-R)*(k/(sl.length-1)));
+  let lo=Math.min(...sl.map(p=>p.sl)),hi=Math.max(...sl.map(p=>p.sl));
+  const band=pts.map(p=>p.tp).find(b=>b&&b.length===2);
+  if(band){lo=Math.min(lo,band[0]);hi=Math.max(hi,band[1]);}
+  if(lo===hi){lo-=Math.max(1,lo*0.02);hi+=Math.max(1,hi*0.02);}
+  const pad=(hi-lo)*0.18;lo-=pad;hi+=pad;
+  const y=v=>+(T+(H-T-B)*(1-(v-lo)/(hi-lo))).toFixed(1);
+  const GRID='rgba(20,50,44,.14)',FAINT='#8c968f',INK='#16241f',ME='#cd5638';
+  let bandH='';
+  if(band){const y1=y(band[1]),y2=y(band[0]);
+    bandH=`<rect x="${L}" y="${y1}" width="${W-L-R}" height="${(y2-y1).toFixed(1)}" fill="rgba(72,153,61,.10)" stroke="rgba(72,153,61,.42)" stroke-dasharray="4 3"/>`+
+      `<text x="${L+6}" y="${(y1-4).toFixed(1)}" font-size="9" fill="#2f8f3d" font-family="monospace">目标 ${band[0]}–${band[1]}</text>`;}
+  const ticks=[hi-pad,(hi+lo)/2,lo+pad];
+  const axis=`<line x1="${L}" y1="${T}" x2="${L}" y2="${H-B}" stroke="${GRID}"/><line x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}" stroke="${GRID}"/>`+
+    ticks.map(v=>`<line x1="${L}" y1="${y(v)}" x2="${W-R}" y2="${y(v)}" stroke="${GRID}" opacity=".6"/><text x="${L-8}" y="${y(v)+3}" text-anchor="end" font-size="9" fill="${FAINT}" font-family="monospace">${Math.round(v)}</text>`).join('');
+  const poly=`<polyline points="${sl.map((p,k)=>`${xs[k].toFixed(1)},${y(p.sl)}`).join(' ')}" fill="none" stroke="${ME}" stroke-width="2.5"/>`;
+  const dots=sl.map((p,k)=>{const cx=xs[k].toFixed(1),cy=y(p.sl);
+    const col=p.dir==='long'?'#2f8f3d':p.dir==='short'?'#c2362f':FAINT;
+    return `<circle cx="${cx}" cy="${cy}" r="5.5" fill="#fff" stroke="${col}" stroke-width="2.2"/>`+
+      `<text x="${cx}" y="${cy-11}" text-anchor="middle" font-size="9" fill="${INK}" font-family="monospace">${p.sl}</text>`+
+      (p.action?`<text x="${cx}" y="${cy+18}" text-anchor="middle" font-size="8.5" fill="${ME}">⚡${esc(p.action)}</text>`:'');
+  }).join('');
+  const dateL=sl.map((p,k)=>`<text x="${xs[k].toFixed(1)}" y="${H-B+16}" text-anchor="middle" font-size="9" fill="${FAINT}" font-family="monospace">${esc(p.date.slice(5))}</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(target)} 止损/仓位演化">${bandH}${axis}${poly}${dots}${dateL}</svg>`;
+}
+let mtSeries={};
+/* 每UP专属观点演化面板（默认折叠）*/
+function renderEvolutionInline(ci,creator,series){
+  const targets=Object.keys(series);
+  if(!targets.length)return '';
+  targets.sort((a,b)=>(series[b].filter(p=>p.sl!=null).length>=2?1:0)-(series[a].filter(p=>p.sl!=null).length>=2?1:0));
+  const chips=targets.map((t,k)=>`<span class="mt-dom${k===0?' on':''}" data-t="${esc(t)}"><i style="background:${k===0?'#cd5638':'#c2ccc6'}"></i>${esc(t)} <span style="opacity:.55;font-size:10px">${series[t].length}</span></span>`).join('');
+  return `<div class="mt-ev" id="mt-ev-${ci}">`+
+    `<div class="mt-ev-h"><span class="chev">▸</span><h4>观点演化</h4><span class="up-tag">${esc(creator.uploader||'')}</span><span class="n" style="margin-left:auto">按标的 · 仓位/止损轴</span></div>`+
+    `<div class="mt-ev-body"><div class="mt-doms">${chips}</div>`+
+    `<div class="mt-chart" data-chart>${mtChartSVG(targets[0],series[targets[0]])}</div>`+
+    `<div class="mt-honest">⚠ Y 轴为 UP <b>自报的止损/目标位</b>，非成交价；仅反映其主观立场与仓位演化，<b>非投资建议</b>。</div></div></div>`;
+}
+
+let mtCreators=[], mtFilter='all', mtExpanded=false, mtActiveCreator=0;
+const MT_RECENT=6;
+/* 无内容动态（纯转发 / 无 preview）→ 默认隐藏，避免刷屏 */
+function mtBlank(it){return it.kind==='dynamic'&&!it.summary&&!((it.tldr||[]).length)&&!((it.topics||[]).length)&&!((it.stances||[]).length);}
+
 function renderMedia(){
   const cs=(KB.media&&KB.media.creators)||[];
+  mtCreators=cs; mtSeries={}; mtFilter='all'; mtExpanded=false; mtActiveCreator=0;
   const st=(KB.media&&KB.media.stats)||{total:0};
   const navc=document.getElementById('nav-media-ct'); if(navc)navc.textContent=st.total||0;
 
-  document.getElementById('media-head').innerHTML=cs.map(c=>{
-    const mentions=new Set(); (c.items||[]).forEach(i=>(i.mentions||[]).forEach(x=>mentions.add(x)));
-    return `<div class="panel stagger" style="padding:22px 24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:6px">
-      <div style="width:54px;height:54px;border-radius:50%;border:1px solid var(--c-media);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:22px;color:var(--c-media);flex:none">${(c.uploader||'?').slice(0,1)}</div>
-      <div style="flex:1;min-width:200px"><div style="font-family:var(--serif);font-size:21px">${c.uploader||'媒体源'}</div>
-      <div style="font-family:var(--mono);font-size:11.5px;color:var(--mute);margin-top:4px">${c.source||'bilibili'}${c.uid?` · UID ${c.uid}`:''} · raw 时间线 + wiki 深度</div></div>
-      <div style="display:flex;gap:22px;flex-wrap:wrap">
-        ${mhStat(c.count,'条目','var(--c-media)')}
-        ${mhStat(c.n_videos,'视频')}
-        ${mhStat(c.n_dynamics,'动态')}
-        ${mhStat(c.n_deep||0,'深度','var(--c-thesis)')}
-        ${mhStat(mentions.size,'关联主题')}
-      </div></div>`;
-  }).join('');
+  const rail=document.getElementById('up-rail');
+  const main=document.getElementById('up-main');
+  const shell=document.getElementById('up-shell');
 
-  const multi=cs.length>1;
-  document.getElementById('media-tl').innerHTML=cs.map(c=>
-    (multi?`<div class="mgrp">${c.uploader} · ${c.count} 条</div>`:'')+
-    (c.items||[]).slice().reverse().map(renderMediaItem).join('')
-  ).join('')||'<div class="empty">暂无媒体源</div>';
+  if(!cs.length){
+    if(rail)rail.innerHTML='';
+    if(main)main.innerHTML='<div class="empty" style="margin-top:60px">暂无媒体源</div>';
+    return;
+  }
 
-  document.querySelectorAll('#media-tl .deep-badge').forEach(b=>
-    b.addEventListener('click',()=>b.closest('.tl-item').classList.toggle('open')));
+  /* ── 多UP时显示左侧选择栏 ── */
+  if(rail){
+    if(cs.length>1){
+      rail.removeAttribute('data-single');
+      rail.innerHTML=cs.map((c,i)=>{
+        const targets=new Set(); (c.items||[]).forEach(it=>(it.stances||[]).forEach(s=>targets.add(s.target)));
+        const live=(c.items||[]).filter(it=>!mtBlank(it));
+        return `<div class="up-btn${i===0?' on':''}" data-ci="${i}" tabindex="0">`+
+          `<div class="up-av">${esc((c.uploader||'?').slice(0,1))}</div>`+
+          `<div class="up-btn-info"><div class="up-btn-name">${esc(c.uploader||'媒体源')}</div>`+
+          `<div class="up-btn-meta">${live.length} 条 · ${c.n_videos||0} 视频 · ${targets.size} 标的</div></div></div>`;
+      }).join('');
+      rail.querySelectorAll('.up-btn').forEach(btn=>btn.addEventListener('click',()=>{
+        const ci=+btn.dataset.ci;
+        if(ci===mtActiveCreator)return;
+        mtActiveCreator=ci; mtFilter='all'; mtExpanded=false;
+        rail.querySelectorAll('.up-btn').forEach(b=>b.classList.toggle('on',b===btn));
+        renderCreatorPanel(cs[ci],ci);
+      }));
+    }else{
+      rail.setAttribute('data-single','1');
+      rail.innerHTML='';
+    }
+  }
+
+  renderCreatorPanel(cs[0],0);
+}
+
+/* 渲染单个UP主的完整面板（头卡 + 观点演化 + 筛选条 + 时间线）*/
+function renderCreatorPanel(creator,ci){
+  const main=document.getElementById('up-main'); if(!main)return;
+  const series=mtBuildSeries(creator.items||[]); mtSeries[ci]=series;
+  const targets=new Set(); (creator.items||[]).forEach(it=>(it.stances||[]).forEach(s=>targets.add(s.target)));
+  const live=(creator.items||[]).filter(it=>!mtBlank(it));
+  const totV=live.filter(i=>i.kind==='video').length, totD=live.filter(i=>i.kind==='dynamic').length;
+
+  main.innerHTML=
+    `<div class="up-header">`+
+      `<div class="up-av-lg">${esc((creator.uploader||'?').slice(0,1))}</div>`+
+      `<div class="up-header-info"><div class="up-header-name">${esc(creator.uploader||'媒体源')}</div>`+
+      `<div class="up-header-src">${esc(creator.source||'bilibili')}${creator.uid?` · UID ${esc(creator.uid)}`:''} · 时间线 + 类型化知识树</div></div>`+
+      `<div class="up-header-stats">${mhStat(creator.count,'条目','var(--c-media)')}${mhStat(creator.n_videos,'视频')}${mhStat(creator.n_dynamics,'动态')}${mhStat(creator.n_deep||0,'深度','var(--c-thesis)')}${mhStat(targets.size,'活跃标的','var(--warn)')}</div>`+
+    `</div>`+
+    renderEvolutionInline(ci,creator,series)+
+    `<div class="up-tl-bar"><div class="mt-fil">`+
+      `<span class="mt-fch on" data-f="all"><i style="background:var(--ghost)"></i>全部 ${totV+totD}</span>`+
+      `<span class="mt-fch" data-f="video"><i style="background:var(--c-media)"></i>视频 ${totV}</span>`+
+      `<span class="mt-fch" data-f="dynamic"><i style="background:#c08f4e"></i>动态 ${totD}</span>`+
+    `</div><span class="mt-count" id="mt-count"></span></div>`+
+    `<div id="mt-list"></div>`;
+
+  /* 观点演化事件（每次切换UP时重绑）*/
+  const evo=main.querySelector('.mt-ev');
+  if(evo){
+    evo.querySelector('.mt-ev-h').addEventListener('click',()=>evo.classList.toggle('open'));
+    evo.querySelectorAll('.mt-dom').forEach(d=>d.addEventListener('click',e=>{
+      e.stopPropagation();
+      evo.querySelectorAll('.mt-dom').forEach(x=>{x.classList.remove('on');const ic=x.querySelector('i');if(ic)ic.style.background='#c2ccc6';});
+      d.classList.add('on');const ic=d.querySelector('i');if(ic)ic.style.background='#cd5638';
+      evo.querySelector('[data-chart]').innerHTML=mtChartSVG(d.dataset.t,mtSeries[ci][d.dataset.t]);
+    }));
+  }
+
+  /* 类型筛选 */
+  main.querySelectorAll('.mt-fch').forEach(ch=>ch.addEventListener('click',()=>{
+    mtFilter=ch.dataset.f; mtExpanded=false;
+    main.querySelectorAll('.mt-fch').forEach(x=>x.classList.toggle('on',x===ch));
+    reflowMedia(creator);
+  }));
+
+  reflowMedia(creator);
+}
+
+/* 只重渲染卡片列表（筛选 + 仅近 N 条 + 显示更多）；头卡/演化图不动 */
+function reflowMedia(creator){
+  creator=creator||mtCreators[mtActiveCreator]; if(!creator)return;
+  const want=it=>mtFilter==='all'||it.kind===mtFilter;
+  const hidden=(creator.items||[]).filter(mtBlank).length;
+  const all=(creator.items||[]).filter(it=>!mtBlank(it)).slice().reverse().filter(want);
+  const matched=all.length;
+  const slice=mtExpanded?all:all.slice(0,MT_RECENT);
+  const shown=slice.length;
+  const list=document.getElementById('mt-list'); if(!list)return;
+  list.innerHTML=slice.map((it,k)=>renderMediaItem(it,`${mtActiveCreator}-${k}`)).join('')||'<div class="mt-empty">— 该筛选下暂无条目 —</div>';
+  if(matched>MT_RECENT){
+    const more=document.createElement('div'); more.className='mt-more';
+    more.textContent=mtExpanded?`收起 · 仅看最近 ${MT_RECENT} 条 ▴`:`显示更多 · 其余 ${matched-shown} 条 ▾`;
+    more.addEventListener('click',()=>{mtExpanded=!mtExpanded; reflowMedia(creator);});
+    list.appendChild(more);
+  }
+  const cnt=document.getElementById('mt-count'); if(cnt)cnt.textContent=`显示 ${shown} / 共 ${matched} 条`+(hidden?` · 已隐藏 ${hidden} 条空动态`:'');
+  list.querySelectorAll('.mt-card .mt-row').forEach(r=>
+    r.addEventListener('click',()=>r.closest('.mt-card').classList.toggle('open')));
 }
 
 /* ---------- equity / 个股分析 ---------- */
@@ -968,20 +1313,25 @@ function bindMdToc(root){
 }
 
 function renderEquity(){
-  const list=KB.companies||[], analyzed=list.filter(c=>c.status==='analyzed'&&c.analysis!=null);
-  const ct=document.getElementById('nav-eq-ct'); if(ct)ct.textContent=analyzed.length;
+  const list=KB.companies||[], hasRep=c=>(c.reports||[]).length>0;
+  const dispA=c=>c.analysis||((c.reports||[])[0]?c.reports[0].analysis:null);   // wiki 蒸馏优先，否则取最新研究报告决策
+  const isLive=c=>c.status==='analyzed'&&(c.analysis!=null||hasRep(c));          // 有 wiki 决策 或 有研究报告 → 可进
+  const shown=list.filter(hasRep);   // 个股分析仅列出有研究报告的标的（无报告的 wiki 占位条目不显示）
+  const ct=document.getElementById('nav-eq-ct'); if(ct)ct.textContent=shown.length;
   const grid=document.getElementById('eq-grid');
-  if(!list.length){grid.innerHTML='<div class="empty">暂无公司</div>';return;}
-  grid.innerHTML=list.map(c=>{
-    const live=c.status==='analyzed'&&c.analysis!=null,a=c.analysis,vcls=live?(EQ_VCLS[a.action]||'hold'):'';
-    const badge=live
+  if(!shown.length){grid.innerHTML='<div class="empty">暂无个股分析</div>';return;}
+  grid.innerHTML=shown.map(c=>{
+    const live=isLive(c),a=dispA(c),vcls=(live&&a)?(EQ_VCLS[a.action]||'hold'):'';
+    const repOnly=live&&!c.analysis&&hasRep(c);   // 仅研究报告、wiki 尚未编译
+    const badge=(live&&a)
       ?`<span class="st" style="color:${eqVCol(vcls)};border-color:currentColor">${a.action}</span>`
       :`<span class="st stub">${c.status==='stub'?'未分析':'—'}</span>`;
+    const desc=c.summary||(repOnly?`研究报告 · ${c.reports.length} 份（wiki 待 finance-ingest 编译）`:'未分析 · 触发 stock-analysis Skill 生成');
     return `<div class="ent ${live?'live':'stub'}" data-tk="${c.ticker}">
       <div class="bar" style="background:${live?'var(--c-company)':'var(--ghost)'}"></div>
       <div class="ehead"><div><div class="etitle">${c.name}</div><div class="ecode">${c.ticker} · ${(c.market||'').toUpperCase()}</div></div>${badge}</div>
-      <div class="edesc">${c.summary||'未分析 · 触发 stock-analysis Skill 生成'}</div>
-      <div class="efoot"><span class="m">${live?`PE <b>${a.key_metrics.pe_ttm??'—'}×</b> · 目标 <b>¥${a.target_price??'—'}</b>`:'<span style="color:var(--faint)">—</span>'}</span><span class="arrow">${live?'→':''}</span></div>
+      <div class="edesc">${desc}</div>
+      <div class="efoot"><span class="m">${(live&&a)?`PE <b>${a.key_metrics.pe_ttm??'—'}×</b> · 目标 <b>¥${a.target_price??'—'}</b>`:'<span style="color:var(--faint)">—</span>'}</span><span class="arrow">${live?'→':''}</span></div>
     </div>`;}).join('');
   grid.querySelectorAll('.ent.live').forEach(el=>el.addEventListener('click',()=>openCompany(el.dataset.tk)));
 }
@@ -1059,11 +1409,11 @@ function renderAnalysisBody(vm){
 }
 
 /* 个股详情：研究报告输出（默认）⇄ wiki 展示 切换 */
-let eqCur=null,eqView='report',eqRepIdx=0;
+let eqCur=null,eqView='report',eqRepIdx=0,eqBtIdx=0;
 function renderCompanyDetail(c){
-  eqCur=c; eqRepIdx=0;
-  const hasReport=(c.reports||[]).length>0,hasWiki=!!c.analysis;
-  eqView=hasReport?'report':'wiki';
+  eqCur=c; eqRepIdx=0; eqBtIdx=0;
+  const hasReport=(c.reports||[]).length>0,hasWiki=!!c.analysis,hasBt=(c.backtests||[]).length>0;
+  eqView=hasReport?'report':hasWiki?'wiki':hasBt?'backtest':'report';
   document.getElementById('company-detail').innerHTML=
     `<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:11px">
        <h3 style="font-family:var(--serif);font-weight:500;font-size:27px">${c.name}</h3>
@@ -1073,6 +1423,7 @@ function renderCompanyDetail(c){
     +`<div class="eq-toggle">
         <button data-k="report" ${hasReport?'':'disabled'}>研究报告输出${hasReport?` · ${c.reports.length}`:' · 无'}</button>
         <button data-k="wiki" ${hasWiki?'':'disabled'}>wiki 展示${hasWiki?'':' · 无'}</button>
+        <button data-k="backtest">回测 / 记忆环${hasBt?` · ${c.backtests.length}`:''}</button>
       </div>`
     +`<div id="eq-body"></div>`;
   document.querySelectorAll('#company-detail .eq-toggle button').forEach(b=>{
@@ -1084,6 +1435,14 @@ function renderCompanyDetail(c){
 function paintEqBody(){
   const c=eqCur;
   document.querySelectorAll('#company-detail .eq-toggle button').forEach(b=>b.classList.toggle('on',b.dataset.k===eqView));
+  if(eqView==='backtest'){
+    document.getElementById('eq-body').innerHTML=renderBacktest(c.backtests,eqBtIdx,c.ticker);
+    const bs=document.querySelector('#eq-body .eq-runsel');
+    if(bs)bs.addEventListener('change',e=>{eqBtIdx=+e.target.value;paintEqBody();});
+    const gb=document.querySelector('#eq-body .bt-gen');
+    if(gb)gb.addEventListener('click',()=>genBacktest(c.ticker,gb));
+    return;
+  }
   let vm,sub;
   if(eqView==='report'){
     const r=c.reports[eqRepIdx];
@@ -1108,6 +1467,59 @@ function paintEqBody(){
   if(rs)rs.addEventListener('change',e=>{eqRepIdx=+e.target.value;paintEqBody();});
   document.querySelectorAll('#eq-body .eq-st').forEach(el=>el.addEventListener('click',()=>{
     document.querySelector('#eq-body .eq-acc').scrollIntoView({behavior:'smooth'});}));
+}
+
+/* 回测 / 记忆环视图：M1 单决策反思表 + 5 桶记忆教训卡（reflect_and_remember 生成，前端只读导出） */
+function renderBacktest(bts,idx,ticker){
+  const genbar=`<div class="bt-genbar"><button class="bt-gen" data-ticker="${esc(ticker)}">⟳ ${bts&&bts.length?'刷新 / 重新生成':'生成回测报告'}</button><span class="bt-genstatus"></span></div>`;
+  if(!bts||!bts.length)return `<div class="eq-subhead report"><div class="eq-shrow"><span class="eq-kind">回测 / 记忆环 · M1 单决策反思</span></div>
+     <div class="eq-rmeta">该标的尚无回测报告。生成将用 Tushare 真实前向收益 + 读回 5 桶记忆教训（只读桶 + 算价，不重跑引擎，约数秒）。</div></div>`+genbar;
+  const b=bts[idx]||bts[0];
+  const sb=b.report_status;
+  const badge=sb==='sample'?'<span class="eq-rbadge sample">样例</span>'
+    :sb==='partial'?'<span class="eq-rbadge partial">partial</span>'
+    :'<span class="eq-rbadge ok">真实</span>';
+  const runsel=bts.length>1
+    ?`<select class="eq-runsel">${bts.map((x,i)=>`<option value="${i}" ${i===idx?'selected':''}>${esc(x.as_of)} · ${esc(x.run_id)}</option>`).join('')}</select>`:'';
+  const hr=b.headline_return_pct;
+  const hrHtml=hr!=null?` · <b style="color:${hr<0?'#c2362f':'#2f8f5b'}">真实收益 ${hr>=0?'+':''}${hr}%</b>`:'';
+  const sub=`<div class="eq-subhead report"><div class="eq-shrow"><span class="eq-kind">M1 单决策反思 · 记忆环</span>${badge}</div>
+     <div class="eq-rmeta">snapshot ${esc(b.snapshot_date)} · horizons ${esc(b.horizons)} · 已反思 ${b.n_reflected==null?0:b.n_reflected} · 待评估 ${b.n_non_evaluable==null?0:b.n_non_evaluable}${hrHtml} ${runsel}</div></div>`;
+  const rows=(b.trades||[]).map(t=>{
+    const act=t.action||'',vcls=EQ_VCLS[act]||'hold';
+    const pill=`<span class="eq-st" style="color:${eqVCol(vcls)};border-color:currentColor;cursor:default;padding:3px 9px;font-size:11px">${esc(act)}</span>`;
+    const ret=t.non_evaluable?'<span class="bt-dim">—</span>'
+      :`<b style="color:${(t.signed_return_pct||0)<0?'#c2362f':'#2f8f5b'}">${t.signed_return_pct>=0?'+':''}${t.signed_return_pct}%</b>`;
+    const st=t.non_evaluable
+      ?`<span class="bt-dim">${t.skip_reason==='insufficient_forward'?'评估日未来':esc(t.skip_reason||'跳过')}</span>`:'可评估';
+    const rf=t.reflected?'<span class="bt-ok">✓ 已写桶</span>':'<span class="bt-dim">—</span>';
+    return `<tr><td>${esc(t.snapshot_date)}</td><td>${pill}</td><td>${t.horizon} 日</td><td class="bt-num">${t.entry_close==null?'—':t.entry_close}</td><td class="bt-num">${t.exit_close==null?'—':t.exit_close}</td><td class="bt-num">${ret}</td><td>${st}</td><td>${rf}</td></tr>`;
+  }).join('');
+  const table=`<div class="bt-sech">决策 × horizon 前向收益 · 收益用 Tushare 真实 qfq close</div>
+     <table class="bt-table"><thead><tr><th>snapshot</th><th>决策</th><th>horizon</th><th>入场</th><th>评估</th><th>收益</th><th>状态</th><th>反思</th></tr></thead><tbody>${rows}</tbody></table>`;
+  const lc=(b.lessons||[]).map(L=>
+    `<div class="bt-bucket"><div class="bt-bh"><span class="bt-bn">${esc(L.bucket)}</span><span class="bt-role">${esc(L.role||'')}</span>${L.matched?'':'<span class="bt-dim">· 最新</span>'}</div>
+       <div class="bt-lesson">${esc(L.lesson||'（空）')}</div></div>`).join('');
+  const mem=(b.lessons&&b.lessons.length)
+    ?`<div class="bt-sech">记忆教训卡 · 5 桶 <span class="bt-dim">（reflect_and_remember 生成 · 模型判断非事实 · 功能 B 次日召回）</span></div>
+       <div class="bt-buckets">${lc}</div>`:'';
+  return sub+genbar+table+mem;
+}
+
+/* 一键生成/刷新回测：POST /api/backtest（serve.sh 仅绑 127.0.0.1 跑 run_backtest --mode export）→ 重载 KB → 停在回测页 */
+async function genBacktest(ticker,btn){
+  const st=document.querySelector('#eq-body .bt-genstatus');
+  const set=t=>{if(st)st.textContent=t;};
+  btn.disabled=true; set('运行中…（读记忆桶 + 算价，约数秒）');
+  try{
+    const r=await fetch('/api/backtest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ticker})});
+    const j=await r.json().catch(()=>({ok:false,message:'响应解析失败'}));
+    if(!r.ok||!j.ok)throw new Error(j.message||('HTTP '+r.status));
+    set('✓ 完成，刷新中…');
+    await loadKB();                                 /* 重拉 manifest+文件 → kbParse → boot */
+    openCompany(ticker);                            /* 重开该公司详情（含新回测） */
+    eqView='backtest'; eqBtIdx=0; paintEqBody();    /* 停在回测页 */
+  }catch(e){ set('✗ 失败：'+(e.message||e)); btn.disabled=false; }
 }
 
 /* ---------- nav ---------- */

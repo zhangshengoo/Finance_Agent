@@ -125,6 +125,16 @@
     return out;
   }
 
+  // 回测报告正文的 <!-- backtest-json --> ```json {trades,lessons}``` 块
+  function parseBacktestJson(body) {
+    const m = (body || '').match(/<!--\s*backtest-json\s*-->\s*```json\s*([\s\S]*?)```/);
+    if (!m) return { trades: [], lessons: [] };
+    try {
+      const o = JSON.parse(m[1].trim());
+      return { trades: o.trades || [], lessons: o.lessons || [] };
+    } catch (e) { return { trades: [], lessons: [] }; }
+  }
+
   function buildAnalysis(fm) {
     if (fm.ta_action === undefined || fm.ta_action === null) return null;
     return {
@@ -281,6 +291,28 @@
     });
     Object.values(reportsByTicker).forEach(reps => reps.sort((a, b) => (a.as_of < b.as_of ? 1 : a.as_of > b.as_of ? -1 : 0)));
 
+    // ---- 回测 / 记忆环（raw/analysis/backtests/**/*.md，type=backtest-report）----
+    const backtestsByTicker = {};
+    Object.keys(files).sort().forEach(rel => {
+      if (!rel.startsWith('raw/analysis/backtests/') || !rel.endsWith('.md')) return;
+      const { fm, body } = readMd(files[rel]);
+      if (fm.type !== 'backtest-report') return;
+      const stem = rel.split('/').pop().replace(/\.md$/, '');
+      const tk = String(fm.ticker || stem.split('-')[0]);
+      const { trades, lessons } = parseBacktestJson(body);
+      (backtestsByTicker[tk] = backtestsByTicker[tk] || []).push({
+        run_id: stem, ticker: tk, mode: fm.mode || 'reflect',
+        as_of: String(fm.as_of == null ? '' : fm.as_of),
+        snapshot_date: String(fm.snapshot_date == null ? '' : fm.snapshot_date),
+        report_status: fm.report_status || 'ok', horizons: String(fm.horizons == null ? '' : fm.horizons),
+        n_reflected: num(fm.n_reflected), n_non_evaluable: num(fm.n_non_evaluable),
+        headline_return_pct: num(fm.headline_return_pct),
+        trades, lessons, sources: fm.sources || [],
+      });
+    });
+    Object.values(backtestsByTicker).forEach(bts => bts.sort((a, b) =>
+      a.as_of < b.as_of ? 1 : a.as_of > b.as_of ? -1 : (a.run_id < b.run_id ? 1 : a.run_id > b.run_id ? -1 : 0)));
+
     // ---- companies（wiki distilled + 挂 research reports）----
     const companies = [];
     byType('company').forEach(d => {
@@ -288,20 +320,30 @@
       const ticker = String(fm.ticker == null ? d.stem : fm.ticker);
       const analysis = buildAnalysis(fm);
       const reports = reportsByTicker[ticker] || []; delete reportsByTicker[ticker];
+      const backtests = backtestsByTicker[ticker] || []; delete backtestsByTicker[ticker];
       const analyzed = analysis !== null || reports.length > 0;
       companies.push({
         ticker, name: short(fm.title || ''), summary: fm.summary || '',
         sector: fm.sector == null ? null : fm.sector, market: fm.market == null ? null : fm.market,
         status: analyzed ? 'analyzed' : ((fm.summary || '').includes('stub') ? 'stub' : 'full'),
-        analysis, modules: parseModules(d.body), reports, sources: fm.sources || [],
+        analysis, modules: parseModules(d.body), reports, backtests, sources: fm.sources || [],
       });
     });
     // 报告有票、无 wiki 公司页 → 合成 report-only 条目
     Object.keys(reportsByTicker).forEach(ticker => {
       const reps = reportsByTicker[ticker];
+      const backtests = backtestsByTicker[ticker] || []; delete backtestsByTicker[ticker];
       companies.push({
         ticker, name: reps[0].name, summary: '', sector: null, market: 'cn',
-        status: 'analyzed', analysis: null, modules: [], reports: reps, sources: [],
+        status: 'analyzed', analysis: null, modules: [], reports: reps, backtests, sources: [],
+      });
+    });
+    // 只有回测、无 wiki 公司页且无研究报告 → 合成 backtest-only 条目
+    Object.keys(backtestsByTicker).forEach(ticker => {
+      const bts = backtestsByTicker[ticker];
+      companies.push({
+        ticker, name: ticker, summary: '', sector: null, market: 'cn',
+        status: 'analyzed', analysis: null, modules: [], reports: [], backtests: bts, sources: [],
       });
     });
 
