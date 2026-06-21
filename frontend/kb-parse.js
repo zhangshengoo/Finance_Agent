@@ -125,14 +125,16 @@
     return out;
   }
 
-  // 回测报告正文的 <!-- backtest-json --> ```json {trades,lessons}``` 块
+  // 回测报告正文的 <!-- backtest-json --> ```json {trades,lessons,equity_curve,metrics}``` 块
   function parseBacktestJson(body) {
     const m = (body || '').match(/<!--\s*backtest-json\s*-->\s*```json\s*([\s\S]*?)```/);
-    if (!m) return { trades: [], lessons: [] };
+    const empty = { trades: [], lessons: [], equity_curve: [], metrics: null };
+    if (!m) return empty;
     try {
       const o = JSON.parse(m[1].trim());
-      return { trades: o.trades || [], lessons: o.lessons || [] };
-    } catch (e) { return { trades: [], lessons: [] }; }
+      return { trades: o.trades || [], lessons: o.lessons || [],
+               equity_curve: o.equity_curve || [], metrics: o.metrics || null };
+    } catch (e) { return empty; }
   }
 
   function buildAnalysis(fm) {
@@ -299,7 +301,7 @@
       if (fm.type !== 'backtest-report') return;
       const stem = rel.split('/').pop().replace(/\.md$/, '');
       const tk = String(fm.ticker || stem.split('-')[0]);
-      const { trades, lessons } = parseBacktestJson(body);
+      const { trades, lessons, equity_curve, metrics } = parseBacktestJson(body);
       (backtestsByTicker[tk] = backtestsByTicker[tk] || []).push({
         run_id: stem, ticker: tk, mode: fm.mode || 'reflect',
         as_of: String(fm.as_of == null ? '' : fm.as_of),
@@ -307,7 +309,14 @@
         report_status: fm.report_status || 'ok', horizons: String(fm.horizons == null ? '' : fm.horizons),
         n_reflected: num(fm.n_reflected), n_non_evaluable: num(fm.n_non_evaluable),
         headline_return_pct: num(fm.headline_return_pct),
-        trades, lessons, sources: fm.sources || [],
+        // M2 simulate 原子
+        total_return_pct: num(fm.total_return_pct), sharpe: num(fm.sharpe),
+        max_drawdown_pct: num(fm.max_drawdown_pct), win_rate_pct: num(fm.win_rate_pct),
+        vs_benchmark_pct: num(fm.vs_benchmark_pct), n_closed_trades: num(fm.n_closed_trades),
+        period_from: String(fm.period_from == null ? '' : fm.period_from),
+        period_to: String(fm.period_to == null ? '' : fm.period_to),
+        initial_cash: num(fm.initial_cash),
+        trades, lessons, equity_curve, metrics, sources: fm.sources || [],
       });
     });
     Object.values(backtestsByTicker).forEach(bts => bts.sort((a, b) =>
@@ -382,6 +391,7 @@
       if (n.etype === 'Macro') label = macroName[n.props.slug] || label;
       else if (n.etype === 'MediaItem') label = (String(n.props.published_at || '').slice(5) + ' ' + (String(n.props.filing_type || '').includes('video') ? '视频' : '动态'));
       else if (n.etype === 'MediaSource') label = short(n.props.name || label);
+      else if (n.etype === 'Backtest') label = '回测 ' + (n.props.headline_return_pct != null ? (n.props.headline_return_pct >= 0 ? '+' : '') + n.props.headline_return_pct + '%' : (n.props.ticker || nid));
       cnNodes.push({ id: nid, type: TYPE_COLOR[n.etype] || 'company', label });
       seen.add(nid);
     });
