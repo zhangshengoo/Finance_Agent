@@ -1,0 +1,38 @@
+{
+  "ticker": "300476",
+  "company": "胜宏科技",
+  "market": "A-share",
+  "layer": "AI/数通PCB弹性最大(份额声明存疑)",
+  "factors": {
+    "demand_inflection": 5,
+    "architecture_coupling": 4,
+    "chokepoint_severity": 2.5,
+    "supplier_concentration": 2.5,
+    "expansion_difficulty": 2.5,
+    "evidence_quality": 3,
+    "valuation_disconnect": 2,
+    "catalyst_timing": 4
+  },
+  "penalties": {
+    "hype_risk": 2.5,
+    "cyclicality": 2,
+    "accounting_quality": 1
+  },
+  "evidence": [
+    {
+      "claim": "2025Q1营收43.12亿(+80.31%)/归母9.21亿(+339.22%);全年营收192.92亿/净利43.12亿(+273.52%);港股招股书AI+HPC占比2024前三季5.5%→2025前三季41.5%",
+      "source": "季报+港股招股书",
+      "strength": "primary"
+    },
+    {
+      "claim": "'AI服务器PCB全球份额>30%'仅平安证券估算无公司一手;'55%'来自AI生成文不可采信;'AI占比>40%'口径实为前三季非Q1单季",
+      "source": "平安证券估算 / AI生成文(已排除)",
+      "strength": "analysis"
+    }
+  ],
+  "what_could_weaken_view": [
+    "核心份额声明无一手,券商估算口径分歧大(30%~55%)",
+    "单一客户英伟达约占营收近三成,集中度高",
+    "受益层不控稀缺层,毛利受上游挤压"
+  ]
+}

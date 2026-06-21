@@ -1,0 +1,42 @@
+{
+  "ticker": "002463",
+  "company": "沪电股份",
+  "market": "A-share",
+  "layer": "高速AI-PCB成品(受益层,财务最实)",
+  "valuation_asof_20260616": {
+    "price": "140.64",
+    "mktcap": "2706.4亿",
+    "pe_ttm": "54.5-62.9",
+    "pb": "16-17",
+    "fwd_pe": "~47-52x",
+    "yr_change": "+360%",
+    "priced_in": "明显偏贵,盈利真实",
+    "valuation_disconnect_rating": 2.0
+  },
+  "factors": {
+    "demand_inflection": 5,
+    "architecture_coupling": 4,
+    "chokepoint_severity": 2.5,
+    "supplier_concentration": 2.5,
+    "expansion_difficulty": 2.5,
+    "evidence_quality": 4.5,
+    "valuation_disconnect": 2.0,
+    "catalyst_timing": 4
+  },
+  "penalties": {
+    "hype_risk": 1.5,
+    "cyclicality": 2
+  },
+  "evidence": [
+    {
+      "claim": "估值快照 as-of 2026-06-16: 现价 140.64, 市值 2706.4亿, PE-TTM 54.5-62.9, PB 16-17, 2026E ~47-52x, 近1年 +360%; 判断:明显偏贵,盈利真实",
+      "source": "东财push2 + 腾讯gtimg (双源交叉,行情接口硬数据)",
+      "strength": "primary"
+    }
+  ],
+  "what_could_weaken_view": [
+    "估值已 明显偏贵,盈利真实",
+    "全层 +196%~+2057%、贴52周高,估值是普遍逆风",
+    "补入估值后排名不含基本面再核,仍非买入序列"
+  ]
+}

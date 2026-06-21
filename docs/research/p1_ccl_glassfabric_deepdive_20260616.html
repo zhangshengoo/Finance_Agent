@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P1 深钻 · 高速 CCL / 电子布 卡点与可复现打分 · 2026-06-16</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1b222c; --bd:#232c3a; --bd2:#2c3747;
+    --tx:#c9d4e3; --mut:#8b97a8; --dim:#6b7787;
+    --acc:#58a6ff; --acc2:#79c0ff;
+    --green:#3fb950; --amber:#d29922; --red:#f85149; --gray:#8b949e; --purple:#bc8cff;
+    --mono:'SF Mono',ui-monospace,'JetBrains Mono',Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+    font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:34px 26px 90px}
+  a{color:var(--acc);text-decoration:none}
+  a:hover{text-decoration:underline}
+  h1{font-size:27px;font-weight:800;letter-spacing:.2px;margin:0 0 6px}
+  h2{font-size:13px;font-weight:700;letter-spacing:1.6px;color:var(--acc2);
+    text-transform:uppercase;margin:0 0 16px;padding-bottom:9px;border-bottom:1px solid var(--bd)}
+  .sub{color:var(--mut);font-size:13.5px;margin:0 0 4px}
+  .mono{font-family:var(--mono)}
+  section{margin:42px 0 0}
+  .secno{font-family:var(--mono);color:var(--dim);font-weight:700;margin-right:8px}
+
+  /* header */
+  .hd{border:1px solid var(--bd);background:linear-gradient(180deg,#161d27,#12171f);
+    border-radius:13px;padding:24px 26px;margin-bottom:8px}
+  .tagrow{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+  .tag{font-family:var(--mono);font-size:11.5px;padding:3px 9px;border-radius:5px;
+    background:#1f2937;color:var(--acc2);border:1px solid var(--bd2)}
+  .disc{margin-top:16px;padding:11px 14px;border-left:3px solid var(--amber);
+    background:rgba(210,153,34,.07);border-radius:0 7px 7px 0;color:#d9c08a;font-size:12.7px;line-height:1.55}
+
+  /* thesis cards */
+  .grid{display:grid;gap:13px}
+  .g2{grid-template-columns:1fr 1fr}
+  .th{border:1px solid var(--bd);background:var(--panel);border-radius:10px;padding:15px 17px}
+  .th b{color:#e7edf5}
+  .th .k{font-family:var(--mono);font-size:11px;color:var(--acc);letter-spacing:.5px;
+    text-transform:uppercase;display:block;margin-bottom:5px}
+  .hl-red{color:#ff8a85;font-weight:600}
+  .hl-grn{color:#7ee2a0;font-weight:600}
+
+  /* layer heat */
+  .layer{border:1px solid var(--bd);background:var(--panel);border-radius:10px;
+    padding:14px 16px;margin-bottom:11px;position:relative;overflow:hidden}
+  .layer .lbar{position:absolute;left:0;top:0;bottom:0;width:5px}
+  .layer .ltop{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap}
+  .lcode{font-family:var(--mono);font-weight:800;font-size:15px;color:var(--acc2)}
+  .lname{font-weight:700;font-size:16px;color:#e7edf5}
+  .heatbadge{margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:700;
+    padding:3px 10px;border-radius:20px}
+  .lcon{color:var(--mut);font-size:13px;margin-top:7px}
+  .lcut{font-size:12.5px;margin-top:8px;color:var(--tx)}
+  .lcut b{color:var(--acc2)}
+  .heatmeter{height:7px;border-radius:4px;background:#0e1420;margin-top:10px;overflow:hidden}
+  .heatmeter>i{display:block;height:100%;border-radius:4px}
+
+  /* scorecard bars */
+  .sc{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:center;
+    padding:9px 0;border-bottom:1px solid #1a212c}
+  .sc:last-child{border-bottom:none}
+  .rank{font-family:var(--mono);font-size:18px;font-weight:800;color:#2f3a4c;text-align:right}
+  .rank.top{color:var(--acc2)}
+  .scbody{min-width:0}
+  .scline{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:5px}
+  .scname{font-weight:700;color:#e7edf5;font-size:14.5px}
+  .scticker{font-family:var(--mono);font-size:11.5px;color:var(--dim)}
+  .sclayer{font-size:11px;color:var(--mut);background:#1b2430;padding:1.5px 7px;border-radius:4px}
+  .scnum{margin-left:auto;font-family:var(--mono);font-weight:800;font-size:15px}
+  .verdict{font-family:var(--mono);font-size:10.5px;padding:1.5px 7px;border-radius:4px;font-weight:700}
+  .v-track{background:rgba(210,153,34,.14);color:#e3b341}
+  .v-low{background:rgba(139,148,158,.16);color:var(--gray)}
+  .track{height:9px;border-radius:5px;background:#0e1420;overflow:hidden;position:relative}
+  .track>i{display:block;height:100%;border-radius:5px}
+  .pen{font-family:var(--mono);font-size:10.5px;color:var(--red);margin-left:8px}
+  .raw{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+
+  /* tables */
+  table{width:100%;border-collapse:collapse;font-size:12.7px;margin-top:4px}
+  thead th{text-align:left;color:var(--mut);font-weight:600;font-size:11px;
+    letter-spacing:.6px;text-transform:uppercase;padding:8px 10px;border-bottom:1px solid var(--bd2)}
+  tbody td{padding:9px 10px;border-bottom:1px solid #1a2230;vertical-align:top}
+  tbody tr:hover{background:#141a23}
+  .tk{font-family:var(--mono);color:var(--acc2);font-size:11.5px;white-space:nowrap}
+
+  /* verification badges */
+  .vb{font-family:var(--mono);font-size:10.5px;font-weight:700;padding:2px 8px;
+    border-radius:4px;white-space:nowrap;display:inline-block}
+  .vb-ok{background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3)}
+  .vb-part{background:rgba(210,153,34,.14);color:var(--amber);border:1px solid rgba(210,153,34,.3)}
+  .vb-no{background:rgba(139,148,158,.14);color:var(--gray);border:1px solid rgba(139,148,158,.3)}
+  .vb-false{background:rgba(248,81,73,.14);color:var(--red);border:1px solid rgba(248,81,73,.3)}
+
+  /* killed narratives */
+  .kill{border:1px solid var(--bd);border-left:3px solid var(--red);background:rgba(248,81,73,.05);
+    border-radius:0 9px 9px 0;padding:12px 15px;margin-bottom:9px}
+  .kill b{color:#ff9b96}
+  .kill .arrow{color:var(--red);font-weight:700}
+
+  ul.clean{margin:6px 0 0;padding-left:20px}
+  ul.clean li{margin:5px 0;color:var(--tx)}
+  ul.clean li b{color:#e7edf5}
+  .note{color:var(--dim);font-size:12px;margin-top:10px}
+  .legend{display:flex;flex-wrap:wrap;gap:13px;margin:10px 0 4px;font-size:11.5px;color:var(--mut)}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+  code{font-family:var(--mono);font-size:12px;background:#1b222c;padding:1.5px 6px;border-radius:4px;color:var(--acc2)}
+  .src-grp{margin-bottom:12px}
+  .src-grp h4{font-size:12.5px;color:var(--acc2);margin:0 0 5px;font-family:var(--mono)}
+  .src-grp a{display:block;font-size:11.8px;color:var(--mut);padding:1.5px 0;word-break:break-all}
+  .src-grp a:hover{color:var(--acc)}
+  .foot{margin-top:46px;padding-top:16px;border-top:1px solid var(--bd);color:var(--dim);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ HEADER ============ -->
+  <div class="hd">
+    <h1>P1 深钻 · 高速 CCL / 电子布</h1>
+    <p class="sub">产业链子层卡点重排 · 一手披露交叉核验 · serenity_scorecard.py 可复现打分</p>
+    <p class="sub mono" style="color:var(--dim)">2026-06-16 · A 股为主 · 父篇：AI 产业链卡点总图 P1 单层深挖</p>
+    <div class="tagrow">
+      <span class="tag">th-ai-compute</span>
+      <span class="tag">th-pcb-ccl</span>
+      <span class="tag">th-semiconductor</span>
+      <span class="tag">12 候选标的</span>
+      <span class="tag">6 子层</span>
+      <span class="tag">估值核验 2026-06-16</span>
+      <span class="tag">~40 信息源</span>
+    </div>
+    <div class="disc">
+      <b>研究边界：</b>仅研究支持与研究优先级排序，<b>不构成买卖建议</b>。凡标「未核实/部分核实/机构估算」者引用前须回公司公告/互动易原文交叉验证；
+      全文未杜撰价格、市值、订单、客户、产能、份额、毛利、单价、估值数字，拿不到一手处一律标注。打分排名<b>已含估值维度</b>（as-of 2026-06-16，双源核验），但全层偏贵、<b>仍不能当买入序列读</b>。
+    </div>
+  </div>
+
+  <!-- ============ 00 核心判断 ============ -->
+  <section>
+    <h2><span class="secno">00</span>核心判断（深钻后修正版）</h2>
+    <div class="grid g2">
+      <div class="th">
+        <span class="k">瓶颈之瓶颈</span>
+        真正最卡的不是 CCL 成品，而是上游 <b>高端电子布（Low-Dk/Low-Df 玻纤布）</b>：日东纺+旭化成 ≈<b>86%</b> 低介电份额、T-glass ≈90%，认证 2–3 年、扩产到 <b>2027 年中</b>才缓解。<span class="hl-grn">已核实（TrendForce）</span>。A 股仅切中高端，最顶端仍受制。
+      </div>
+      <div class="th">
+        <span class="k">控制层没那么"独家"</span>
+        CCL 成品（M8/M9）是控制层，但国内多家能做、<b>可多源</b>，稀缺度低于其上游材料。护城河是<b>认证壁垒+背板良率</b>，不是"独家供给"。
+      </div>
+      <div class="th">
+        <span class="k">旗舰叙事被打折 ①</span>
+        <b>生益科技</b>「M9 过英伟达认证 / 78 层背板 / 单价 400 元·㎡ / 毛利 45%+」<span class="hl-red">→ 无一手，纯传闻</span>。但 2026Q1 财务（营收 81.41 亿 +45%、归母 11.58 亿 +105%）<span class="hl-grn">两路独立核验互证，是真的</span>。
+      </div>
+      <div class="th">
+        <span class="k">旗舰叙事被打折 ②</span>
+        <b>胜宏科技</b>「AI 服务器 PCB 全球份额 >30%」<span class="hl-red">→ 仅平安证券估算，无公司一手</span>；网传"55%"出自 AI 生成文，弃用；"AI 占比 >40%"实为 2025 <b>前三季</b>口径（非 Q1 单季）。
+      </div>
+      <div class="th">
+        <span class="k">PCB = 受益层非控制层</span>
+        沪电/胜宏/深南量价齐升、弹性最大，但<b>不控任何稀缺原材料</b>，毛利被上游涨价反挤；份额越高 = 对英伟达/数通大客户集中度越高（双刃）。
+      </div>
+      <div class="th">
+        <span class="k">打分结论（含估值 v2）</span>
+        12 标的<b>无一进"高优先级"</b>——卡点叙事有缺口，且<span class="hl-red">估值是全层逆风</span>（年内 +196%~+2057%、贴 52 周高）。<b>11 个 Worth tracking、1 个 Early lead（胜宏）</b>。前列仍是<span class="hl-grn">电子布与上游材料</span>；估值令<b>中一 ↑4、宏和 ↓4</b>。<b>不是买入序列。</b>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 01 子层卡点排序 ============ -->
+  <section>
+    <h2><span class="secno">01</span>P1 子层卡点排序 · 先排子层再排公司</h2>
+    <p class="sub">按 <b>供给集中度 × 认证壁垒 × 扩产难度</b> 重排，越靠上越卡。热度条 = 稀缺度。</p>
+
+    <div class="layer">
+      <div class="lbar" style="background:var(--red)"></div>
+      <div class="ltop"><span class="lcode">L1</span><span class="lname">高端电子布（Low-Dk/Low-Df 玻纤布）</span>
+        <span class="heatbadge" style="background:rgba(248,81,73,.16);color:#ff8a85">稀缺度 最高</span></div>
+      <div class="lcon">特种玻璃配方(NE/T-glass)+电子级超细纱拉丝 know-how；日东纺+旭化成 ≈86%，认证 2–3 年、2027 前难缓解。</div>
+      <div class="lcut"><b>A 股能切到：</b>中高端（中材/宏和次高端已量产）；<span class="hl-red">最顶端 Q 布/超低损耗仍受制</span>。</div>
+      <div class="heatmeter"><i style="width:96%;background:linear-gradient(90deg,#f85149,#ff7a45)"></i></div>
+    </div>
+
+    <div class="layer">
+      <div class="lbar" style="background:#ff7a45"></div>
+      <div class="ltop"><span class="lcode">L2a</span><span class="lname">HVLP-4 高频高速铜箔</span>
+        <span class="heatbadge" style="background:rgba(255,122,69,.16);color:#ff9d6b">稀缺度 很高</span></div>
+      <div class="lcon">日韩（三井金属/古河/斗山）≈85%+，核心后处理设备依赖日本、交期 1.5 年+。</div>
+      <div class="lcut"><b>A 股能切到：</b>多在"认证—小批量"，<span class="hl-grn">中一已批量出货领先</span>；德福外延路径（卢森堡 CFL）已断。</div>
+      <div class="heatmeter"><i style="width:85%;background:linear-gradient(90deg,#ff7a45,#ffa940)"></i></div>
+    </div>
+
+    <div class="layer">
+      <div class="lbar" style="background:#ffa940"></div>
+      <div class="ltop"><span class="lcode">L2b</span><span class="lname">高速树脂（碳氢 / PPO / BMI）</span>
+        <span class="heatbadge" style="background:rgba(255,169,64,.16);color:#ffc06b">稀缺度 高</span></div>
+      <div class="lcon">PPO 长期 SABIC 主导；但国产替代成色三类材料里最实。</div>
+      <div class="lcut"><b>A 股能切到：</b>圣泉/东材已规模化供高速 CCL/服务器体系（官方+终端背书）。</div>
+      <div class="heatmeter"><i style="width:76%;background:linear-gradient(90deg,#ffa940,#ffc53d)"></i></div>
+    </div>
+
+    <div class="layer">
+      <div class="lbar" style="background:#ffc53d"></div>
+      <div class="ltop"><span class="lcode">L3</span><span class="lname">高速 CCL 成品（M8/M9）</span>
+        <span class="heatbadge" style="background:rgba(255,197,61,.16);color:#ffd666">稀缺度 中高</span></div>
+      <div class="lcon">认证壁垒+背板良率决定谁能上量；<b>可多源</b>。</div>
+      <div class="lcut"><b>A 股主体：</b>南亚（M9 NPI/M10 认证，年报背书）；<span class="hl-red">生益 M9 旗舰声明缺一手</span>，财务硬。</div>
+      <div class="heatmeter"><i style="width:64%;background:linear-gradient(90deg,#ffc53d,#d4d04a)"></i></div>
+    </div>
+
+    <div class="layer">
+      <div class="lbar" style="background:#9ad14a"></div>
+      <div class="ltop"><span class="lcode">L4</span><span class="lname">球形硅微粉 / Low-α 填料</span>
+        <span class="heatbadge" style="background:rgba(115,209,61,.16);color:#9be05a">稀缺度 中（近"已突破"）</span></div>
+      <div class="lcon">日企(电化/龙森/新日铁)≈70%，但联瑞已实供头部 CCL。</div>
+      <div class="lcut"><b>A 股主体：</b>联瑞已批量供生益/南亚，<span class="hl-grn">国产替代最成熟</span>。</div>
+      <div class="heatmeter"><i style="width:52%;background:linear-gradient(90deg,#9ad14a,#73d13d)"></i></div>
+    </div>
+
+    <div class="layer">
+      <div class="lbar" style="background:#73d13d"></div>
+      <div class="ltop"><span class="lcode">L5</span><span class="lname">高速 / 高多层 PCB 成品</span>
+        <span class="heatbadge" style="background:rgba(115,209,61,.16);color:#9be05a">稀缺度 中（受益非控制）</span></div>
+      <div class="lcon">工艺有壁垒但<b>不控原材料</b>；高份额 = 高客户集中。</div>
+      <div class="lcut"><b>A 股主体：</b>沪电/胜宏/深南量价齐升，毛利受上游挤压；份额声明（胜宏 >30%）仅券商估算。</div>
+      <div class="heatmeter"><i style="width:48%;background:linear-gradient(90deg,#73d13d,#52c41a)"></i></div>
+    </div>
+
+    <p class="note">一句话：找"既卡又有 A 股暴露"的交集 → <b>先看 L1 电子布、再看 L2 铜箔/树脂</b>；CCL 成品（L3）护城河没传闻里那么独家，PCB（L5）是赚弹性钱的受益层。</p>
+  </section>
+
+  <!-- ============ 02 可复现打分 ============ -->
+  <section>
+    <h2><span class="secno">02</span>可复现打分 · serenity_scorecard.py（12 标的 · v2 含估值）</h2>
+    <p class="sub">8 因子 ×0–5 加权满分 100，惩罚项 ×2 扣减。条长 = 最终得分。
+      <span class="hl-red">v2 已补入真实估值（as-of 2026-06-16，东财 push2+腾讯 gtimg 双源核验）替换 v1 占位；Δ 列即估值带来的位移。</span></p>
+
+    <div class="disc" style="border-left-color:var(--red);background:rgba(248,81,73,.06);color:#e0a8a3">
+      <b>全层都贵——这是第一结论。</b>12 只无一便宜：年内 <b>+196%~+2057%</b>、几乎全贴 52 周高，PE-TTM <b>58–406×</b>、PB <b>6–84×</b>。
+      所谓"相对洼地"（中一/圣泉/胜宏）只是<b>贵的程度轻</b>。估值是整层普遍逆风，安全边际薄；下表 8/12 名因估值被下修。
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--amber)"></span>Worth tracking (55–70)</span>
+      <span><span class="dot" style="background:var(--gray)"></span>Early lead / low (&lt;55)</span>
+      <span><span class="dot" style="background:var(--green)"></span>Δ 升 · <span class="dot" style="background:var(--red)"></span>Δ 降（vs 未含估值 v1）</span>
+      <span style="color:var(--dim)">val = valuation_disconnect 0–5（越高=越未被定价）</span>
+    </div>
+
+    <div style="margin-top:14px">
+      <!-- 1 中材 -->
+      <div class="sc"><div class="rank top">1</div><div class="scbody">
+        <div class="scline"><span class="scname">中材科技</span><span class="scticker">002080</span><span class="sclayer">L1 电子布·全品类</span>
+          <span class="scnum" style="color:var(--amber)">69.2</span><span class="verdict v-track">Worth tracking</span></div>
+        <div class="track"><i style="width:69.2%;background:linear-gradient(90deg,#d29922,#f0b429)"></i></div>
+        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 9px;align-items:center">
+          <span class="vb vb-ok" style="font-size:10px">Δ +1.1 · 旧#2</span>
+          <span class="raw">原始 74.1 − 惩罚 6.0</span>
+          <span class="raw">｜估值 PE-TTM 61.9 · PB 6.4 · 近1年 +386% · <b style="color:#e3b341">val 2.5</b> 盈利支撑最实</span></div>
+      </div></div>
+      <!-- 2 圣泉 -->
+      <div class="sc"><div class="rank top">2</div><div class="scbody">
+        <div class="scline"><span class="scname">圣泉集团</span><span class="scticker">605589</span><span class="sclayer">L2b 高速树脂</span>
+          <span class="scnum" style="color:var(--amber)">69.0</span><span class="verdict v-track">Worth tracking</span></div>
+        <div class="track"><i style="width:69.0%;background:linear-gradient(90deg,#d29922,#f0b429)"></i></div>
+        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 9px;align-items:center">
+          <span class="vb vb-ok" style="font-size:10px">Δ +1.8 · 旧#3</span>
+          <span class="raw">原始 73.2 − 惩罚 6.0</span>
+          <span class="raw">｜估值 PE-TTM 58.1 · PB 5.48 · 2026E ~41x · <b style="color:#e3b341">val 2.8</b> 估值洼地</span></div>
+      </div></div>
+      <!-- 3 中一 -->
+      <div class="sc"><div class="rank top">3</div><div class="scbody">
+        <div class="scline"><span class="scname">中一科技</span><span class="scticker">301150</span><span class="sclayer">L2a HVLP·进度领先</span>
+          <span class="scnum" style="color:var(--amber)">67.3</span><span class="verdict v-track">Worth tracking</span></div>
+        <div class="track"><i style="width:67.3%;background:linear-gradient(90deg,#d29922,#f0b429)"></i></div>
+        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 9px;align-items:center">
+          <span class="vb vb-ok" style="font-size:10px">Δ +2.2 · 旧#7 ↑4位</span>
+          <span class="raw">原始 74.1 − 惩罚 9.0</span>
+          <span class="raw">｜估值 PE-TTM 62.3 · PB 4.9（最低）· 市值177亿（最小）· <b style="color:#7ee2a0">val 3.0</b> 相对最未定价</span></div>
+      </div></div>
+      <!-- 4 东材 -->
+      <div class="sc"><div class="rank top">4</div><div class="scbody">
+        <div class="scline"><span class="scname">东材科技</span><span class="scticker">601208</span><span class="sclayer">L2b 树脂·终端点名最实</span>
+          <span class="scnum" style="color:var(--amber)">66.1</span><span class="verdict v-track">Worth tracking</span></div>
+        <div class="track"><i style="width:66.1%;background:linear-gradient(90deg,#c79122,#d29922)"></i></div>
+        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 9px;align-items:center">
+          <span class="vb vb-part" style="font-size:10px">Δ −1.1 · 旧#4</span>
+          <span class="raw">原始 73.2 − 惩罚 6.0</span>
+          <span class="raw">｜估值 PE-TTM 190.5 · 2026E 99–133x · 涨停 · <b style="color:#d29922">val 1.5</b> 明显偏贵</span></div>
+      </div></div>
+      <!-- 5 宏和 -->
+      <div class="sc"><div class="rank top">5</div><div class="scbody">
+        <div class="scline"><span class="scname">宏和科技</span><span class="scticker">603256</span><span class="sclayer">L1 电子布·纯度最高</span>
+          <span class="scnum" style="color:var(--amber)">65.9</span><span class="verdict v-track">Worth tracking</span></div>
+        <div class="track"><i style="width:65.9%;background:linear-gradient(90deg,#c79122,#d29922)"></i></div>
+        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 9px;align-items:center">
+          <span class="vb vb-false" style="font-size:10px">Δ −2.6 · 旧#1 ↓4位</span>
+          <span class="raw">原始 80.5（卡点纯度最高）− 惩罚 12.0</span>
+          <span class="raw">｜估值 PE-TTM 405.7 · PB 84.0 · 近1年 <b style="color:#ff8a85">+2057%</b> · <b style="color:#ff8a85">val 0.8</b> 极度 priced in</span></div>
+      </div></div>
+      <!-- 6 联瑞 -->
+      <div class="sc"><div class="rank">6</div><div class="scbody">
+        <div class="scline"><span class="scname">联瑞新材</span><span class="scticker">688300</span><span class="sclayer">L4 球硅·国产替代最成熟</span>
+          <span class="scnum" style="color:var(--amber)">63.7</span><span class="verdict v-track">Worth tracking</span></div>
+        <div class="track"><i style="width:63.7%;background:linear-gradient(90deg,#b5862a,#c79122)"></i></div>
+        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 9px;align-items:center">
+          <span class="vb vb-part" style="font-size:10px">Δ −1.8 · 旧#5</span>
+          <span class="raw">原始 69.5 − 惩罚 4.0（最低）</span>
+          <span class="raw">｜估值 PE-TTM 176.4 · PB 32.1 · 2026E 121–137x · <b style="color:#d29922">val 1.2</b> 明显偏贵</span></div>
+      </div></div>
+      <!-- 7 南亚 -->
+      <div class="sc"><div class="rank">7</div><div class="scbody">
+        <div class="scline"><span class="scname">南亚新材</span><span class="scticker">688519</span><span class="sclayer">L3 CCL·证据最实</span>
+          <span class="scnum" style="color:var(--amber)">63.1</span><span class="verdict v-track">Worth tracking</span></div>
+        <div class="track"><i style="width:63.1%;background:linear-gradient(90deg,#b5862a,#c79122)"></i></div>
+        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 9px;align-items:center">
+          <span class="vb vb-false" style="font-size:10px">Δ −2.2 · 旧#6</span>
+          <span class="raw">原始 73.3 − 惩罚 8.0 · M2–M10 年报背书</span>
+          <span class="raw">｜估值 PE-TTM 227.0 · 4月 +230% · <b style="color:#ff8a85">val 1.0</b> 定价最激进</span></div>
+      </div></div>
+      <!-- 8 生益 -->
+      <div class="sc"><div class="rank">8</div><div class="scbody">
+        <div class="scline"><span class="scname">生益科技</span><span class="scticker">600183</span><span class="sclayer">L3 CCL 龙头·旗舰声明缺一手</span>
+          <span class="scnum" style="color:var(--amber)">62.7</span><span class="verdict v-track">Worth tracking</span></div>
+        <div class="track"><i style="width:62.7%;background:linear-gradient(90deg,#a8791f,#b5862a)"></i></div>
+        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 9px;align-items:center">
+          <span class="vb vb-part" style="font-size:10px">Δ −1.1 · 旧#8</span>
+          <span class="raw">原始 70.8 − 惩罚 7.0 · 财务满分但 M9 缺一手</span>
+          <span class="raw">｜估值 PE-TTM 94–111 · PB 24–27 · +628% · <b style="color:#d29922">val 1.5</b> 龙头溢价满</span></div>
+      </div></div>
+      <!-- 9 沪电 -->
+      <div class="sc"><div class="rank">9</div><div class="scbody">
+        <div class="scline"><span class="scname">沪电股份</span><span class="scticker">002463</span><span class="sclayer">L5 PCB·财务最实</span>
+          <span class="scnum" style="color:var(--amber)">61.4</span><span class="verdict v-track">Worth tracking</span></div>
+        <div class="track"><i style="width:61.4%;background:linear-gradient(90deg,#a8791f,#b5862a)"></i></div>
+        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 9px;align-items:center">
+          <span class="vb vb-no" style="font-size:10px">Δ 0.0 · 旧#9</span>
+          <span class="raw">原始 68.4 − 惩罚 7.0 · 受益层卡点因子低</span>
+          <span class="raw">｜估值 PE-TTM 54.5–62.9 · 2026E ~47–52x · +360% · <b style="color:#d29922">val 2.0</b></span></div>
+      </div></div>
+      <!-- 10 深南 -->
+      <div class="sc"><div class="rank">10</div><div class="scbody">
+        <div class="scline"><span class="scname">深南电路</span><span class="scticker">002916</span><span class="sclayer">L5 载板·受 ABF 上游制</span>
+          <span class="scnum" style="color:var(--amber)">57.1</span><span class="verdict v-track">Worth tracking</span></div>
+        <div class="track"><i style="width:57.1%;background:linear-gradient(90deg,#8c6a2a,#a8791f)"></i></div>
+        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 9px;align-items:center">
+          <span class="vb vb-part" style="font-size:10px">Δ −0.4 · 旧#11 ↑1</span>
+          <span class="raw">原始 65.5 − 惩罚 8.0 · 22 层量产；线宽未核实</span>
+          <span class="raw">｜估值 PE-TTM 75.7–80.9 · +382% · <b style="color:#d29922">val 1.8</b></span></div>
+      </div></div>
+      <!-- 11 菲利华 -->
+      <div class="sc"><div class="rank">11</div><div class="scbody">
+        <div class="scline"><span class="scname">菲利华</span><span class="scticker">300395</span><span class="sclayer">L1 石英 Q 布·另一路线</span>
+          <span class="scnum" style="color:var(--amber)">57.0</span><span class="verdict v-track">Worth tracking</span></div>
+        <div class="track"><i style="width:57.0%;background:linear-gradient(90deg,#8c6a2a,#a8791f)"></i></div>
+        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 9px;align-items:center">
+          <span class="vb vb-part" style="font-size:10px">Δ −1.1 · 旧#10 ↓1</span>
+          <span class="raw">原始 69.1 − 惩罚 11.0 · GB300 直供未证实</span>
+          <span class="raw">｜估值 PE-TTM 120.2 · PB 14.4 · +196% · <b style="color:#d29922">val 1.5</b></span></div>
+      </div></div>
+      <!-- 12 胜宏 -->
+      <div class="sc"><div class="rank">12</div><div class="scbody">
+        <div class="scline"><span class="scname">胜宏科技</span><span class="scticker">300476</span><span class="sclayer">L5 PCB·份额声明存疑</span>
+          <span class="scnum" style="color:var(--gray)">54.7</span><span class="verdict v-low">Early lead / low</span></div>
+        <div class="track"><i style="width:54.7%;background:linear-gradient(90deg,#5a6470,#8b949e)"></i></div>
+        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px 9px;align-items:center">
+          <span class="vb vb-ok" style="font-size:10px">Δ +1.8 · 旧#12</span>
+          <span class="raw">原始 63.9 − 惩罚 11.0 · 份额未证实+炒作</span>
+          <span class="raw">｜估值 PE-TTM 67.8–74.7 · 2026E ~39x(PEG0.23) · <b style="color:#e3b341">val 2.8</b> 前瞻最低，仍救不回</span></div>
+      </div></div>
+    </div>
+
+    <p class="note"><b>怎么读：</b>没有"高优先级"是诚实结果——卡点叙事核验缺口 + <b>估值全层逆风</b>，让全场压在 54.7–69.2。估值只占 11% 权重，故重排温和但有意义：
+      <b style="color:#7ee2a0">中一 ↑4 位</b>（市值小/PB 低/盈利拐点）、<b style="color:#ff8a85">宏和 ↓4 位</b>（PB 84×/+2057%）。排序结构仍 = 子层稀缺度（电子布/材料 &gt; CCL &gt; PCB）。
+      <b>补入估值后仍不是买入序列，且明确提示高位介入、安全边际薄。</b>
+      复现：<code>python3 /tmp/gen_p1_scorecards_v2.py</code>，输入/输出存 <code>docs/research/p1-scorecards/（v1 占位 · v2 含估值）</code>。</p>
+  </section>
+
+  <!-- ============ 03 核验台账 ============ -->
+  <section>
+    <h2><span class="secno">03</span>核验台账 · 旧版"未核实/建议二次核"逐条回一手</h2>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--green)"></span>已核实（交易所/年报季报原文）</span>
+      <span><span class="dot" style="background:var(--amber)"></span>部分核实（口径错配/券商估算/公司口径）</span>
+      <span><span class="dot" style="background:var(--gray)"></span>未核实（仅自媒体/拿不到一手）</span>
+      <span><span class="dot" style="background:var(--red)"></span>证伪（与一手矛盾/归类错误）</span>
+    </div>
+    <table>
+      <thead><tr><th>子层</th><th>Ticker</th><th>名称</th><th>待核声明</th><th>实际一手核验</th><th>判定</th></tr></thead>
+      <tbody>
+        <tr><td>L1</td><td class="tk">603256</td><td>宏和科技</td><td>做 Low-Dk / 进英伟达</td><td>年报确认 8μm 布 / 4μm 纱、低介电+低膨胀，客户含台光/斗山/台燿/生益/松下；Q 布仍攻坚。英伟达直供为媒体口径</td><td><span class="vb vb-part">部分核实</span></td></tr>
+        <tr><td>L1</td><td class="tk">002080</td><td>中材科技</td><td>AI 弹性占比 / 是否沾边</td><td>特纤布全品类已认证+批量；25 年 1-9 月特纤布营收 4.17 亿；全年营收 302 亿 → 电子布占比 &lt;2%，高弹性小盘子</td><td><span class="vb vb-part">部分核实</span></td></tr>
+        <tr><td>L1</td><td class="tk">301526</td><td>国际复材</td><td>Low-Dk 定位 / 财报</td><td>自研 LDK；二代低介电、长寿 3600 万米项目多为"规划/在建"；2025 财务数未取一手</td><td><span class="vb vb-part">部分核实</span></td></tr>
+        <tr><td>L1</td><td class="tk">300395</td><td>菲利华</td><td>是否属此卡点</td><td>走石英纤维布（Q 布，第三代另一路线）；本体收入仍半导体石英为主；中益新材"导入 GB300"为自媒体未证实</td><td><span class="vb vb-part">部分核实</span></td></tr>
+        <tr><td>L1</td><td class="tk">002211</td><td>宏达新材</td><td>是否做 Low-Dk 电子布</td><td>主营高温硅橡胶，无电子布业务，名称相近误纳</td><td><span class="vb vb-false">证伪</span></td></tr>
+        <tr><td>L2a</td><td class="tk">301150</td><td>中一科技</td><td>是否做 HVLP/RTF、真量产</td><td>2025 年报摘要官方："HVLP、RTF 铜箔等已批量出货"；客户/营收净利未在摘要展示</td><td><span class="vb vb-ok">已核实</span></td></tr>
+        <tr><td>L2a</td><td class="tk">600110</td><td>诺德股份</td><td>HVLP 是否放量</td><td>官方公告：HVLP 通过多家头部 PCB 认证、点名客户胜宏；RTF-3/HVLP-4 过部分认证。无产能/订单数字</td><td><span class="vb vb-part">部分核实</span></td></tr>
+        <tr><td>L2a</td><td class="tk">688388</td><td>嘉元科技</td><td>是否切入 HVLP</td><td>财联社引公司：HVLP"正处客户验证阶段，尚未获销售订单"；RTF 小批量。放量证据最弱</td><td><span class="vb vb-part">部分核实</span></td></tr>
+        <tr><td>L2a</td><td class="tk">301511</td><td>德福科技</td><td>"全球唯一非日系 HVLP 厂"</td><td>对卢森堡 CFL（HVLP4）收购已于 2026-01 因监管终止 → 说法不成立；自有 HVLP 量产无一手</td><td><span class="vb vb-part">部分核实/外延已黄</span></td></tr>
+        <tr><td>L2b</td><td class="tk">605589</td><td>圣泉集团</td><td>碳氢树脂量产/供高速 CCL</td><td>互动易官方：碳氢树脂"规模化生产+稳定供货"；电子级 PPO 满产满销、M10 认证中。未点名 CCL 客户</td><td><span class="vb vb-ok">已核实</span></td></tr>
+        <tr><td>L2b</td><td class="tk">601208</td><td>东材科技</td><td>树脂是否真供高速 CCL</td><td>公司异动公告：高速树脂经一线 CCL 厂供应到英伟达/华为/苹果/英特尔服务器体系；M9 碳氢已批量</td><td><span class="vb vb-ok">已核实</span></td></tr>
+        <tr><td>L4</td><td class="tk">688300</td><td>联瑞新材</td><td>供高端 CCL/封装、客户、财报</td><td>已进生益、南亚供应链；Low-α 球硅/球铝量产；2024 营收 9.60 亿(+34.94%)/归母 2.51 亿(+44.47%)</td><td><span class="vb vb-ok">已核实</span></td></tr>
+        <tr><td>L3</td><td class="tk">600183</td><td>生益科技</td><td>① 2026Q1 营收 81.4 亿/归母 11.58 亿</td><td>属实：营收 81.41 亿(+45.09%)、归母 11.58 亿(+105.47%)、扣非 10.83 亿，季报原文两路互证</td><td><span class="vb vb-ok">已核实</span></td></tr>
+        <tr><td>L3</td><td class="tk">600183</td><td>生益科技</td><td>② M9 过英伟达 / 78 层背板</td><td>一季报正文与 IR 互动平台均无 M9/英伟达/78 层字样，仅自媒体口径</td><td><span class="vb vb-no">未核实</span></td></tr>
+        <tr><td>L3</td><td class="tk">600183</td><td>生益科技</td><td>③ M9 单价 400 元·㎡ / 毛利 45%+</td><td>仅自媒体测算，无公司/研报一手，季报未披露分产品单价毛利</td><td><span class="vb vb-no">未核实</span></td></tr>
+        <tr><td>L3</td><td class="tk">688519</td><td>南亚新材</td><td>高速 CCL 定位/财报/料号</td><td>快报：2025 营收 52.28 亿(+55.52%)/归母 2.41 亿(+378.65%)；年报"M2~M10 全系列、M6-M8 批量、M9 NPI、M10 认证中"</td><td><span class="vb vb-ok">已核实</span></td></tr>
+        <tr><td>L3</td><td class="tk">603186</td><td>华正新材</td><td>是否真有 AI 高速料放量</td><td>2025 营收 43.69 亿/归母 2.77 亿(扭亏)；年报高频高速料仅"逐步交付"，无 M6–M9/英伟达/放量/背板</td><td><span class="vb vb-part">部分核实/放量说证伪</span></td></tr>
+        <tr><td>L3</td><td class="tk">002636</td><td>金安国纪</td><td>是否沾 AI 高速料</td><td>业绩预告归母 +655%~871%，官方原因仅"覆铜板行情好转/产销量增长/价格回升"，全文无 AI/高速/高频</td><td><span class="vb vb-false">"沾 AI"证伪</span></td></tr>
+        <tr><td>L5</td><td class="tk">300476</td><td>胜宏科技</td><td>① AI 收入占比 &gt;40%</td><td>招股书：AI+HPC 占比 2025 前三季 41.5%（口径"前三季"非 Q1 单季）；Q1 营收 43.12 亿(+80%)/归母 9.21 亿(+339%)</td><td><span class="vb vb-part">部分核实（时间窗错配）</span></td></tr>
+        <tr><td>L5</td><td class="tk">300476</td><td>胜宏科技</td><td>② AI 服务器 PCB 全球份额 &gt;30%</td><td>仅平安证券估算，公司无一手；网传"55%"出自 AI 生成文不可采信；"近三成"实指英伟达占其营收（客户集中度，非份额）</td><td><span class="vb vb-part">机构估算·不作事实</span></td></tr>
+        <tr><td>L5</td><td class="tk">300476</td><td>胜宏科技</td><td>③ 2026 再增约 200 亿投资</td><td>公告：2026 年度计划投资总额不超过 200 亿（固投≤180 亿+股权≤20 亿），单年上限</td><td><span class="vb vb-ok">已核实</span></td></tr>
+        <tr><td>L5</td><td class="tk">002463</td><td>沪电股份</td><td>① 2025H1 归母预增 40%+</td><td>预告 2025H1 归母 16.5–17.5 亿(+44.63%~53.4%)；全年快报 38.22 亿(+47.74%)</td><td><span class="vb vb-ok">已核实</span></td></tr>
+        <tr><td>L5</td><td class="tk">002463</td><td>沪电股份</td><td>② 43 亿新建高端 PCB、2026H2 试产</td><td>投关：约 43 亿 AI 配套高端 PCB，预期 2026H2 试产爬坡；另 3-4 月累计 123 亿级扩产</td><td><span class="vb vb-ok">已核实</span></td></tr>
+        <tr><td>L5</td><td class="tk">002916</td><td>深南电路</td><td>FC-BGA 20 层量产、线宽 9/12μm</td><td>2026-05 投关：广州 FC-BGA"22 层及以下量产"（20 层为旧口径）；"线宽 9/12μm"所有一手均未出现</td><td><span class="vb vb-part">部分核实/需修正</span></td></tr>
+        <tr><td>L5</td><td class="tk">002916</td><td>深南电路</td><td>ABF 膜受味之素垄断</td><td>味之素 ABF 膜全球 &gt;95%（竞品积水化学约 5%），2026Q3 起涨价约 30%；95% 为研报估算。深南是受制方非控制方</td><td><span class="vb vb-part">部分核实（机构口径）</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============ 04 被打掉的叙事 ============ -->
+  <section>
+    <h2><span class="secno">04</span>本轮被打掉 / 纠正的关键叙事</h2>
+    <div class="kill"><b>生益 M9 全链条</b>（认证/单价/毛利/78 层）<span class="arrow">→ 未核实</span>。旗舰"控制稀缺层"证据目前站不住，只剩财务是硬的。</div>
+    <div class="kill"><b>胜宏"全球份额 30%"</b><span class="arrow">→ 仅券商估算</span>；"55%"→ AI 生成文，弃用；"AI 占比 &gt;40%"→ 实为前三季口径。</div>
+    <div class="kill"><b>德福"全球唯一非日系 HVLP 厂"</b><span class="arrow">→ 收购卢森堡 CFL 已 2026-01 终止</span>，说法不成立。</div>
+    <div class="kill"><b>金安国纪"沾 AI 高速料"</b><span class="arrow">→ 证伪</span>，纯中低端覆铜板涨价标的。</div>
+    <div class="kill"><b>宏达新材列入电子布</b><span class="arrow">→ 证伪</span>，主营高温硅橡胶，误归类。</div>
+    <div class="kill"><b>深南"20 层 / 9-12μm"</b><span class="arrow">→ 层数过时（已 22 层）</span>、线宽无一手。</div>
+  </section>
+
+  <!-- ============ 05 证伪条件 ============ -->
+  <section>
+    <h2><span class="secno">05</span>什么情况说明这个判断错了（P1 专属）</h2>
+    <ul class="clean">
+      <li><b>电子布卡点被证伪</b>：日东纺/旭化成扩产显著早于 2027 年中放量，或 A 股拿不下高端认证 → L1 稀缺溢价瓦解。</li>
+      <li><b>生益 M9 叙事被坐实或被否</b>：公司年报/互动易正式披露 M9 过认证+单价毛利 → 上修；长期无一手且竞品 M9 验证厂增多 → "控制层"溢价继续收窄。</li>
+      <li><b>CCL 千亿扩产潮兑现</b>：涨价/缺料逻辑被供给追上，稀缺性稀释。</li>
+      <li><b>PCB 大客户集中度暴雷</b>：胜宏/沪电对英伟达单一大客户（约近三成）若遇砍单/份额转移，弹性反向。</li>
+      <li><b>铜箔/树脂"认证≠放量"长期化</b>：诺德/嘉元/德福 HVLP 停在送样、圣泉/东材 PPO 停在小批量 → L2 国产替代时间被拉长。</li>
+      <li><b>打分前提变化</b>：一旦补入估值（现占位），便宜的上移、贵的下移 → <b>当前排名未含估值，不能当买入序列读</b>。</li>
+    </ul>
+  </section>
+
+  <!-- ============ 06 接下来盯什么 ============ -->
+  <section>
+    <h2><span class="secno">06</span>接下来盯什么（具体到该去翻哪份一手）</h2>
+    <ul class="clean">
+      <li><b>生益（600183）2025 年报全文</b>"经营讨论与分析" → 看是否点名 M9/Rubin/英伟达、高阶料产能与单价毛利；或等上证 e 互动正面回复。给 M9 叙事"定生死"。</li>
+      <li><b>南亚（688519）2025 年报全文</b> → 分产品/分用途收入表，核高速料占比、单价、"华为"是否进主要客户段。</li>
+      <li><b>中一（301150）2025 年报全文</b> → 补全摘要 ■占位的营收/净利，核 HVLP/RTF 客户与高端占比。</li>
+      <li><b>联瑞（688300）可转债募集说明书/问询函回复 + 2025 年报</b> → 高端球硅/Low-α 当期市占与在高速 CCL 的份额。</li>
+      <li><b>胜宏</b>：调平安证券原始研报看"份额 &gt;30%"的分子分母假设；对照港股招股书是否有产品口径份额。拿到测算前份额只能当"机构估算"。</li>
+      <li><b>深南投关/招股书</b>：核 FC-BGA"最小线宽 9/12μm"是否有一手，否则维持"未核实"。</li>
+      <li><b>互动易/上证 e 互动</b>逐 ticker 搜"英伟达/NVIDIA/GB300/认证"官方问答 → 宏和、菲利华、中材、东材的"英伟达认证/直供"全链<b>目前无一条来自公司公告或互动易原文</b>。</li>
+    </ul>
+  </section>
+
+  <!-- ============ 07 来源 ============ -->
+  <section>
+    <h2><span class="secno">07</span>完整来源（按子层 · ~40 条）</h2>
+    <div class="grid g2">
+      <div class="src-grp">
+        <h4>L1 电子布</h4>
+        <a href="https://insights.trendforce.com/p/glass-fiber-cloth-shortage">TrendForce｜日东纺+旭化成份额/2027 缓解</a>
+        <a href="https://www.esmchina.com/marketnews/58443.html">国际电子商情｜电子布涨幅 100%</a>
+        <a href="https://www.tmtpost.com/8027375.html">钛媒体｜电子布短缺/交期/溢价</a>
+        <a href="https://www.eet-china.com/news/202601151362.html">EET-China｜低介电电子布</a>
+        <a href="https://stockmc.xueqiu.com/202604/603256_20260410_D71C.pdf">宏和科技 2025 年报（产品/客户）</a>
+        <a href="https://m.hexun.com/stock/2025-09-02/221219363.html">中材科技 国金证券/和讯</a>
+        <a href="https://file.finance.qq.com/finance/hs/pdf/2025/10/14/1224708392.PDF">菲利华 公司公告 PDF</a>
+      </div>
+      <div class="src-grp">
+        <h4>L2a HVLP 铜箔</h4>
+        <a href="https://paper.cnstock.com/html/2026-04/28/content_2208099.htm">中一科技 2025 年报摘要（已批量出货）</a>
+        <a href="https://finance.sina.com.cn/stock/bxjj/2025-07-31/doc-infikeru9055033.shtml">诺德股份 HVLP 过认证（点名胜宏）</a>
+        <a href="https://api3.cls.cn/iav/eoe/article/2101243">嘉元科技 财联社（HVLP 尚无订单）</a>
+        <a href="https://finance.sina.com.cn/stock/wbstock/2026-01-14/doc-inhhhnwv7136078.shtml">德福科技 收购终止公告</a>
+        <h4 style="margin-top:10px">L2b 高速树脂</h4>
+        <a href="https://finance.sina.com.cn/stock/relnews/dongmiqa/2026-04-09/doc-inhtwxnx5830217.shtml">圣泉集团 互动易（碳氢树脂供货）</a>
+        <a href="https://www.stcn.com/article/detail/3337250.html">东材科技 异动公告（供英伟达/华为体系）</a>
+      </div>
+      <div class="src-grp">
+        <h4>L3 高速 CCL</h4>
+        <a href="https://stockmc.xueqiu.com/202604/600183_20260429_PM62.pdf">生益科技 2026 一季报（81.41/11.58 亿）</a>
+        <a href="https://ir.p5w.net/c/600183/questionlist.shtml">生益 IR 互动平台（查无 M9 回复）</a>
+        <a href="https://stockmc.xueqiu.com/202602/688519_20260226_EGQE.pdf">南亚新材 业绩快报</a>
+        <a href="https://paper.cnstock.com/html/2026-03/26/content_2192192.htm">南亚 年报摘要（M2-M10）</a>
+        <a href="https://static.cninfo.com.cn/finalpage/2026-03-24/1225026442.PDF">华正新材 年报摘要（巨潮）</a>
+        <a href="https://file.finance.qq.com/finance/hs/pdf/2026/01/22/1224943467.PDF">金安国纪 业绩预告（深交所）</a>
+      </div>
+      <div class="src-grp">
+        <h4>L4 球硅 / L5 PCB</h4>
+        <a href="https://static.sse.com.cn/stock/disclosure/announcement/c/202510/688300_20251015_M1HA.pdf">联瑞新材 可转债问询函回复（上交所）</a>
+        <a href="https://news.cnpowder.com.cn/77872.html">华飞电子归属（粉体网）</a>
+        <a href="https://news.qq.com/rain/a/20250423A0185S00">胜宏科技 Q1 简析（转季报）</a>
+        <a href="https://finance.sina.com.cn/jjxw/2026-03-12/doc-inhqtyyi4619610.shtml">胜宏 200 亿投资公告</a>
+        <a href="https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?stockid=002463&id=11231612">沪电股份 业绩预告</a>
+        <a href="https://www.cls.cn/detail/2365304">深南电路 FC-BGA 22 层投关（财联社）</a>
+        <a href="https://www.nxny.com/report/view_5913088.html">深南 申万研报（载板测算）</a>
+      </div>
+    </div>
+    <p class="note">完整 ~40 条来源、逐公司证据强度与判定见配套 MD：<code>docs/research/p1_ccl_glassfabric_deepdive_20260616.md</code></p>
+  </section>
+
+  <div class="foot">
+    serenity-skill 供应链卡点工作流 · 4 路并行核查回一手 · serenity_scorecard.py 可复现打分<br>
+    凡标「未核实/部分核实/机构估算」者引用前须回公司公告原文 · 全文未杜撰任何价格/市值/订单/客户/产能/份额/毛利/估值数字<br>
+    生成 2026-06-16 · 本地文档，未外发 · Finance_Agent / docs/research/
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,73 @@
+{
+  "ticker": "002463",
+  "company": "沪电股份",
+  "market": "A-share",
+  "raw_factor_points": 68.4,
+  "penalty_points": 7.0,
+  "final_score": 61.4,
+  "verdict": "Worth tracking",
+  "factor_details": {
+    "demand_inflection": {
+      "rating": 5.0,
+      "weight": 15,
+      "points": 15.0
+    },
+    "architecture_coupling": {
+      "rating": 4.0,
+      "weight": 10,
+      "points": 8.0
+    },
+    "chokepoint_severity": {
+      "rating": 2.5,
+      "weight": 15,
+      "points": 7.5
+    },
+    "supplier_concentration": {
+      "rating": 2.5,
+      "weight": 12,
+      "points": 6.0
+    },
+    "expansion_difficulty": {
+      "rating": 2.5,
+      "weight": 12,
+      "points": 6.0
+    },
+    "evidence_quality": {
+      "rating": 4.5,
+      "weight": 15,
+      "points": 13.5
+    },
+    "valuation_disconnect": {
+      "rating": 2.0,
+      "weight": 11,
+      "points": 4.4
+    },
+    "catalyst_timing": {
+      "rating": 4.0,
+      "weight": 10,
+      "points": 8.0
+    }
+  },
+  "penalty_details": {
+    "hype_risk": {
+      "rating": 1.5,
+      "points": 3.0
+    },
+    "cyclicality": {
+      "rating": 2.0,
+      "points": 4.0
+    }
+  },
+  "kill_switches": [
+    "估值已 明显偏贵,盈利真实",
+    "全层 +196%~+2057%、贴52周高,估值是普遍逆风",
+    "补入估值后排名不含基本面再核,仍非买入序列"
+  ],
+  "evidence": [
+    {
+      "claim": "估值快照 as-of 2026-06-16: 现价 140.64, 市值 2706.4亿, PE-TTM 54.5-62.9, PB 16-17, 2026E ~47-52x, 近1年 +360%; 判断:明显偏贵,盈利真实",
+      "source": "东财push2 + 腾讯gtimg (双源交叉,行情接口硬数据)",
+      "strength": "primary"
+    }
+  ]
+}

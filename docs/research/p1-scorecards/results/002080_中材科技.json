@@ -1,0 +1,78 @@
+{
+  "ticker": "002080",
+  "company": "中材科技",
+  "market": "A-share",
+  "raw_factor_points": 74.1,
+  "penalty_points": 6.0,
+  "final_score": 68.1,
+  "verdict": "Worth tracking",
+  "factor_details": {
+    "demand_inflection": {
+      "rating": 3.0,
+      "weight": 15,
+      "points": 9.0
+    },
+    "architecture_coupling": {
+      "rating": 4.5,
+      "weight": 10,
+      "points": 9.0
+    },
+    "chokepoint_severity": {
+      "rating": 4.5,
+      "weight": 15,
+      "points": 13.5
+    },
+    "supplier_concentration": {
+      "rating": 4.0,
+      "weight": 12,
+      "points": 9.6
+    },
+    "expansion_difficulty": {
+      "rating": 4.0,
+      "weight": 12,
+      "points": 9.6
+    },
+    "evidence_quality": {
+      "rating": 4.0,
+      "weight": 15,
+      "points": 12.0
+    },
+    "valuation_disconnect": {
+      "rating": 2.0,
+      "weight": 11,
+      "points": 4.4
+    },
+    "catalyst_timing": {
+      "rating": 3.5,
+      "weight": 10,
+      "points": 7.0
+    }
+  },
+  "penalty_details": {
+    "cyclicality": {
+      "rating": 2.0,
+      "points": 4.0
+    },
+    "hype_risk": {
+      "rating": 1.0,
+      "points": 2.0
+    }
+  },
+  "kill_switches": [
+    "电子布营收占总营收<2%,纯AI暴露很小",
+    "'英伟达大满贯'为研报标题口径需谨慎",
+    "主业风电周期拖累整体弹性"
+  ],
+  "evidence": [
+    {
+      "claim": "特纤布覆盖低介电一/二代+低膨胀+超低损耗全品类,已认证+批量;25年1-9月特纤布营收4.17亿/销量>1400万米",
+      "source": "国金证券研报+泰玻扩产公告",
+      "strength": "analysis"
+    },
+    {
+      "claim": "2025全年营收302亿/归母18.2亿——电子布占比<2%,AI弹性被风电/隔膜/叶片稀释",
+      "source": "公司财报口径",
+      "strength": "primary"
+    }
+  ]
+}

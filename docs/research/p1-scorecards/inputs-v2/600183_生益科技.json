@@ -1,0 +1,42 @@
+{
+  "ticker": "600183",
+  "company": "生益科技",
+  "market": "A-share",
+  "layer": "高速CCL龙头(控制层,旗舰声明缺一手)",
+  "valuation_asof_20260616": {
+    "price": "179.40",
+    "mktcap": "4357.8亿",
+    "pe_ttm": "94-111",
+    "pb": "24-27",
+    "fwd_pe": "~78x",
+    "yr_change": "+628%",
+    "priced_in": "龙头溢价定价最满",
+    "valuation_disconnect_rating": 1.5
+  },
+  "factors": {
+    "demand_inflection": 5,
+    "architecture_coupling": 4,
+    "chokepoint_severity": 3.5,
+    "supplier_concentration": 3,
+    "expansion_difficulty": 3,
+    "evidence_quality": 3.5,
+    "valuation_disconnect": 1.5,
+    "catalyst_timing": 4
+  },
+  "penalties": {
+    "hype_risk": 2,
+    "cyclicality": 1.5
+  },
+  "evidence": [
+    {
+      "claim": "估值快照 as-of 2026-06-16: 现价 179.40, 市值 4357.8亿, PE-TTM 94-111, PB 24-27, 2026E ~78x, 近1年 +628%; 判断:龙头溢价定价最满",
+      "source": "东财push2 + 腾讯gtimg (双源交叉,行情接口硬数据)",
+      "strength": "primary"
+    }
+  ],
+  "what_could_weaken_view": [
+    "估值已 龙头溢价定价最满",
+    "全层 +196%~+2057%、贴52周高,估值是普遍逆风",
+    "补入估值后排名不含基本面再核,仍非买入序列"
+  ]
+}

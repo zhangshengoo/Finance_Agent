@@ -1,0 +1,73 @@
+{
+  "ticker": "688300",
+  "company": "联瑞新材",
+  "market": "A-share",
+  "raw_factor_points": 67.74,
+  "penalty_points": 4.0,
+  "final_score": 63.74,
+  "verdict": "Worth tracking",
+  "factor_details": {
+    "demand_inflection": {
+      "rating": 4.0,
+      "weight": 15,
+      "points": 12.0
+    },
+    "architecture_coupling": {
+      "rating": 4.0,
+      "weight": 10,
+      "points": 8.0
+    },
+    "chokepoint_severity": {
+      "rating": 3.0,
+      "weight": 15,
+      "points": 9.0
+    },
+    "supplier_concentration": {
+      "rating": 3.5,
+      "weight": 12,
+      "points": 8.4
+    },
+    "expansion_difficulty": {
+      "rating": 3.0,
+      "weight": 12,
+      "points": 7.2
+    },
+    "evidence_quality": {
+      "rating": 4.5,
+      "weight": 15,
+      "points": 13.5
+    },
+    "valuation_disconnect": {
+      "rating": 1.2,
+      "weight": 11,
+      "points": 2.64
+    },
+    "catalyst_timing": {
+      "rating": 3.5,
+      "weight": 10,
+      "points": 7.0
+    }
+  },
+  "penalty_details": {
+    "hype_risk": {
+      "rating": 1.0,
+      "points": 2.0
+    },
+    "cyclicality": {
+      "rating": 1.0,
+      "points": 2.0
+    }
+  },
+  "kill_switches": [
+    "估值已 明显偏贵,PB32极端",
+    "全层 +196%~+2057%、贴52周高,估值是普遍逆风",
+    "补入估值后排名不含基本面再核,仍非买入序列"
+  ],
+  "evidence": [
+    {
+      "claim": "估值快照 as-of 2026-06-16: 现价 220.00, 市值 531.2亿, PE-TTM 176.4, PB 32.1, 2026E 121-137x, 近1年 翻倍级; 判断:明显偏贵,PB32极端",
+      "source": "东财push2 + 腾讯gtimg (双源交叉,行情接口硬数据)",
+      "strength": "primary"
+    }
+  ]
+}

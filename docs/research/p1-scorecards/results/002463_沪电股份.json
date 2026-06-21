@@ -1,0 +1,78 @@
+{
+  "ticker": "002463",
+  "company": "沪电股份",
+  "market": "A-share",
+  "raw_factor_points": 68.4,
+  "penalty_points": 7.0,
+  "final_score": 61.4,
+  "verdict": "Worth tracking",
+  "factor_details": {
+    "demand_inflection": {
+      "rating": 5.0,
+      "weight": 15,
+      "points": 15.0
+    },
+    "architecture_coupling": {
+      "rating": 4.0,
+      "weight": 10,
+      "points": 8.0
+    },
+    "chokepoint_severity": {
+      "rating": 2.5,
+      "weight": 15,
+      "points": 7.5
+    },
+    "supplier_concentration": {
+      "rating": 2.5,
+      "weight": 12,
+      "points": 6.0
+    },
+    "expansion_difficulty": {
+      "rating": 2.5,
+      "weight": 12,
+      "points": 6.0
+    },
+    "evidence_quality": {
+      "rating": 4.5,
+      "weight": 15,
+      "points": 13.5
+    },
+    "valuation_disconnect": {
+      "rating": 2.0,
+      "weight": 11,
+      "points": 4.4
+    },
+    "catalyst_timing": {
+      "rating": 4.0,
+      "weight": 10,
+      "points": 8.0
+    }
+  },
+  "penalty_details": {
+    "hype_risk": {
+      "rating": 1.5,
+      "points": 3.0
+    },
+    "cyclicality": {
+      "rating": 2.0,
+      "points": 4.0
+    }
+  },
+  "kill_switches": [
+    "不控CCL,受上游材料涨价反向挤压毛利",
+    "新产能2026H2才出,兑现有时滞",
+    "客户高度集中于数通大客户"
+  ],
+  "evidence": [
+    {
+      "claim": "业绩预告2025H1归母16.5-17.5亿(+44.63%~53.4%);全年快报38.22亿(+47.74%);43亿高端PCB扩产2026H2试产(投关)",
+      "source": "业绩预告+快报+投关公告",
+      "strength": "primary"
+    },
+    {
+      "claim": "市值约2000亿+(动态),2025高速算力/AI相关营收占比约59%(公司/券商口径);客户名单(英伟达/AMD/微软)媒体口径",
+      "source": "公司/券商口径+媒体",
+      "strength": "analysis"
+    }
+  ]
+}

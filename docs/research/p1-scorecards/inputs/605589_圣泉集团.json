@@ -1,0 +1,37 @@
+{
+  "ticker": "605589",
+  "company": "圣泉集团",
+  "market": "A-share",
+  "layer": "高速树脂(碳氢/PPO/BMI)",
+  "factors": {
+    "demand_inflection": 4,
+    "architecture_coupling": 4.5,
+    "chokepoint_severity": 4,
+    "supplier_concentration": 3.5,
+    "expansion_difficulty": 3.5,
+    "evidence_quality": 4,
+    "valuation_disconnect": 2,
+    "catalyst_timing": 3.5
+  },
+  "penalties": {
+    "hype_risk": 1.5,
+    "cyclicality": 1.5
+  },
+  "evidence": [
+    {
+      "claim": "互动易官方:碳氢树脂'规模化生产+稳定供货';证券部:电子级PPO满产满销、M10认证中;具备M4-M9全系列",
+      "source": "互动易2026-04-09 + 证券部口径",
+      "strength": "primary"
+    },
+    {
+      "claim": "规划1500吨碳氢/2000吨PPE/1000吨BMI产能(半年报);未点名任何CCL客户",
+      "source": "2025半年报",
+      "strength": "primary"
+    }
+  ],
+  "what_could_weaken_view": [
+    "客户、高速CCL端放量量级未点名",
+    "高端M9/M10仍在认证",
+    "有大化工主业,纯度被稀释"
+  ]
+}

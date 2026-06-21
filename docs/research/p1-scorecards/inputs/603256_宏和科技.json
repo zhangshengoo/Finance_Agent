@@ -1,0 +1,39 @@
+{
+  "ticker": "603256",
+  "company": "宏和科技",
+  "market": "A-share",
+  "layer": "电子布(高端Low-Dk,纯度最高)",
+  "factors": {
+    "demand_inflection": 4.5,
+    "architecture_coupling": 5,
+    "chokepoint_severity": 4.5,
+    "supplier_concentration": 4.5,
+    "expansion_difficulty": 4.5,
+    "evidence_quality": 3.5,
+    "valuation_disconnect": 2,
+    "catalyst_timing": 3.5
+  },
+  "penalties": {
+    "hype_risk": 2,
+    "liquidity": 1.5,
+    "alternative_design_risk": 1.5,
+    "cyclicality": 1
+  },
+  "evidence": [
+    {
+      "claim": "年报确认产最薄8μm电子布/4μm纱,产低介电+低膨胀特种布,客户含台光/斗山/台燿/生益/松下",
+      "source": "2025年报 603256_20260410 (巨潮/雪球PDF)",
+      "strength": "primary"
+    },
+    {
+      "claim": "'通过英伟达认证/直供英伟达'仅财富号/eet-china媒体口径,非年报直述;Q布仍攻坚",
+      "source": "caifuhao.eastmoney.com 财富号",
+      "strength": "social"
+    }
+  ],
+  "what_could_weaken_view": [
+    "NVIDIA直供为间接(经CCL厂)且未一手证实",
+    "最顶端Q布/超低损耗仍缺位",
+    "低介电布占总营收比重未量化,AI弹性盘子大小存疑"
+  ]
+}

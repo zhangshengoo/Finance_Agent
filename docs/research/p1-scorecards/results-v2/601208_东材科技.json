@@ -1,0 +1,73 @@
+{
+  "ticker": "601208",
+  "company": "东材科技",
+  "market": "A-share",
+  "raw_factor_points": 72.1,
+  "penalty_points": 6.0,
+  "final_score": 66.1,
+  "verdict": "Worth tracking",
+  "factor_details": {
+    "demand_inflection": {
+      "rating": 4.0,
+      "weight": 15,
+      "points": 12.0
+    },
+    "architecture_coupling": {
+      "rating": 4.5,
+      "weight": 10,
+      "points": 9.0
+    },
+    "chokepoint_severity": {
+      "rating": 4.0,
+      "weight": 15,
+      "points": 12.0
+    },
+    "supplier_concentration": {
+      "rating": 3.5,
+      "weight": 12,
+      "points": 8.4
+    },
+    "expansion_difficulty": {
+      "rating": 3.5,
+      "weight": 12,
+      "points": 8.4
+    },
+    "evidence_quality": {
+      "rating": 4.0,
+      "weight": 15,
+      "points": 12.0
+    },
+    "valuation_disconnect": {
+      "rating": 1.5,
+      "weight": 11,
+      "points": 3.3
+    },
+    "catalyst_timing": {
+      "rating": 3.5,
+      "weight": 10,
+      "points": 7.0
+    }
+  },
+  "penalty_details": {
+    "hype_risk": {
+      "rating": 1.5,
+      "points": 3.0
+    },
+    "cyclicality": {
+      "rating": 1.5,
+      "points": 3.0
+    }
+  },
+  "kill_switches": [
+    "估值已 明显偏贵",
+    "全层 +196%~+2057%、贴52周高,估值是普遍逆风",
+    "补入估值后排名不含基本面再核,仍非买入序列"
+  ],
+  "evidence": [
+    {
+      "claim": "估值快照 as-of 2026-06-16: 现价 71.74, 市值 724.7亿, PE-TTM 190.5(动97/静254), PB 11.9, 2026E 99-133x, 近1年 涨停/强势; 判断:明显偏贵",
+      "source": "东财push2 + 腾讯gtimg (双源交叉,行情接口硬数据)",
+      "strength": "primary"
+    }
+  ]
+}

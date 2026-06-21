@@ -1,0 +1,82 @@
+{
+  "ticker": "301150",
+  "company": "中一科技",
+  "market": "A-share",
+  "raw_factor_points": 74.1,
+  "penalty_points": 9.0,
+  "final_score": 65.1,
+  "verdict": "Worth tracking",
+  "factor_details": {
+    "demand_inflection": {
+      "rating": 4.0,
+      "weight": 15,
+      "points": 12.0
+    },
+    "architecture_coupling": {
+      "rating": 4.5,
+      "weight": 10,
+      "points": 9.0
+    },
+    "chokepoint_severity": {
+      "rating": 4.0,
+      "weight": 15,
+      "points": 12.0
+    },
+    "supplier_concentration": {
+      "rating": 4.0,
+      "weight": 12,
+      "points": 9.6
+    },
+    "expansion_difficulty": {
+      "rating": 4.0,
+      "weight": 12,
+      "points": 9.6
+    },
+    "evidence_quality": {
+      "rating": 3.5,
+      "weight": 15,
+      "points": 10.5
+    },
+    "valuation_disconnect": {
+      "rating": 2.0,
+      "weight": 11,
+      "points": 4.4
+    },
+    "catalyst_timing": {
+      "rating": 3.5,
+      "weight": 10,
+      "points": 7.0
+    }
+  },
+  "penalty_details": {
+    "hype_risk": {
+      "rating": 1.5,
+      "points": 3.0
+    },
+    "liquidity": {
+      "rating": 1.5,
+      "points": 3.0
+    },
+    "cyclicality": {
+      "rating": 1.5,
+      "points": 3.0
+    }
+  },
+  "kill_switches": [
+    "客户与高端占比未披露",
+    "HVLP3/4级别与具体放量量级未在一手中证实",
+    "锂电箔仍为主业,铜箔周期性"
+  ],
+  "evidence": [
+    {
+      "claim": "2025年报摘要官方:'9μm HDI铜箔、HVLP、RTF铜箔等已批量出货';新建1万吨高端电路铜箔产能调试中",
+      "source": "2025年报摘要(上证报)",
+      "strength": "primary"
+    },
+    {
+      "claim": "年报摘要未点名客户/未提AI服务器/营收净利以■占位;'HVLP3 2026Q1出货/良率92%'来自自媒体未核实",
+      "source": "上证报年报摘要 + 自媒体",
+      "strength": "social"
+    }
+  ]
+}

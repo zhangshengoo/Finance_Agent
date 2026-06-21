@@ -1,0 +1,77 @@
+{
+  "ticker": "300476",
+  "company": "胜宏科技",
+  "market": "A-share",
+  "raw_factor_points": 65.66,
+  "penalty_points": 11.0,
+  "final_score": 54.66,
+  "verdict": "Early lead or low priority",
+  "factor_details": {
+    "demand_inflection": {
+      "rating": 5.0,
+      "weight": 15,
+      "points": 15.0
+    },
+    "architecture_coupling": {
+      "rating": 4.0,
+      "weight": 10,
+      "points": 8.0
+    },
+    "chokepoint_severity": {
+      "rating": 2.5,
+      "weight": 15,
+      "points": 7.5
+    },
+    "supplier_concentration": {
+      "rating": 2.5,
+      "weight": 12,
+      "points": 6.0
+    },
+    "expansion_difficulty": {
+      "rating": 2.5,
+      "weight": 12,
+      "points": 6.0
+    },
+    "evidence_quality": {
+      "rating": 3.0,
+      "weight": 15,
+      "points": 9.0
+    },
+    "valuation_disconnect": {
+      "rating": 2.8,
+      "weight": 11,
+      "points": 6.16
+    },
+    "catalyst_timing": {
+      "rating": 4.0,
+      "weight": 10,
+      "points": 8.0
+    }
+  },
+  "penalty_details": {
+    "hype_risk": {
+      "rating": 2.5,
+      "points": 5.0
+    },
+    "cyclicality": {
+      "rating": 2.0,
+      "points": 4.0
+    },
+    "accounting_quality": {
+      "rating": 1.0,
+      "points": 2.0
+    }
+  },
+  "kill_switches": [
+    "估值已 组内相对最未充分,仍不便宜",
+    "全层 +196%~+2057%、贴52周高,估值是普遍逆风",
+    "补入估值后排名不含基本面再核,仍非买入序列"
+  ],
+  "evidence": [
+    {
+      "claim": "估值快照 as-of 2026-06-16: 现价 355.48, 市值 3493.6亿, PE-TTM 67.8-74.7, PB 20-22, 2026E ~39x(PEG0.23), 近1年 +328%; 判断:组内相对最未充分,仍不便宜",
+      "source": "东财push2 + 腾讯gtimg (双源交叉,行情接口硬数据)",
+      "strength": "primary"
+    }
+  ]
+}

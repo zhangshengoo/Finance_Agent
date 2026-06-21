@@ -1,0 +1,78 @@
+{
+  "ticker": "601208",
+  "company": "东材科技",
+  "market": "A-share",
+  "raw_factor_points": 73.2,
+  "penalty_points": 6.0,
+  "final_score": 67.2,
+  "verdict": "Worth tracking",
+  "factor_details": {
+    "demand_inflection": {
+      "rating": 4.0,
+      "weight": 15,
+      "points": 12.0
+    },
+    "architecture_coupling": {
+      "rating": 4.5,
+      "weight": 10,
+      "points": 9.0
+    },
+    "chokepoint_severity": {
+      "rating": 4.0,
+      "weight": 15,
+      "points": 12.0
+    },
+    "supplier_concentration": {
+      "rating": 3.5,
+      "weight": 12,
+      "points": 8.4
+    },
+    "expansion_difficulty": {
+      "rating": 3.5,
+      "weight": 12,
+      "points": 8.4
+    },
+    "evidence_quality": {
+      "rating": 4.0,
+      "weight": 15,
+      "points": 12.0
+    },
+    "valuation_disconnect": {
+      "rating": 2.0,
+      "weight": 11,
+      "points": 4.4
+    },
+    "catalyst_timing": {
+      "rating": 3.5,
+      "weight": 10,
+      "points": 7.0
+    }
+  },
+  "penalty_details": {
+    "hype_risk": {
+      "rating": 1.5,
+      "points": 3.0
+    },
+    "cyclicality": {
+      "rating": 1.5,
+      "points": 3.0
+    }
+  },
+  "kill_switches": [
+    "终端'供英伟达等'系经CCL厂间接,非直供",
+    "PPO仍小批量、规模有限",
+    "树脂业务占比与AI弹性盘子待核"
+  ],
+  "evidence": [
+    {
+      "claim": "公司异动公告:高速电子树脂(BMI/活性酯/碳氢/PPO)经一线CCL厂供应到英伟达/华为/苹果/英特尔服务器体系;M9碳氢已批量稳定供货",
+      "source": "公司异动公告(证券时报转述)",
+      "strength": "media"
+    },
+    {
+      "claim": "PPO具年产100吨供应力、中试小批量供货;已形成3700吨BMI+1200吨活性酯产能",
+      "source": "东吴证券深度+公司口径",
+      "strength": "analysis"
+    }
+  ]
+}

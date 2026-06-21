@@ -1,0 +1,81 @@
+{
+  "ticker": "603256",
+  "company": "宏和科技",
+  "market": "A-share",
+  "raw_factor_points": 77.86,
+  "penalty_points": 12.0,
+  "final_score": 65.86,
+  "verdict": "Worth tracking",
+  "factor_details": {
+    "demand_inflection": {
+      "rating": 4.5,
+      "weight": 15,
+      "points": 13.5
+    },
+    "architecture_coupling": {
+      "rating": 5.0,
+      "weight": 10,
+      "points": 10.0
+    },
+    "chokepoint_severity": {
+      "rating": 4.5,
+      "weight": 15,
+      "points": 13.5
+    },
+    "supplier_concentration": {
+      "rating": 4.5,
+      "weight": 12,
+      "points": 10.8
+    },
+    "expansion_difficulty": {
+      "rating": 4.5,
+      "weight": 12,
+      "points": 10.8
+    },
+    "evidence_quality": {
+      "rating": 3.5,
+      "weight": 15,
+      "points": 10.5
+    },
+    "valuation_disconnect": {
+      "rating": 0.8,
+      "weight": 11,
+      "points": 1.76
+    },
+    "catalyst_timing": {
+      "rating": 3.5,
+      "weight": 10,
+      "points": 7.0
+    }
+  },
+  "penalty_details": {
+    "hype_risk": {
+      "rating": 2.0,
+      "points": 4.0
+    },
+    "liquidity": {
+      "rating": 1.5,
+      "points": 3.0
+    },
+    "alternative_design_risk": {
+      "rating": 1.5,
+      "points": 3.0
+    },
+    "cyclicality": {
+      "rating": 1.0,
+      "points": 2.0
+    }
+  },
+  "kill_switches": [
+    "估值已 极度priced in;PB84极端",
+    "全层 +196%~+2057%、贴52周高,估值是普遍逆风",
+    "补入估值后排名不含基本面再核,仍非买入序列"
+  ],
+  "evidence": [
+    {
+      "claim": "估值快照 as-of 2026-06-16: 现价 251.55, 市值 2275.5亿, PE-TTM 405.7, PB 84.0, 2026E N/A(预期不可靠), 近1年 +2057%; 判断:极度priced in;PB84极端",
+      "source": "东财push2 + 腾讯gtimg (双源交叉,行情接口硬数据)",
+      "strength": "primary"
+    }
+  ]
+}

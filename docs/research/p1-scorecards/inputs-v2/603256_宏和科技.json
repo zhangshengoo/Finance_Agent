@@ -1,0 +1,44 @@
+{
+  "ticker": "603256",
+  "company": "宏和科技",
+  "market": "A-share",
+  "layer": "电子布(高端Low-Dk,纯度最高)",
+  "valuation_asof_20260616": {
+    "price": "251.55",
+    "mktcap": "2275.5亿",
+    "pe_ttm": "405.7",
+    "pb": "84.0",
+    "fwd_pe": "N/A(预期不可靠)",
+    "yr_change": "+2057%",
+    "priced_in": "极度priced in;PB84极端",
+    "valuation_disconnect_rating": 0.8
+  },
+  "factors": {
+    "demand_inflection": 4.5,
+    "architecture_coupling": 5,
+    "chokepoint_severity": 4.5,
+    "supplier_concentration": 4.5,
+    "expansion_difficulty": 4.5,
+    "evidence_quality": 3.5,
+    "valuation_disconnect": 0.8,
+    "catalyst_timing": 3.5
+  },
+  "penalties": {
+    "hype_risk": 2,
+    "liquidity": 1.5,
+    "alternative_design_risk": 1.5,
+    "cyclicality": 1
+  },
+  "evidence": [
+    {
+      "claim": "估值快照 as-of 2026-06-16: 现价 251.55, 市值 2275.5亿, PE-TTM 405.7, PB 84.0, 2026E N/A(预期不可靠), 近1年 +2057%; 判断:极度priced in;PB84极端",
+      "source": "东财push2 + 腾讯gtimg (双源交叉,行情接口硬数据)",
+      "strength": "primary"
+    }
+  ],
+  "what_could_weaken_view": [
+    "估值已 极度priced in;PB84极端",
+    "全层 +196%~+2057%、贴52周高,估值是普遍逆风",
+    "补入估值后排名不含基本面再核,仍非买入序列"
+  ]
+}

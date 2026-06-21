@@ -1,0 +1,43 @@
+{
+  "ticker": "300476",
+  "company": "胜宏科技",
+  "market": "A-share",
+  "layer": "AI/数通PCB弹性最大(份额声明存疑)",
+  "valuation_asof_20260616": {
+    "price": "355.48",
+    "mktcap": "3493.6亿",
+    "pe_ttm": "67.8-74.7",
+    "pb": "20-22",
+    "fwd_pe": "~39x(PEG0.23)",
+    "yr_change": "+328%",
+    "priced_in": "组内相对最未充分,仍不便宜",
+    "valuation_disconnect_rating": 2.8
+  },
+  "factors": {
+    "demand_inflection": 5,
+    "architecture_coupling": 4,
+    "chokepoint_severity": 2.5,
+    "supplier_concentration": 2.5,
+    "expansion_difficulty": 2.5,
+    "evidence_quality": 3,
+    "valuation_disconnect": 2.8,
+    "catalyst_timing": 4
+  },
+  "penalties": {
+    "hype_risk": 2.5,
+    "cyclicality": 2,
+    "accounting_quality": 1
+  },
+  "evidence": [
+    {
+      "claim": "估值快照 as-of 2026-06-16: 现价 355.48, 市值 3493.6亿, PE-TTM 67.8-74.7, PB 20-22, 2026E ~39x(PEG0.23), 近1年 +328%; 判断:组内相对最未充分,仍不便宜",
+      "source": "东财push2 + 腾讯gtimg (双源交叉,行情接口硬数据)",
+      "strength": "primary"
+    }
+  ],
+  "what_could_weaken_view": [
+    "估值已 组内相对最未充分,仍不便宜",
+    "全层 +196%~+2057%、贴52周高,估值是普遍逆风",
+    "补入估值后排名不含基本面再核,仍非买入序列"
+  ]
+}

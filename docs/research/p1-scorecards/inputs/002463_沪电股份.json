@@ -1,0 +1,37 @@
+{
+  "ticker": "002463",
+  "company": "沪电股份",
+  "market": "A-share",
+  "layer": "高速AI-PCB成品(受益层,财务最实)",
+  "factors": {
+    "demand_inflection": 5,
+    "architecture_coupling": 4,
+    "chokepoint_severity": 2.5,
+    "supplier_concentration": 2.5,
+    "expansion_difficulty": 2.5,
+    "evidence_quality": 4.5,
+    "valuation_disconnect": 2,
+    "catalyst_timing": 4
+  },
+  "penalties": {
+    "hype_risk": 1.5,
+    "cyclicality": 2
+  },
+  "evidence": [
+    {
+      "claim": "业绩预告2025H1归母16.5-17.5亿(+44.63%~53.4%);全年快报38.22亿(+47.74%);43亿高端PCB扩产2026H2试产(投关)",
+      "source": "业绩预告+快报+投关公告",
+      "strength": "primary"
+    },
+    {
+      "claim": "市值约2000亿+(动态),2025高速算力/AI相关营收占比约59%(公司/券商口径);客户名单(英伟达/AMD/微软)媒体口径",
+      "source": "公司/券商口径+媒体",
+      "strength": "analysis"
+    }
+  ],
+  "what_could_weaken_view": [
+    "不控CCL,受上游材料涨价反向挤压毛利",
+    "新产能2026H2才出,兑现有时滞",
+    "客户高度集中于数通大客户"
+  ]
+}

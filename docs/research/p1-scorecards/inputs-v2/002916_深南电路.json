@@ -1,0 +1,43 @@
+{
+  "ticker": "002916",
+  "company": "深南电路",
+  "market": "A-share",
+  "layer": "FC-BGA载板+高速PCB(受ABF上游制)",
+  "valuation_asof_20260616": {
+    "price": "403.88",
+    "mktcap": "2751.1亿",
+    "pe_ttm": "75.7-80.9",
+    "pb": "15-17",
+    "fwd_pe": "旧PE已被击穿",
+    "yr_change": "+382%",
+    "priced_in": "偏贵,FC-BGA叙事多一层",
+    "valuation_disconnect_rating": 1.8
+  },
+  "factors": {
+    "demand_inflection": 4,
+    "architecture_coupling": 4,
+    "chokepoint_severity": 3,
+    "supplier_concentration": 3,
+    "expansion_difficulty": 3.5,
+    "evidence_quality": 3.5,
+    "valuation_disconnect": 1.8,
+    "catalyst_timing": 3
+  },
+  "penalties": {
+    "hype_risk": 1.5,
+    "cyclicality": 1.5,
+    "alternative_design_risk": 1
+  },
+  "evidence": [
+    {
+      "claim": "估值快照 as-of 2026-06-16: 现价 403.88, 市值 2751.1亿, PE-TTM 75.7-80.9, PB 15-17, 2026E 旧PE已被击穿, 近1年 +382%; 判断:偏贵,FC-BGA叙事多一层",
+      "source": "东财push2 + 腾讯gtimg (双源交叉,行情接口硬数据)",
+      "strength": "primary"
+    }
+  ],
+  "what_could_weaken_view": [
+    "估值已 偏贵,FC-BGA叙事多一层",
+    "全层 +196%~+2057%、贴52周高,估值是普遍逆风",
+    "补入估值后排名不含基本面再核,仍非买入序列"
+  ]
+}

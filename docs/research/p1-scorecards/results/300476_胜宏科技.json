@@ -1,0 +1,82 @@
+{
+  "ticker": "300476",
+  "company": "胜宏科技",
+  "market": "A-share",
+  "raw_factor_points": 63.9,
+  "penalty_points": 11.0,
+  "final_score": 52.9,
+  "verdict": "Early lead or low priority",
+  "factor_details": {
+    "demand_inflection": {
+      "rating": 5.0,
+      "weight": 15,
+      "points": 15.0
+    },
+    "architecture_coupling": {
+      "rating": 4.0,
+      "weight": 10,
+      "points": 8.0
+    },
+    "chokepoint_severity": {
+      "rating": 2.5,
+      "weight": 15,
+      "points": 7.5
+    },
+    "supplier_concentration": {
+      "rating": 2.5,
+      "weight": 12,
+      "points": 6.0
+    },
+    "expansion_difficulty": {
+      "rating": 2.5,
+      "weight": 12,
+      "points": 6.0
+    },
+    "evidence_quality": {
+      "rating": 3.0,
+      "weight": 15,
+      "points": 9.0
+    },
+    "valuation_disconnect": {
+      "rating": 2.0,
+      "weight": 11,
+      "points": 4.4
+    },
+    "catalyst_timing": {
+      "rating": 4.0,
+      "weight": 10,
+      "points": 8.0
+    }
+  },
+  "penalty_details": {
+    "hype_risk": {
+      "rating": 2.5,
+      "points": 5.0
+    },
+    "cyclicality": {
+      "rating": 2.0,
+      "points": 4.0
+    },
+    "accounting_quality": {
+      "rating": 1.0,
+      "points": 2.0
+    }
+  },
+  "kill_switches": [
+    "核心份额声明无一手,券商估算口径分歧大(30%~55%)",
+    "单一客户英伟达约占营收近三成,集中度高",
+    "受益层不控稀缺层,毛利受上游挤压"
+  ],
+  "evidence": [
+    {
+      "claim": "2025Q1营收43.12亿(+80.31%)/归母9.21亿(+339.22%);全年营收192.92亿/净利43.12亿(+273.52%);港股招股书AI+HPC占比2024前三季5.5%→2025前三季41.5%",
+      "source": "季报+港股招股书",
+      "strength": "primary"
+    },
+    {
+      "claim": "'AI服务器PCB全球份额>30%'仅平安证券估算无公司一手;'55%'来自AI生成文不可采信;'AI占比>40%'口径实为前三季非Q1单季",
+      "source": "平安证券估算 / AI生成文(已排除)",
+      "strength": "analysis"
+    }
+  ]
+}

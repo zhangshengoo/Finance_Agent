@@ -1,0 +1,77 @@
+{
+  "ticker": "300395",
+  "company": "菲利华",
+  "market": "A-share",
+  "raw_factor_points": 68.0,
+  "penalty_points": 11.0,
+  "final_score": 57.0,
+  "verdict": "Worth tracking",
+  "factor_details": {
+    "demand_inflection": {
+      "rating": 3.5,
+      "weight": 15,
+      "points": 10.5
+    },
+    "architecture_coupling": {
+      "rating": 4.0,
+      "weight": 10,
+      "points": 8.0
+    },
+    "chokepoint_severity": {
+      "rating": 4.0,
+      "weight": 15,
+      "points": 12.0
+    },
+    "supplier_concentration": {
+      "rating": 4.0,
+      "weight": 12,
+      "points": 9.6
+    },
+    "expansion_difficulty": {
+      "rating": 4.0,
+      "weight": 12,
+      "points": 9.6
+    },
+    "evidence_quality": {
+      "rating": 3.0,
+      "weight": 15,
+      "points": 9.0
+    },
+    "valuation_disconnect": {
+      "rating": 1.5,
+      "weight": 11,
+      "points": 3.3
+    },
+    "catalyst_timing": {
+      "rating": 3.0,
+      "weight": 10,
+      "points": 6.0
+    }
+  },
+  "penalty_details": {
+    "hype_risk": {
+      "rating": 2.5,
+      "points": 5.0
+    },
+    "alternative_design_risk": {
+      "rating": 2.0,
+      "points": 4.0
+    },
+    "cyclicality": {
+      "rating": 1.0,
+      "points": 2.0
+    }
+  },
+  "kill_switches": [
+    "估值已 偏贵,押注Q布放量",
+    "全层 +196%~+2057%、贴52周高,估值是普遍逆风",
+    "补入估值后排名不含基本面再核,仍非买入序列"
+  ],
+  "evidence": [
+    {
+      "claim": "估值快照 as-of 2026-06-16: 现价 131.45, 市值 691.1亿, PE-TTM 120.2, PB 14.4, 2026E ~52-81x, 近1年 +196%; 判断:偏贵,押注Q布放量",
+      "source": "东财push2 + 腾讯gtimg (双源交叉,行情接口硬数据)",
+      "strength": "primary"
+    }
+  ]
+}

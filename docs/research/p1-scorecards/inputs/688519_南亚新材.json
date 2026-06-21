@@ -1,0 +1,38 @@
+{
+  "ticker": "688519",
+  "company": "南亚新材",
+  "market": "A-share",
+  "layer": "高速CCL内资第一梯队(M2-M10)",
+  "factors": {
+    "demand_inflection": 4.5,
+    "architecture_coupling": 4.5,
+    "chokepoint_severity": 3.5,
+    "supplier_concentration": 3,
+    "expansion_difficulty": 3,
+    "evidence_quality": 4.5,
+    "valuation_disconnect": 2,
+    "catalyst_timing": 4
+  },
+  "penalties": {
+    "hype_risk": 1,
+    "liquidity": 1.5,
+    "cyclicality": 1.5
+  },
+  "evidence": [
+    {
+      "claim": "业绩快报:2025营收52.28亿(+55.52%)/归母2.41亿(+378.65%);年报摘要'M2~M10全系列','M6~M8已批量应用国内头部算力客户','M9处NPI导入','M10率先推、海外认证中'",
+      "source": "业绩快报+年报摘要(上证报)",
+      "strength": "primary"
+    },
+    {
+      "claim": "客户名'华为'为媒体口径年报摘要未点名;高速料占比/单价未披露具体数",
+      "source": "年报摘要",
+      "strength": "media"
+    }
+  ],
+  "what_could_weaken_view": [
+    "高速料营收占比/单价未一手披露",
+    "M9 NPI/M10认证能否如期转量产未证",
+    "第二梯队估值弹性需配合放量兑现"
+  ]
+}

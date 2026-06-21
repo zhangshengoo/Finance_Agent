@@ -1,0 +1,37 @@
+{
+  "ticker": "600183",
+  "company": "生益科技",
+  "market": "A-share",
+  "layer": "高速CCL龙头(控制层,但旗舰声明缺一手)",
+  "factors": {
+    "demand_inflection": 5,
+    "architecture_coupling": 4,
+    "chokepoint_severity": 3.5,
+    "supplier_concentration": 3,
+    "expansion_difficulty": 3,
+    "evidence_quality": 3.5,
+    "valuation_disconnect": 2,
+    "catalyst_timing": 4
+  },
+  "penalties": {
+    "hype_risk": 2,
+    "cyclicality": 1.5
+  },
+  "evidence": [
+    {
+      "claim": "2026Q1营收81.41亿(+45.09%)/归母11.58亿(+105.47%)/扣非10.83亿(+93.51%)——两路核查互证,与季报完全一致",
+      "source": "2026一季报(巨潮/雪球PDF)",
+      "strength": "primary"
+    },
+    {
+      "claim": "'M9 2025-12过英伟达认证、26Q1批量交付78层背板、单价400元/㎡毛利45%+'——一季报与IR互动平台均无表述,纯产业链传闻",
+      "source": "自媒体(eastmoney财富号等)",
+      "strength": "social"
+    }
+  ],
+  "what_could_weaken_view": [
+    "旗舰M9/英伟达/78层/单价/毛利全部无一手,认证溢价叙事可能被高估",
+    "CCL是控制层但国内多家可做,可多源替代",
+    "上游电子布/树脂断供倒逼限产风险"
+  ]
+}

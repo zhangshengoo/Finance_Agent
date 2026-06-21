@@ -1,0 +1,38 @@
+{
+  "ticker": "301150",
+  "company": "中一科技",
+  "market": "A-share",
+  "layer": "HVLP/RTF高频高速铜箔(进度领先)",
+  "factors": {
+    "demand_inflection": 4,
+    "architecture_coupling": 4.5,
+    "chokepoint_severity": 4,
+    "supplier_concentration": 4,
+    "expansion_difficulty": 4,
+    "evidence_quality": 3.5,
+    "valuation_disconnect": 2,
+    "catalyst_timing": 3.5
+  },
+  "penalties": {
+    "hype_risk": 1.5,
+    "liquidity": 1.5,
+    "cyclicality": 1.5
+  },
+  "evidence": [
+    {
+      "claim": "2025年报摘要官方:'9μm HDI铜箔、HVLP、RTF铜箔等已批量出货';新建1万吨高端电路铜箔产能调试中",
+      "source": "2025年报摘要(上证报)",
+      "strength": "primary"
+    },
+    {
+      "claim": "年报摘要未点名客户/未提AI服务器/营收净利以■占位;'HVLP3 2026Q1出货/良率92%'来自自媒体未核实",
+      "source": "上证报年报摘要 + 自媒体",
+      "strength": "social"
+    }
+  ],
+  "what_could_weaken_view": [
+    "客户与高端占比未披露",
+    "HVLP3/4级别与具体放量量级未在一手中证实",
+    "锂电箔仍为主业,铜箔周期性"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "ticker": "688300",
+  "company": "联瑞新材",
+  "market": "A-share",
+  "layer": "球形硅微粉/Low-α填料(国产替代最成熟)",
+  "factors": {
+    "demand_inflection": 4,
+    "architecture_coupling": 4,
+    "chokepoint_severity": 3,
+    "supplier_concentration": 3.5,
+    "expansion_difficulty": 3,
+    "evidence_quality": 4.5,
+    "valuation_disconnect": 2,
+    "catalyst_timing": 3.5
+  },
+  "penalties": {
+    "hype_risk": 1,
+    "cyclicality": 1
+  },
+  "evidence": [
+    {
+      "claim": "球硅已进入生益科技、南亚新材等头部CCL厂供应链;Low-α球硅/球铝(<1ppb)已认证量产;2024营收9.60亿(+34.94%)/归母2.51亿(+44.47%)",
+      "source": "上交所问询函回复+经营分析",
+      "strength": "primary"
+    },
+    {
+      "claim": "高端球硅全球日企(电化/龙森/新日铁)约70%,联瑞为主要国产替代者",
+      "source": "研报口径",
+      "strength": "analysis"
+    }
+  ],
+  "what_could_weaken_view": [
+    "卡点强度三类材料里最低(接近已突破而非待突破)",
+    "客户点名多来自研报口径,年报披露相对克制",
+    "高端球硅当期市占具体数字未一手"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "ticker": "300395",
+  "company": "菲利华",
+  "market": "A-share",
+  "layer": "石英纤维布(Q布,第三代Low-Dk另一路线)",
+  "factors": {
+    "demand_inflection": 3.5,
+    "architecture_coupling": 4,
+    "chokepoint_severity": 4,
+    "supplier_concentration": 4,
+    "expansion_difficulty": 4,
+    "evidence_quality": 3,
+    "valuation_disconnect": 2,
+    "catalyst_timing": 3
+  },
+  "penalties": {
+    "hype_risk": 2.5,
+    "alternative_design_risk": 2,
+    "cyclicality": 1
+  },
+  "evidence": [
+    {
+      "claim": "主营半导体石英+航天石英纤维;Q布(石英纤维布)Dk≤2.3/Df≤0.0007,媒体称国内唯一规模化;25Q1-3营收13.82亿(+5.17%)/归母3.34亿(+42%)",
+      "source": "公司公告(半导体板块驱动)",
+      "strength": "media"
+    },
+    {
+      "claim": "子公司中益新材'Q布导入英伟达GB300 M9 PCB'为雪球/财富号口径,公司公告未一手证实",
+      "source": "xueqiu/caifuhao 自媒体",
+      "strength": "social"
+    }
+  ],
+  "what_could_weaken_view": [
+    "Q布是新增量,本体收入仍以半导体石英为主",
+    "GB300直供为未核实自媒体说法",
+    "Q布(石英)vs玻纤路线之争,技术路线替代风险"
+  ]
+}

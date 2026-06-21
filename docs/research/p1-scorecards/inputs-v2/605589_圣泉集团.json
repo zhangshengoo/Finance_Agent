@@ -1,0 +1,42 @@
+{
+  "ticker": "605589",
+  "company": "圣泉集团",
+  "market": "A-share",
+  "layer": "高速树脂(碳氢/PPO/BMI)",
+  "valuation_asof_20260616": {
+    "price": "67.06",
+    "mktcap": "567.6亿",
+    "pe_ttm": "58.1",
+    "pb": "5.48",
+    "fwd_pe": "~41x",
+    "yr_change": "近月+59%",
+    "priced_in": "相对最克制/估值洼地",
+    "valuation_disconnect_rating": 2.8
+  },
+  "factors": {
+    "demand_inflection": 4,
+    "architecture_coupling": 4.5,
+    "chokepoint_severity": 4,
+    "supplier_concentration": 3.5,
+    "expansion_difficulty": 3.5,
+    "evidence_quality": 4,
+    "valuation_disconnect": 2.8,
+    "catalyst_timing": 3.5
+  },
+  "penalties": {
+    "hype_risk": 1.5,
+    "cyclicality": 1.5
+  },
+  "evidence": [
+    {
+      "claim": "估值快照 as-of 2026-06-16: 现价 67.06, 市值 567.6亿, PE-TTM 58.1, PB 5.48, 2026E ~41x, 近1年 近月+59%; 判断:相对最克制/估值洼地",
+      "source": "东财push2 + 腾讯gtimg (双源交叉,行情接口硬数据)",
+      "strength": "primary"
+    }
+  ],
+  "what_could_weaken_view": [
+    "估值已 相对最克制/估值洼地",
+    "全层 +196%~+2057%、贴52周高,估值是普遍逆风",
+    "补入估值后排名不含基本面再核,仍非买入序列"
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "ticker": "600183",
+  "company": "生益科技",
+  "market": "A-share",
+  "raw_factor_points": 69.7,
+  "penalty_points": 7.0,
+  "final_score": 62.7,
+  "verdict": "Worth tracking",
+  "factor_details": {
+    "demand_inflection": {
+      "rating": 5.0,
+      "weight": 15,
+      "points": 15.0
+    },
+    "architecture_coupling": {
+      "rating": 4.0,
+      "weight": 10,
+      "points": 8.0
+    },
+    "chokepoint_severity": {
+      "rating": 3.5,
+      "weight": 15,
+      "points": 10.5
+    },
+    "supplier_concentration": {
+      "rating": 3.0,
+      "weight": 12,
+      "points": 7.2
+    },
+    "expansion_difficulty": {
+      "rating": 3.0,
+      "weight": 12,
+      "points": 7.2
+    },
+    "evidence_quality": {
+      "rating": 3.5,
+      "weight": 15,
+      "points": 10.5
+    },
+    "valuation_disconnect": {
+      "rating": 1.5,
+      "weight": 11,
+      "points": 3.3
+    },
+    "catalyst_timing": {
+      "rating": 4.0,
+      "weight": 10,
+      "points": 8.0
+    }
+  },
+  "penalty_details": {
+    "hype_risk": {
+      "rating": 2.0,
+      "points": 4.0
+    },
+    "cyclicality": {
+      "rating": 1.5,
+      "points": 3.0
+    }
+  },
+  "kill_switches": [
+    "估值已 龙头溢价定价最满",
+    "全层 +196%~+2057%、贴52周高,估值是普遍逆风",
+    "补入估值后排名不含基本面再核,仍非买入序列"
+  ],
+  "evidence": [
+    {
+      "claim": "估值快照 as-of 2026-06-16: 现价 179.40, 市值 4357.8亿, PE-TTM 94-111, PB 24-27, 2026E ~78x, 近1年 +628%; 判断:龙头溢价定价最满",
+      "source": "东财push2 + 腾讯gtimg (双源交叉,行情接口硬数据)",
+      "strength": "primary"
+    }
+  ]
+}

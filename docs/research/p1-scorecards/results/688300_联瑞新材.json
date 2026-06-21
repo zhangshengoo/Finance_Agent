@@ -1,0 +1,78 @@
+{
+  "ticker": "688300",
+  "company": "联瑞新材",
+  "market": "A-share",
+  "raw_factor_points": 69.5,
+  "penalty_points": 4.0,
+  "final_score": 65.5,
+  "verdict": "Worth tracking",
+  "factor_details": {
+    "demand_inflection": {
+      "rating": 4.0,
+      "weight": 15,
+      "points": 12.0
+    },
+    "architecture_coupling": {
+      "rating": 4.0,
+      "weight": 10,
+      "points": 8.0
+    },
+    "chokepoint_severity": {
+      "rating": 3.0,
+      "weight": 15,
+      "points": 9.0
+    },
+    "supplier_concentration": {
+      "rating": 3.5,
+      "weight": 12,
+      "points": 8.4
+    },
+    "expansion_difficulty": {
+      "rating": 3.0,
+      "weight": 12,
+      "points": 7.2
+    },
+    "evidence_quality": {
+      "rating": 4.5,
+      "weight": 15,
+      "points": 13.5
+    },
+    "valuation_disconnect": {
+      "rating": 2.0,
+      "weight": 11,
+      "points": 4.4
+    },
+    "catalyst_timing": {
+      "rating": 3.5,
+      "weight": 10,
+      "points": 7.0
+    }
+  },
+  "penalty_details": {
+    "hype_risk": {
+      "rating": 1.0,
+      "points": 2.0
+    },
+    "cyclicality": {
+      "rating": 1.0,
+      "points": 2.0
+    }
+  },
+  "kill_switches": [
+    "卡点强度三类材料里最低(接近已突破而非待突破)",
+    "客户点名多来自研报口径,年报披露相对克制",
+    "高端球硅当期市占具体数字未一手"
+  ],
+  "evidence": [
+    {
+      "claim": "球硅已进入生益科技、南亚新材等头部CCL厂供应链;Low-α球硅/球铝(<1ppb)已认证量产;2024营收9.60亿(+34.94%)/归母2.51亿(+44.47%)",
+      "source": "上交所问询函回复+经营分析",
+      "strength": "primary"
+    },
+    {
+      "claim": "高端球硅全球日企(电化/龙森/新日铁)约70%,联瑞为主要国产替代者",
+      "source": "研报口径",
+      "strength": "analysis"
+    }
+  ]
+}

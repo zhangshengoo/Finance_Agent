@@ -1,0 +1,42 @@
+{
+  "ticker": "002080",
+  "company": "中材科技",
+  "market": "A-share",
+  "layer": "电子布(全品类)+玻纤龙头",
+  "valuation_asof_20260616": {
+    "price": "74.92",
+    "mktcap": "1257.3亿",
+    "pe_ttm": "61.9",
+    "pb": "6.4",
+    "fwd_pe": "~42x",
+    "yr_change": "+386%",
+    "priced_in": "偏贵但盈利支撑最实",
+    "valuation_disconnect_rating": 2.5
+  },
+  "factors": {
+    "demand_inflection": 3.0,
+    "architecture_coupling": 4.5,
+    "chokepoint_severity": 4.5,
+    "supplier_concentration": 4,
+    "expansion_difficulty": 4,
+    "evidence_quality": 4,
+    "valuation_disconnect": 2.5,
+    "catalyst_timing": 3.5
+  },
+  "penalties": {
+    "cyclicality": 2,
+    "hype_risk": 1
+  },
+  "evidence": [
+    {
+      "claim": "估值快照 as-of 2026-06-16: 现价 74.92, 市值 1257.3亿, PE-TTM 61.9, PB 6.4, 2026E ~42x, 近1年 +386%; 判断:偏贵但盈利支撑最实",
+      "source": "东财push2 + 腾讯gtimg (双源交叉,行情接口硬数据)",
+      "strength": "primary"
+    }
+  ],
+  "what_could_weaken_view": [
+    "估值已 偏贵但盈利支撑最实",
+    "全层 +196%~+2057%、贴52周高,估值是普遍逆风",
+    "补入估值后排名不含基本面再核,仍非买入序列"
+  ]
+}
