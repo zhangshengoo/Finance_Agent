@@ -1,0 +1,114 @@
+{
+  "_comment": "Serenity 研究报告前端输出 schema（v1）。填写此模板后经 raw-intake 归档至 raw/research/serenity/<slug>-<as_of>.json，前端直接读取渲染。所有字段均有注释说明类型和语义。",
+
+  "type": "serenity-report",
+  "report_version": "1",
+  "slug": "<kebab-slug>",
+  "title": "<研究报告完整标题>",
+  "theme": "<主题名，如 AI 产业链卡点>",
+  "market": "cn",
+  "as_of": "<YYYY-MM-DD>",
+  "method": "Serenity 供应链卡点工作流",
+  "disclaimer": "仅研究支持与研究优先级排序，不构成买卖建议。凡标「未核实」者引用前须回一手披露交叉验证。",
+
+  "stats": {
+    "company_count": 0,
+    "top_bottleneck_layer": "<L1>",
+    "top_bottleneck_name": "<层级名称，如 高端电子布>",
+    "top_score_name": "<得分最高标的名>",
+    "top_score_ticker": "<ticker>",
+    "top_score": 0.0
+  },
+
+  "core_finding": "<核心判断段落，2–4 句>",
+
+  "chain_layers": [
+    {
+      "_comment": "整条产业链从上游到下游的层级列表，scarcity_pct 表示稀缺度压力（0-100）",
+      "id": "L1",
+      "name": "<层级名称>",
+      "note": "<一句话供应约束>",
+      "scarcity_pct": 95,
+      "scarcity_label": "<卡点最高 | 很高 | 高 | 中高 | 中 | 受益层>",
+      "color_key": "L1"
+    }
+  ],
+
+  "p_tiers": [
+    {
+      "_comment": "P 优先级专题列表（P1/P2/P3…），对应前端「研究专题」卡片",
+      "id": "P1",
+      "name": "<专题名>",
+      "desc": "<一句话描述>",
+      "badges": ["<badge1>", "<badge2>"],
+      "scarcity_pct": 95,
+      "status": "published",
+      "as_of": "<YYYY-MM-DD>"
+    },
+    {
+      "id": "P2",
+      "name": "<规划中专题>",
+      "desc": "<一句话描述>",
+      "badges": ["即将开始"],
+      "scarcity_pct": 0,
+      "status": "planned"
+    }
+  ],
+
+  "sub_layers": [
+    {
+      "_comment": "当前 P-tier 内部子层卡点排序（先排子层再排公司），scarcity_pct 同上",
+      "rank": "L1",
+      "name": "<子层名称>",
+      "note": "<一句话约束说明>",
+      "scarcity_pct": 95,
+      "scarcity_label": "<稀缺度标签>",
+      "color_key": "L1"
+    }
+  ],
+
+  "companies": [
+    {
+      "_comment": "标的列表，按 final_score 降序排列",
+      "name": "<公司名>",
+      "ticker": "<6 位代码>",
+      "market": "A",
+      "layer": "L1",
+      "layer_label": "L1 电子布",
+      "score": 0.0,
+      "verdict": "<Top priority | High priority | Worth tracking | Early lead / low priority>",
+      "chain_position": "<一句话产业链位置说明>",
+      "raw_factor_points": 0.0,
+      "penalty_points": 0.0,
+      "factor_details": {
+        "demand_inflection":      {"rating": 0.0, "weight": 15, "points": 0.0},
+        "architecture_coupling":  {"rating": 0.0, "weight": 10, "points": 0.0},
+        "chokepoint_severity":    {"rating": 0.0, "weight": 15, "points": 0.0},
+        "supplier_concentration": {"rating": 0.0, "weight": 12, "points": 0.0},
+        "expansion_difficulty":   {"rating": 0.0, "weight": 12, "points": 0.0},
+        "evidence_quality":       {"rating": 0.0, "weight": 15, "points": 0.0},
+        "valuation_disconnect":   {"rating": 0.0, "weight": 11, "points": 0.0},
+        "catalyst_timing":        {"rating": 0.0, "weight": 10, "points": 0.0}
+      },
+      "penalty_details": {
+        "hype_risk":   {"rating": 0.0, "points": 0.0},
+        "cyclicality": {"rating": 0.0, "points": 0.0}
+      },
+      "kill_switches": ["<kill switch 1>", "<kill switch 2>"],
+      "evidence": [
+        {
+          "status": "verified",
+          "claim": "<已核实的声明>",
+          "source": "<来源说明>",
+          "strength": "primary"
+        },
+        {
+          "status": "unverified",
+          "claim": "<未核实的声明>",
+          "source": "<来源说明>",
+          "strength": "weak"
+        }
+      ]
+    }
+  ]
+}
