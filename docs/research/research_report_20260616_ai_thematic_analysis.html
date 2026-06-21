@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI产业链主题分析工具全景报告</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 14px; line-height: 1.6; color: #1a1a1a; background: #f5f5f5; }
+  .page { max-width: 1100px; margin: 0 auto; background: #fff; }
+
+  /* Header */
+  .header { background: #003d5c; color: #fff; padding: 32px 48px 24px; }
+  .header-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #7fb3cc; margin-bottom: 10px; }
+  .header h1 { font-size: 28px; font-weight: 700; line-height: 1.2; margin-bottom: 16px; }
+  .header-meta { display: flex; gap: 32px; font-size: 12px; color: #a0c4d8; }
+  .header-meta span { display: flex; align-items: center; gap: 6px; }
+
+  /* Metrics Dashboard */
+  .dashboard { background: #1a4a62; padding: 20px 48px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .metric { border-left: 3px solid #4a9ec4; padding-left: 14px; }
+  .metric-value { font-size: 28px; font-weight: 700; color: #7fb3cc; font-variant-numeric: tabular-nums; }
+  .metric-label { font-size: 11px; color: #a0c4d8; margin-top: 2px; letter-spacing: 0.5px; }
+
+  /* Nav */
+  .nav { background: #003d5c; border-top: 1px solid #1a4a62; padding: 0 48px; display: flex; gap: 0; }
+  .nav a { color: #a0c4d8; text-decoration: none; font-size: 12px; padding: 10px 16px; border-bottom: 2px solid transparent; }
+  .nav a:hover { color: #fff; border-bottom-color: #4a9ec4; }
+
+  /* Executive Summary */
+  .exec-summary { background: #f8f9fa; border-left: 4px solid #003d5c; margin: 32px 48px; padding: 20px 24px; }
+  .exec-summary h2 { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: #003d5c; margin-bottom: 12px; }
+  .exec-summary p { font-size: 14px; color: #333; line-height: 1.7; margin-bottom: 8px; }
+
+  /* Content */
+  .content { padding: 0 48px 48px; }
+  .section { margin-bottom: 40px; }
+  .section-title { font-size: 18px; font-weight: 700; color: #003d5c; border-bottom: 2px solid #003d5c; padding-bottom: 8px; margin-bottom: 20px; }
+  .subsection { margin-bottom: 28px; }
+  .subsection-title { font-size: 14px; font-weight: 700; color: #1a4a62; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .badge { background: #003d5c; color: #fff; font-size: 10px; padding: 2px 8px; letter-spacing: 0.5px; }
+  .badge-green { background: #2e7d52; }
+  .badge-orange { background: #b05e00; }
+  p { margin-bottom: 10px; color: #333; line-height: 1.7; }
+
+  /* Cards Grid */
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+  .card { border: 1px solid #ddd; padding: 16px; background: #fafafa; }
+  .card-title { font-size: 13px; font-weight: 700; color: #003d5c; margin-bottom: 8px; }
+  .card-meta { font-size: 11px; color: #666; margin-bottom: 8px; }
+  .card p { font-size: 12px; margin-bottom: 6px; }
+  .card-link { font-size: 11px; color: #1a6896; word-break: break-all; }
+
+  /* Data Table */
+  table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 13px; }
+  th { background: #003d5c; color: #fff; text-align: left; padding: 10px 12px; font-weight: 600; font-size: 12px; }
+  td { padding: 9px 12px; border-bottom: 1px solid #e5e5e5; vertical-align: top; }
+  tr:nth-child(even) td { background: #f8f9fa; }
+  td:first-child { font-weight: 600; color: #003d5c; white-space: nowrap; }
+
+  /* Combo Box */
+  .combo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .combo-card { border: 1px solid #ddd; }
+  .combo-header { background: #003d5c; color: #fff; padding: 10px 14px; font-size: 12px; font-weight: 700; }
+  .combo-body { padding: 14px; }
+  .combo-body p { font-size: 12px; margin-bottom: 6px; }
+  .combo-tag { display: inline-block; background: #e8f0f5; color: #003d5c; font-size: 11px; padding: 2px 8px; margin: 2px 2px 6px 0; }
+
+  /* Insight List */
+  .insights { list-style: none; }
+  .insights li { padding: 12px 14px; border-left: 3px solid #4a9ec4; margin-bottom: 10px; background: #f8f9fa; font-size: 13px; line-height: 1.6; }
+  .insights li strong { color: #003d5c; }
+
+  /* Bibliography */
+  .bib { font-size: 12px; color: #555; line-height: 1.6; columns: 2; column-gap: 32px; }
+  .bib p { margin-bottom: 6px; break-inside: avoid; }
+  .bib a { color: #1a6896; word-break: break-all; }
+
+  /* Citation */
+  .citation { color: #1a6896; font-size: 11px; vertical-align: super; }
+
+  /* Tag row */
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .tag { background: #e8f0f5; color: #003d5c; font-size: 11px; padding: 3px 10px; }
+  .tag-red { background: #fdecea; color: #8b1a1a; }
+  .tag-green { background: #e8f5ec; color: #1a5c2e; }
+
+  /* Footer */
+  .footer { background: #003d5c; color: #7fb3cc; font-size: 11px; padding: 16px 48px; display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-label">Deep Research Report · Finance Agent KB</div>
+    <h1>AI产业链主题分析工具全景报告</h1>
+    <div class="header-meta">
+      <span>日期: 2026-06-16</span>
+      <span>来源: 27个经核实来源</span>
+      <span>模式: Standard Research</span>
+      <span>覆盖: Skills / Agents / 平台 / 社区 / 播客</span>
+    </div>
+  </div>
+
+  <!-- METRICS DASHBOARD -->
+  <div class="dashboard">
+    <div class="metric">
+      <div class="metric-value">6+</div>
+      <div class="metric-label">主流开源多智能体框架</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value">6</div>
+      <div class="metric-label">可用 MCP 金融数据服务器</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value">4</div>
+      <div class="metric-label">国内主流 AI 投研平台</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value">8</div>
+      <div class="metric-label">社区 / 播客 / Newsletter 资源</div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav">
+    <a href="#exec">概要</a>
+    <a href="#agents">开源框架</a>
+    <a href="#mcp">MCP工具</a>
+    <a href="#domestic">国内平台</a>
+    <a href="#bench">评测竞赛</a>
+    <a href="#community">社区播客</a>
+    <a href="#reco">选型建议</a>
+  </div>
+
+  <div class="content">
+
+    <!-- EXECUTIVE SUMMARY -->
+    <div class="exec-summary" id="exec">
+      <h2>Executive Summary</h2>
+      <p>在AI驱动的投资研究领域，工具生态已分化为三条明确路径：<strong>开源多智能体框架</strong>（以 TradingAgents、FinRobot 为代表）提供可定制研究管道，最适合有 Python 基础的独立研究者；<strong>MCP 工具服务器</strong>（Alpha Vantage、EODHD、LSEG 等）将专业金融数据直接接入 Claude 等大模型，门槛低、整合快；<strong>国内商业投研平台</strong>（同花顺问财 2.0、东方财富妙想、雪球思考）面向 A 股投资者，提供从选股到产业链图谱的一站式 AI 服务。</p>
+      <p>对于"产业链分析 + 主题投资 + 个股挖掘"的具体需求，最高性价比的组合是：<strong>TradingAgents-CN + EODHD MCP + 东方财富妙想</strong>，配合知乎投资研究社区和硅谷101播客持续跟踪。</p>
+    </div>
+
+    <!-- SECTION 1: 开源框架 -->
+    <div class="section" id="agents">
+      <div class="section-title">一、开源多智能体框架</div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>项目</th>
+            <th>机构/作者</th>
+            <th>GitHub Stars</th>
+            <th>核心能力</th>
+            <th>适合场景</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>TradingAgents <span class="citation">[1]</span></td>
+            <td>Tauric Research</td>
+            <td>高增长</td>
+            <td>多角色智能体协作（基本面/情绪/技术/交易员/风控）</td>
+            <td>定制研究管道、策略回测</td>
+          </tr>
+          <tr>
+            <td>TradingAgents-CN <span class="citation">[3]</span></td>
+            <td>社区（hsliuping）</td>
+            <td>活跃fork</td>
+            <td>A股数据、国内LLM、中文报告、Docker部署</td>
+            <td>A股主题投资、产业链筛选</td>
+          </tr>
+          <tr>
+            <td>FinRobot <span class="citation">[4]</span></td>
+            <td>AI4Finance-Foundation</td>
+            <td>~7,000</td>
+            <td>8智能体、F-CoT、行业分析Agent、FinRobot Pro</td>
+            <td>基本面研究、投资备忘录生成</td>
+          </tr>
+          <tr>
+            <td>FinGPT <span class="citation">[6]</span></td>
+            <td>AI4Finance-Foundation</td>
+            <td>>10,000</td>
+            <td>LoRA微调金融LLM、情绪分析Pipeline</td>
+            <td>新闻情绪分析、研报信息提取</td>
+          </tr>
+          <tr>
+            <td>AgenticTrading <span class="citation">[7]</span></td>
+            <td>Open-Finance-Lab</td>
+            <td>成长中</td>
+            <td>原型→回测→模拟交易→日志检查完整工作流</td>
+            <td>策略实验、学术研究</td>
+          </tr>
+          <tr>
+            <td>FinRL <span class="citation">[8]</span></td>
+            <td>AI4Finance-Foundation</td>
+            <td>>10,000</td>
+            <td>强化学习交易管道、数据→特征→训练→回测</td>
+            <td>量化策略、RL+LLM混合</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="subsection">
+        <div class="subsection-title">重点推荐：TradingAgents-CN <span class="badge badge-green">A股适配</span></div>
+        <p>TradingAgents-CN 是目前对国内投资者最友好的开源多智能体框架。相比原版 TradingAgents，它完成了关键的本地化改造：接入 AKShare 和 Tushare 提供 A 股实时数据，支持 DeepSeek、通义千问、智谱 GLM 等国内 LLM，输出中文分析报告，并提供 Docker 容器化部署方案。最新版架构已升级为 FastAPI + Vue 3 + MongoDB/Redis，性能提升约10倍。<span class="citation">[3]</span></p>
+        <p>框架的内置新闻质量过滤机制有效减少噪音干扰，对于主题投资中的信息甄别尤为重要。建议配合 EODHD MCP 数据层以弥补实时行情覆盖的不足。</p>
+        <div class="tag-row">
+          <span class="tag">多智能体协作</span>
+          <span class="tag">A股本地化</span>
+          <span class="tag">国内LLM支持</span>
+          <span class="tag">Docker部署</span>
+          <span class="tag">中文报告</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: MCP -->
+    <div class="section" id="mcp">
+      <div class="section-title">二、MCP 工具服务器与 Claude Code 金融插件</div>
+      <p>Model Context Protocol（MCP）已成为将专业金融数据接入 Claude 等大模型的标准接口。2026年已有多个高质量金融 MCP 服务器上线，显著降低了将 AI 推理能力与真实市场数据结合的门槛。</p>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-title">Alpha Vantage MCP <span class="citation">[9]</span></div>
+          <div class="card-meta">官方 · 免费套餐</div>
+          <p>实时/历史股票、外汇、加密货币、经济指标。美股数据接入门槛最低的选择。</p>
+          <div class="card-link">mcp.alphavantage.co</div>
+        </div>
+        <div class="card">
+          <div class="card-title">EODHD MCP <span class="citation">[10]</span></div>
+          <div class="card-meta">最全面 · 77个工具 · 60+市场</div>
+          <p>基本面、技术指标、宏观数据、情绪/新闻，100+文档资源。产业链关系数据尤为实用。</p>
+          <div class="card-link">eodhd.com/financial-apis/mcp-server</div>
+        </div>
+        <div class="card">
+          <div class="card-title">MaverickMCP <span class="citation">[11]</span></div>
+          <div class="card-meta">个人投资者 · FastMCP 2.0</div>
+          <p>专业级金融数据分析和技术指标直接接入 Claude Desktop。无需 Bloomberg 订阅的机构级体验。</p>
+          <div class="card-link">github.com/wshobson/maverick-mcp</div>
+        </div>
+        <div class="card">
+          <div class="card-title">LSEG MCP <span class="citation">[12]</span></div>
+          <div class="card-meta">企业级 · 需商务合作</div>
+          <p>实时收益率曲线、债券参考、外汇即期、互换定价、波动率曲面、历史时间序列。</p>
+          <div class="card-link">lseg.com</div>
+        </div>
+        <div class="card">
+          <div class="card-title">financial-datasets MCP</div>
+          <div class="card-meta">开源 · 快速原型</div>
+          <p>与 Financial Datasets 股票 API 交互，适合个人项目快速原型开发。</p>
+          <div class="card-link">github.com/financial-datasets/mcp-server</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Investment Analysis Skill <span class="citation">[13]</span></div>
+          <div class="card-meta">Claude Code Skill · MCPMarket</div>
+          <p>DCF 建模、估值对比、投资备忘录生成，可直接在 Claude Code 中调用。</p>
+          <div class="card-link">mcpmarket.com/tools/skills/investment-analysis-financial-valuation</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: 国内平台 -->
+    <div class="section" id="domestic">
+      <div class="section-title">三、国内商业投研平台</div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>平台</th>
+            <th>核心 AI 产品</th>
+            <th>产业链分析能力</th>
+            <th>适合用户</th>
+            <th>评分（2026横测）</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>东方财富 <span class="citation">[14][15]</span></td>
+            <td>妙想 AI</td>
+            <td>事件传导图 + 主题热点追踪 + 财报解读；覆盖90%投研场景</td>
+            <td>高时效性A股投资者</td>
+            <td>数据权威性 #1</td>
+          </tr>
+          <tr>
+            <td>同花顺 <span class="citation">[16]</span></td>
+            <td>问财 2.0</td>
+            <td>自然语言条件筛选（"连续三年ROE>15%半导体"）+ 深度报告生成</td>
+            <td>量化思维投资者</td>
+            <td>条件筛选 #1</td>
+          </tr>
+          <tr>
+            <td>雪球 <span class="citation">[17]</span></td>
+            <td>雪球思考</td>
+            <td>整合财报/研报/社区讨论，可视化竞争格局图</td>
+            <td>价值投资者、社区参与</td>
+            <td>社区质量 #1</td>
+          </tr>
+          <tr>
+            <td>华泰证券 <span class="citation">[18]</span></td>
+            <td>AI 涨乐</td>
+            <td>主题 Agent 自动识别产业链关系 + ETF轮动 + 涨停板挖掘</td>
+            <td>短中线主题投资者</td>
+            <td>主题适配 #1</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SECTION 4: 评测 -->
+    <div class="section" id="bench">
+      <div class="section-title">四、评测基准与竞赛社区</div>
+
+      <div class="subsection">
+        <div class="subsection-title">FinBen — 最全面的 LLM 金融评测基准 <span class="citation">[19]</span></div>
+        <p>FinBen 收录 42 个数据集、24 个金融任务，覆盖信息提取、文本分析、问答、文本生成、风险管理、预测、决策和双语测试。NeurIPS 2024 发布的评测结果显示：GPT-4 在信息提取和股票交易上领先；Gemini 在文本生成和预测上较强；所有模型在高级任务（复杂推理、投资决策）上仍有显著局限。选择框架底层 LLM 引擎前应参考此基准。</p>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">Open FinLLM Leaderboard <span class="citation">[20]</span></div>
+        <p>持续更新的金融 LLM 能力排行榜，追踪各大模型在金融任务上的实时表现，是选择基础模型的快速参考。</p>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">FinAI Contest 2025（IEEE CSCloud 2025）<span class="citation">[21]</span></div>
+        <p>每年举办，4个赛道：股票交易智能体（FinRL-DeepSeek）、加密货币交易、金融分析（FinGPT实战）、DeFi流动性提供。竞赛 GitHub 仓库中的获奖方案是产业链分析方法论的重要学习资源，汇聚学术界与工业界金融AI研究者。</p>
+      </div>
+    </div>
+
+    <!-- SECTION 5: 社区播客 -->
+    <div class="section" id="community">
+      <div class="section-title">五、社区、论坛与播客</div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>名称</th>
+            <th>类型</th>
+            <th>语言</th>
+            <th>核心价值</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>知乎 <span class="citation">[22]</span></td>
+            <td>论坛/专栏</td>
+            <td>中文</td>
+            <td>110份AI Agent研报集合；天风/国泰海通AI投资图谱；AI产业链深度分析</td>
+          </tr>
+          <tr>
+            <td>雪球社区</td>
+            <td>投资社区</td>
+            <td>中文</td>
+            <td>价值投资氛围；产业链主题定性验证；大V专栏</td>
+          </tr>
+          <tr>
+            <td>聚宽 JoinQuant</td>
+            <td>量化社区</td>
+            <td>中文</td>
+            <td>Python量化策略分享；产业链→选股信号转化；在线回测验证</td>
+          </tr>
+          <tr>
+            <td>硅谷101 <span class="citation">[23]</span></td>
+            <td>播客</td>
+            <td>中文</td>
+            <td>AI技术与投资交叉；美股AI标的判断；完整文字转录可检索</td>
+          </tr>
+          <tr>
+            <td>未来播客 <span class="citation">[24]</span></td>
+            <td>播客</td>
+            <td>中文</td>
+            <td>AI与技术产业趋势；宏观主题研判补充</td>
+          </tr>
+          <tr>
+            <td>Emerj AI in Finance <span class="citation">[25]</span></td>
+            <td>播客</td>
+            <td>英文</td>
+            <td>HSBC/花旗/Visa等机构AI实践；全球机构投研AI应用视角</td>
+          </tr>
+          <tr>
+            <td>ProCap Agentic AI Podcast <span class="citation">[26]</span></td>
+            <td>播客</td>
+            <td>英文</td>
+            <td>首个agentic AI投研播客；由AI智能体实时生成；Nasdaq上市BRR</td>
+          </tr>
+          <tr>
+            <td>AI投资前沿速递 <span class="citation">[27]</span></td>
+            <td>Newsletter</td>
+            <td>中文</td>
+            <td>AI领域IPO/融资/市场动态；中国AI企业资本市场跟踪</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SECTION 6: 选型建议 -->
+    <div class="section" id="reco">
+      <div class="section-title">六、选型建议与技术栈组合</div>
+
+      <div class="combo-grid">
+        <div class="combo-card">
+          <div class="combo-header">组合 A — 最低门槛（无需代码）</div>
+          <div class="combo-body">
+            <p><strong>东方财富妙想 + 雪球思考</strong></p>
+            <p>适合：主题研判、快速初筛、A股产业链可视化</p>
+            <p>核心价值：数据权威 + 社区定性验证</p>
+            <div class="tag-row">
+              <span class="tag-green tag">免开发</span>
+              <span class="tag">产业链图谱</span>
+              <span class="tag">社区验证</span>
+            </div>
+          </div>
+        </div>
+        <div class="combo-card">
+          <div class="combo-header">组合 B — 中等门槛（Python + API）</div>
+          <div class="combo-body">
+            <p><strong>TradingAgents-CN + EODHD MCP + Claude Code</strong></p>
+            <p>适合：定制化产业链分析管道、自动生成A股多智能体研究报告</p>
+            <p>核心价值：可控研究管道 + 多智能体协作</p>
+            <div class="tag-row">
+              <span class="tag">Python环境</span>
+              <span class="tag">MCP数据层</span>
+              <span class="tag">定制报告</span>
+            </div>
+          </div>
+        </div>
+        <div class="combo-card">
+          <div class="combo-header">组合 C — 最高能力（量化闭环）</div>
+          <div class="combo-body">
+            <p><strong>TradingAgents-CN + FinRobot + FinRL + EODHD MCP + 聚宽回测</strong></p>
+            <p>适合：量化基金研究员、严肃个人量化投资者</p>
+            <p>核心价值：研究→执行→回测完整闭环</p>
+            <div class="tag-row">
+              <span class="tag-red tag">高复杂度</span>
+              <span class="tag">强化学习</span>
+              <span class="tag">量化闭环</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title" style="font-size:15px; border-bottom: 1px solid #ddd; margin-top: 8px;">关键洞察</div>
+      <ul class="insights">
+        <li><strong>国内/国际分轨:</strong> 国内平台（妙想、问财）在 A 股数据时效性上无可替代；开源框架（TradingAgents-CN）在定制化深度上占优。两者结合是最佳实践，不必二选一。</li>
+        <li><strong>MCP 层是关键粘合剂:</strong> MCP 服务器让任何 AI 助手（Claude、GPT）都能实时获取专业金融数据，是连接智能体推理能力和数据源的最优路径。无论使用哪个框架，优先配置合适的 MCP 数据层。</li>
+        <li><strong>主题分析难点在"传导链":</strong> 现有工具在"识别主题受益股"上能力参差不齐。东方财富妙想的事件传导图和天风证券研报是目前最可靠的中文产业链传导分析来源，可作为 AI 分析结果的人工验证基准。</li>
+        <li><strong>个股挖掘需多信号交叉验证:</strong> 基本面 + 情绪 + 技术三类信号都需交叉验证。TradingAgents 的多智能体架构天然支持这种协作分析范式，单一信号的误判率显著高于三信号交叉。</li>
+      </ul>
+    </div>
+
+    <!-- BIBLIOGRAPHY -->
+    <div class="section">
+      <div class="section-title">参考来源</div>
+      <div class="bib">
+        <p>[1] TauricResearch (2024). TradingAgents: Multi-Agents LLM Financial Trading Framework. arXiv:2412.20138. <a href="https://arxiv.org/abs/2412.20138">arxiv.org/abs/2412.20138</a></p>
+        <p>[2] TradingAgents Official Site (2026). Release Notes v0.2.5. <a href="https://tradingagents-ai.github.io/">tradingagents-ai.github.io</a></p>
+        <p>[3] GitHub - hsliuping/TradingAgents-CN (2025). <a href="https://github.com/hsliuping/TradingAgents-CN">github.com/hsliuping/TradingAgents-CN</a></p>
+        <p>[4] AI4Finance-Foundation (2024). FinRobot GitHub. <a href="https://github.com/AI4Finance-Foundation/FinRobot">github.com/AI4Finance-Foundation/FinRobot</a></p>
+        <p>[5] arXiv (2025). FinRpt: LLM-based Multi-agent Framework for Equity Research. <a href="https://arxiv.org/html/2511.07322v1">arxiv.org/html/2511.07322v1</a></p>
+        <p>[6] AI4Finance-Foundation (2023). FinGPT GitHub. <a href="https://github.com/AI4Finance-Foundation/FinGPT">github.com/AI4Finance-Foundation/FinGPT</a></p>
+        <p>[7] Open-Finance-Lab (2025). AgenticTrading. <a href="https://github.com/Open-Finance-Lab/AgenticTrading">github.com/Open-Finance-Lab/AgenticTrading</a></p>
+        <p>[8] AI4Finance-Foundation. FinRL. <a href="https://github.com/AI4Finance-Foundation/FinRL">github.com/AI4Finance-Foundation/FinRL</a></p>
+        <p>[9] Alpha Vantage (2025). MCP for Stock Market Data. <a href="https://mcp.alphavantage.co/">mcp.alphavantage.co</a></p>
+        <p>[10] EODHD (2025). MCP Server For Financial Data. <a href="https://eodhd.com/financial-apis/mcp-server-for-financial-data-by-eodhd">eodhd.com</a></p>
+        <p>[11] Shobson, W. (2025). MaverickMCP. <a href="https://github.com/wshobson/maverick-mcp">github.com/wshobson/maverick-mcp</a></p>
+        <p>[12] LSEG (2025). Supercharge Claude's financial skills. <a href="https://www.lseg.com/en/insights/supercharge-claudes-financial-skills-with-lseg-data">lseg.com</a></p>
+        <p>[13] MCPMarket (2025). Investment Analysis Skill. <a href="https://mcpmarket.com/tools/skills/investment-analysis-financial-valuation">mcpmarket.com</a></p>
+        <p>[14] 新浪财经 (2026). 2026年专业级理财分析工具榜单. <a href="https://cj.sina.com.cn/articles/view/7879848900/1d5acf3c401902tca0">sina.com.cn</a></p>
+        <p>[15] 东方财富 (2026). 2026金融类Skills横向评测. <a href="https://caifuhao.eastmoney.com/news/20260417164439259767630">eastmoney.com</a></p>
+        <p>[16] 新浪财经 (2025). 2025年AI智能炒股软件推荐. <a href="https://finance.sina.com.cn/stock/aigcy/2025-10-14/doc-inftvvxh7383016.shtml">sina.com.cn</a></p>
+        <p>[17] 火山引擎 (2026). 2026年AI金融工具排行榜. <a href="https://developer.volcengine.com/articles/7623972150692544563">volcengine.com</a></p>
+        <p>[18] 新浪财经 (2026). AI股票分析软件选型指南. <a href="https://finance.sina.com.cn/roll/2026-02-03/doc-inhknxzn7473767.shtml">sina.com.cn</a></p>
+        <p>[19] Xie, Q., et al. (2024). FinBen: NeurIPS 2024. <a href="https://arxiv.org/abs/2402.12659">arxiv.org/abs/2402.12659</a></p>
+        <p>[20] Open FinLLM Leaderboard (2025). arXiv:2501.10963. <a href="https://arxiv.org/html/2501.10963v1">arxiv.org/html/2501.10963v1</a></p>
+        <p>[21] Open-Finance-Lab (2025). FinAI Contest 2025. <a href="https://open-finance-lab.github.io/FinAI_Contest_2025/">open-finance-lab.github.io</a></p>
+        <p>[22] 知乎 (2026). 2026年最新AI Agent研究报告整理，110份. <a href="https://zhuanlan.zhihu.com/p/29389141975">zhihu.com</a></p>
+        <p>[23] 硅谷101 (2026). Apple Podcasts. <a href="https://podcasts.apple.com/cn/podcast/硅谷101/id1498541229">podcasts.apple.com</a></p>
+        <p>[24] 未来播客 (2025). Apple Podcasts. <a href="https://podcasts.apple.com/us/podcast/未来-深入探讨ai和技术的发展/id1761630127">podcasts.apple.com</a></p>
+        <p>[25] Emerj (2025). AI in Financial Services Podcast. <a href="https://emerj.com/ai-in-financial-services-podcast/">emerj.com</a></p>
+        <p>[26] Morningstar (2026). ProCap Agentic AI Podcast. <a href="https://www.morningstar.com/news/business-wire/20260415149890/procap-financial-launches-agentic-ai-podcast-extending-agentic-research-offering-to-audio">morningstar.com</a></p>
+        <p>[27] AI投资前沿速递 (2026). <a href="https://ai.lovtrip.app/articles/">ai.lovtrip.app</a></p>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <div class="footer">
+    <span>Finance Agent KB — Deep Research · 2026-06-16</span>
+    <span>27 sources · Standard mode · 8-angle parallel retrieval</span>
+  </div>
+
+</div>
+</body>
+</html>
