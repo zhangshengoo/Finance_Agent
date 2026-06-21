@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 产业链供应链卡点地图 · 2026-06-16</title>
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#121723; --panel2:#0f141e; --line:#222b3a;
+    --ink:#e6ecf5; --mut:#8a97ad; --mut2:#5d6b82;
+    --hi:#ff5470; --mid:#ffb347; --lo:#4fd1a5;
+    --gold:#f5c451; --teal:#39c5bb; --blue:#5b9dff; --gray:#7c889c; --story:#566075;
+    --accent:#5b9dff;
+    --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:34px 22px 90px}
+  a{color:var(--blue);text-decoration:none}
+  a:hover{text-decoration:underline}
+  h1{font-size:30px;line-height:1.2;margin:0 0 6px;letter-spacing:-.4px}
+  h2{font-size:21px;margin:46px 0 14px;padding-bottom:9px;border-bottom:1px solid var(--line);letter-spacing:-.2px}
+  h2 .n{font-family:var(--mono);color:var(--accent);font-size:14px;margin-right:10px;opacity:.85}
+  h3{font-size:16px;margin:24px 0 10px;color:#cdd8e8}
+  p{margin:10px 0}
+  .sub{color:var(--mut);font-size:13.5px}
+  .mono{font-family:var(--mono)}
+  .tag{font-family:var(--mono)}
+  /* header */
+  header{border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,#131a27,#0d121b);padding:24px 26px;position:relative;overflow:hidden}
+  header:before{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;background:radial-gradient(circle,rgba(91,157,255,.16),transparent 65%)}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px;font-size:12.5px;color:var(--mut);font-family:var(--mono)}
+  .meta b{color:#bcc8db;font-weight:600}
+  .disc{margin-top:14px;font-size:12px;color:var(--mut2);border-top:1px dashed var(--line);padding-top:10px}
+  /* legend */
+  .legend{display:flex;flex-wrap:wrap;gap:14px 26px;margin:18px 0 4px;font-size:12.5px;color:var(--mut)}
+  .legend .grp{display:flex;align-items:center;gap:9px}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block;flex:0 0 auto}
+  .d-hi{background:var(--hi)} .d-mid{background:var(--mid)} .d-lo{background:var(--lo)}
+  .pill{font-family:var(--mono);font-size:10.5px;padding:2px 7px;border-radius:999px;border:1px solid;white-space:nowrap;letter-spacing:.2px}
+  .p-ctrl{color:var(--gold);border-color:rgba(245,196,81,.5);background:rgba(245,196,81,.08)}
+  .p-supp{color:var(--teal);border-color:rgba(57,197,187,.5);background:rgba(57,197,187,.08)}
+  .p-benef{color:var(--blue);border-color:rgba(91,157,255,.45);background:rgba(91,157,255,.08)}
+  .p-weak{color:var(--gray);border-color:rgba(124,136,156,.45);background:rgba(124,136,156,.08)}
+  .p-story{color:var(--story);border-color:rgba(86,96,117,.6);background:rgba(86,96,117,.1);border-style:dashed}
+  /* callout */
+  .call{border:1px solid var(--line);border-left:3px solid var(--accent);background:var(--panel);border-radius:10px;padding:16px 18px;margin:14px 0}
+  .call.warn{border-left-color:var(--mid)}
+  .call.dang{border-left-color:var(--hi)}
+  .call.good{border-left-color:var(--lo)}
+  .call h3{margin-top:0}
+  /* value chain */
+  .chain{display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:8px}
+  .layer{display:grid;grid-template-columns:30px 200px 1fr 132px;gap:0;border-top:1px solid var(--line);background:var(--panel2);align-items:stretch}
+  .layer:first-child{border-top:none}
+  .layer .heat{width:30px}
+  .heat.hi{background:linear-gradient(180deg,var(--hi),#c0344c)}
+  .heat.mid{background:linear-gradient(180deg,var(--mid),#cc8b2b)}
+  .heat.lo{background:linear-gradient(180deg,var(--lo),#2f9c7a)}
+  .heat.split{background:linear-gradient(180deg,var(--hi) 0,var(--hi) 50%,var(--lo) 50%,var(--lo) 100%)}
+  .layer .lname{padding:13px 14px;border-right:1px solid var(--line)}
+  .layer .lname .t{font-weight:650;font-size:14.5px}
+  .layer .lname .s{font-size:11.5px;color:var(--mut2);font-family:var(--mono);margin-top:2px}
+  .layer .lbody{padding:13px 16px;border-right:1px solid var(--line)}
+  .layer .lbody .con{font-size:13px;color:#c4cee0}
+  .layer .lbody .co{margin-top:7px;display:flex;flex-wrap:wrap;gap:5px}
+  .tk{font-family:var(--mono);font-size:11px;color:#aeb9cc;background:#1a2233;border:1px solid #28324a;border-radius:5px;padding:1px 6px}
+  .tk.star{color:var(--gold);border-color:rgba(245,196,81,.4)}
+  .layer .lctrl{padding:13px 12px;display:flex;flex-direction:column;justify-content:center;gap:6px;align-items:flex-start}
+  .scar{font-family:var(--mono);font-size:10.5px;letter-spacing:.3px}
+  .scar.hi{color:var(--hi)} .scar.mid{color:var(--mid)} .scar.lo{color:var(--lo)}
+  /* priority cards */
+  .pcards{display:flex;flex-direction:column;gap:12px;margin-top:6px}
+  .pc{border:1px solid var(--line);border-radius:11px;background:var(--panel);padding:15px 17px;position:relative;overflow:hidden}
+  .pc .rk{position:absolute;right:16px;top:10px;font-family:var(--mono);font-size:40px;font-weight:800;color:#28344c;line-height:1}
+  .pc .hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .pc .hd .rank{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent);background:rgba(91,157,255,.1);border:1px solid rgba(91,157,255,.3);border-radius:6px;padding:2px 8px}
+  .pc .hd .ti{font-size:16px;font-weight:680}
+  .pc .body{font-size:13px;color:#c4cee0;margin-top:9px}
+  .pc .kv{display:grid;grid-template-columns:88px 1fr;gap:3px 10px;margin-top:9px;font-size:12.5px}
+  .pc .kv .k{color:var(--mut);font-family:var(--mono);font-size:11px;padding-top:1px}
+  .pc .kv .v{color:#d2dcec}
+  /* tables */
+  .tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:11px;margin-top:8px}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:760px}
+  thead th{background:#141b29;color:#aab6cb;font-weight:600;text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);position:sticky;top:0;white-space:nowrap;font-size:11.5px}
+  tbody td{padding:9px 11px;border-bottom:1px solid #1a2230;vertical-align:top}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:#0f1623}
+  td .cn{font-weight:620;color:#e6ecf5}
+  td .code{font-family:var(--mono);font-size:11px;color:var(--mut)}
+  .ev{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:4px;white-space:nowrap}
+  .ev.s{color:#7ef0c4;background:rgba(79,209,165,.12)}
+  .ev.m{color:#ffd27a;background:rgba(255,179,71,.12)}
+  .ev.w{color:#ff9fb0;background:rgba(255,84,112,.12)}
+  .ev.u{color:#9aa6bb;background:rgba(124,136,156,.14)}
+  .src-note{font-size:11.5px;color:var(--mut2);margin-top:8px}
+  /* sources */
+  ol.src{font-size:12.5px;color:var(--mut);padding-left:22px;margin:8px 0}
+  ol.src li{margin:5px 0;word-break:break-all}
+  ol.src li b{color:#bcc8db;font-weight:600}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .foot{margin-top:50px;border-top:1px solid var(--line);padding-top:16px;font-size:11.5px;color:var(--mut2)}
+  @media(max-width:780px){
+    .layer{grid-template-columns:8px 1fr;grid-template-areas:"heat name" "heat body" "heat ctrl"}
+    .layer .heat{grid-area:heat} .layer .lname{grid-area:name;border-right:none}
+    .layer .lbody{grid-area:body;border-right:none;border-top:1px solid var(--line)}
+    .layer .lctrl{grid-area:ctrl;flex-direction:row;border-top:1px solid var(--line)}
+    .grid2{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="sub mono" style="color:var(--accent);letter-spacing:1px;font-size:11px;margin-bottom:8px">SERENITY · SUPPLY-CHAIN BOTTLENECK SCAN</div>
+  <h1>AI 产业链 / 供应链 · 卡点地图</h1>
+  <div class="sub">从下游需求到最上游材料,逐层定位「真正稀缺、且 A 股可投」的环节 —— 先排产业链层级,再排公司。</div>
+  <div class="meta">
+    <span><b>主题</b> AI 全产业链（A 股为主 · 全球为锚）</span>
+    <span><b>证据窗口</b> 2025H2–2026H1</span>
+    <span><b>截至</b> 2026-06-16</span>
+    <span><b>覆盖</b> 12 层 · 60+ 家公司 · 5 路并行实时检索</span>
+  </div>
+  <div class="disc">⚠️ 仅研究支持与研究优先级排序,<b>不构成任何买卖建议</b>,交易决策由你自己负责。文中"出货量/产能/份额/营收"多为券商研报与财经媒体口径,凡未回到公司公告/交易所文件核验者均标 <span class="ev u">未核实</span>;全文未杜撰价格、市值、订单、客户、产能数字。</div>
+</header>
+
+<!-- ======================= 0 核心判断 ======================= -->
+<h2><span class="n">00</span>核心判断（先排层,再排公司）</h2>
+
+<div class="call good">
+  <h3>先看这几层,顺序就是研究优先级:</h3>
+  <p style="margin:6px 0 0"><b>① 高速 CCL + 上游电子布</b> —— 证据最硬的物理瓶颈,涨价/缺料/停工可量化。
+  <b>② 半导体设备材料里的真卡点群</b>（CMP 抛光垫 / 量测检测 / 高端 ArF 光刻胶 / ALD 前驱体）。
+  <b>③ 先进封装承接</b>（给国产算力做 chiplet/2.5D）。
+  <b>④ 高端光芯片国产替代</b>（全球最肥的环节,A 股唯一"控制力升级"想象,但目前仅验证级）。
+  原因:这些地方更接近<b>真实扩产约束</b>,而不是市场最拥挤的故事。</p>
+</div>
+
+<div class="call dang">
+  <h3>一条贯穿全程的诚实结论:A 股最强的一层 ≠ 最卡的利润层。</h3>
+  <p style="margin:6px 0 0">全球<b>最紧的三层 —— HBM 颗粒、CoWoS 先进封装、先进制程/EUV —— A 股一个都不掌控</b>（供给方是 SK 海力士/三星/美光、台积电、ASML,中国还被出口管制挡在门外）。A 股在这三层只摸到<b>边缘耗材/封测/代理</b>。
+  反过来,A 股全球领先的<b>光模块组装（约占全球 63%）</b>恰恰<b>不是利润最肥的环节 —— 超额利润归上游 DSP + EML 控制者</b>。
+  所以真正"既卡又可投"的交集,是 <b>CCL/电子布、设备材料国产替代、先进封装承接、液冷快接头</b>这几处,而非算力芯片或光模块龙头本身。</p>
+</div>
+
+<div class="legend">
+  <span class="grp">稀缺度(卡点强度):</span>
+  <span class="grp"><i class="dot d-hi"></i>高 · 供给极集中/认证以年计/扩产难</span>
+  <span class="grp"><i class="dot d-mid"></i>中 · 紧但可缓或竞争渐增</span>
+  <span class="grp"><i class="dot d-lo"></i>低 · 充裕/红海/同质</span>
+</div>
+<div class="legend">
+  <span class="grp">A 股角色:</span>
+  <span class="pill p-ctrl">控制稀缺层</span>
+  <span class="pill p-supp">供应稀缺层</span>
+  <span class="pill p-benef">受益于趋势</span>
+  <span class="pill p-weak">控制力弱</span>
+  <span class="pill p-story">仅有故事</span>
+</div>
+
+<!-- ======================= 1 产业链全景 ======================= -->
+<h2><span class="n">01</span>产业链全景 · 12 层热力图</h2>
+<p class="sub">左侧色条 = 稀缺度;右侧 = A 股在该层的真实掌控度。★ 标记为该层最值得优先研究的标的。自上而下 = 下游需求 → 最上游材料/电力。</p>
+
+<div class="chain">
+
+  <div class="layer">
+    <div class="heat lo"></div>
+    <div class="lname"><div class="t">下游需求</div><div class="s">cloud capex / 主权AI</div></div>
+    <div class="lbody"><div class="con">四大美系云厂 2026 capex 指引合计 ≈7,250 亿美元（同比 ≈+77%）,需求"抛物线化";驱动从训练转向<b>持续推理 + 主权 AI</b>。钱不是瓶颈,下面的供给才是。</div>
+      <div class="co"><span class="tk">微软/谷歌/Meta/亚马逊</span><span class="tk">字节/阿里/腾讯</span></div></div>
+    <div class="lctrl"><span class="scar lo">稀缺 低</span><span class="pill p-weak">A股间接</span></div>
+  </div>
+
+  <div class="layer">
+    <div class="heat lo"></div>
+    <div class="lname"><div class="t">系统集成 / 服务器 ODM</div><div class="s">AI server / 整机柜</div></div>
+    <div class="lbody"><div class="con">把芯片+内存+网络组装成整机柜。受益确定但<b>低毛利组装、控制力弱</b>,可替代性高。</div>
+      <div class="co"><span class="tk">工业富联 601138</span><span class="tk">浪潮信息 000977</span><span class="tk">中科曙光 603019</span><span class="tk">紫光股份 000938</span></div></div>
+    <div class="lctrl"><span class="scar lo">稀缺 低</span><span class="pill p-benef">受益</span><span class="pill p-weak">控制力弱</span></div>
+  </div>
+
+  <div class="layer">
+    <div class="heat mid"></div>
+    <div class="lname"><div class="t">算力芯片 GPU/ASIC/NPU</div><div class="s">设计不卡,产能在台积电手里</div></div>
+    <div class="lbody"><div class="con">芯片设计本身不稀缺(NVIDIA/AMD/Broadcom 都能设计),稀缺的是它们共用的下游产能。<b>中国侧受出口管制,只能在境内 fab 生产,拿不到台积电先进制程 + HBM</b>。寒武纪/海光是热门但拥挤、且依赖自己不掌控的产能。</div>
+      <div class="co"><span class="tk">寒武纪 688256</span><span class="tk">海光信息 688041</span><span class="tk">华为昇腾(未上市)</span><span class="tk">景嘉微 300474</span></div></div>
+    <div class="lctrl"><span class="scar mid">稀缺 中</span><span class="pill p-weak">A股受限</span></div>
+  </div>
+
+  <div class="layer">
+    <div class="heat mid"></div>
+    <div class="lname"><div class="t">EDA / IP</div><div class="s">设计工具链</div></div>
+    <div class="lbody"><div class="con">海外 Synopsys/Cadence/Siemens 三家垄断,国产点工具突破、全流程仍弱。自主可控逻辑下的长期卡点,但短期对 AI 放量弹性小。</div>
+      <div class="co"><span class="tk">华大九天 301269</span><span class="tk">概伦电子 688206</span><span class="tk">广立微 301095</span></div></div>
+    <div class="lctrl"><span class="scar mid">稀缺 中高</span><span class="pill p-supp">A股追赶</span></div>
+  </div>
+
+  <div class="layer">
+    <div class="heat hi"></div>
+    <div class="lname"><div class="t">存储 / HBM</div><div class="s">全球最紧之一 · A股几乎缺位</div></div>
+    <div class="lbody"><div class="con"><b>SK海力士/三星/美光 控 ~90%,2026 产能已签约售罄</b>,缺货或延到 2027。A 股在 HBM 主芯片(DRAM die)<b>基本缺位</b>,只占材料/封测/代理边缘;国产主体长鑫(非上市)仍有 ~1.5–2 代差。</div>
+      <div class="co"><span class="tk star">雅克科技 002409·前驱体</span><span class="tk">太极实业 600667·封测</span><span class="tk">香农芯创 300475·代理</span><span class="tk">兆易创新 603986·利基</span></div></div>
+    <div class="lctrl"><span class="scar hi">稀缺 高</span><span class="pill p-story">A股不掌控/沾边</span></div>
+  </div>
+
+  <div class="layer">
+    <div class="heat hi"></div>
+    <div class="lname"><div class="t">先进封装 / CoWoS</div><div class="s">从后道变"算力基础设施入口"</div></div>
+    <div class="lbody"><div class="con">台积电 CoWoS 全球紧张(缺口年内从 20%→10%)。A 股有<b>真实工程承接力</b>:通富经 AMD MI300X HBM3 封装验证、长电 XDFOI 量产 —— 给<b>国产算力做 chiplet/2.5D</b>。但 CoWoS 级大尺寸 2.5D 产能 + IC 载板(味之素 ABF 垄断)是"量"的上限。</div>
+      <div class="co"><span class="tk star">通富微电 002156</span><span class="tk">长电科技 600584</span><span class="tk">甬矽电子 688362</span><span class="tk">华天科技 002185</span></div></div>
+    <div class="lctrl"><span class="scar mid">稀缺 中</span><span class="pill p-benef">A股承接(有上限)</span></div>
+  </div>
+
+  <div class="layer">
+    <div class="heat split"></div>
+    <div class="lname"><div class="t">光互连 光模块/光芯片/CPO</div><div class="s">A股全球领先,但利润在上游</div></div>
+    <div class="lbody"><div class="con">中国厂商占全球光模块 <b>63%(2025)</b>,"易中天"主导 1.6T —— 但领先在<b>组装/封装(受益层)</b>。上游<b>高端光芯片 EML/DSP 才是真卡点</b>:唯一量产 200G/lane EML 的 Lumentum 已被 NVIDIA ~40 亿美元锁单至 2027;25G+ 国产化率 &lt;15%。CPO 大规模部署被 SemiAnalysis 下调至 2028–2029。</div>
+      <div class="co"><span class="tk">中际旭创 300308</span><span class="tk">新易盛 300502</span><span class="tk">天孚通信 300394</span><span class="tk">光迅科技 002281</span><span class="tk star">源杰科技 688498·光芯片</span><span class="tk">仕佳光子 688313</span></div></div>
+    <div class="lctrl"><span class="scar mid">组装 中</span><span class="scar hi">光芯片 高</span><span class="pill p-benef">模块受益</span></div>
+  </div>
+
+  <div class="layer">
+    <div class="heat hi"></div>
+    <div class="lname"><div class="t">高速 PCB / CCL</div><div class="s">被低估的物理瓶颈</div></div>
+    <div class="lbody"><div class="con"><b>本轮证据最硬的一层。</b> 覆铜板(CCL)年内累涨 40%+、交期翻 3 倍、约 30% CCL 厂"空库停工";瓶颈之瓶颈是 <b>Low-Dk 电子布(日企垄断,2027 前难缓解,涨价 100%)</b>。生益 M9 高速 CCL 已过英伟达认证 = 真正的控制层。PCB 成品厂受上游涨价反向挤压。</div>
+      <div class="co"><span class="tk star">生益科技 600183·CCL</span><span class="tk">沪电股份 002463</span><span class="tk">胜宏科技 300476</span><span class="tk">深南电路 002916·载板</span><span class="tk">兴森科技 002436·载板</span></div></div>
+    <div class="lctrl"><span class="scar hi">稀缺 高</span><span class="pill p-ctrl">CCL控制层</span><span class="pill p-supp">PCB供应</span></div>
+  </div>
+
+  <div class="layer">
+    <div class="heat split"></div>
+    <div class="lname"><div class="t">半导体设备</div><div class="s">国产替代 · 卡点分化</div></div>
+    <div class="lbody"><div class="con"><b>真卡点 = 量测检测(KLA &gt;50%、国产 &lt;3%)、离子注入(国产 &lt;15%)、涂胶显影(TEL 独占)。</b> 已内卷 = 成熟制程刻蚀、清洗去胶(国产化 &gt;50%,转价格战)。中微进台积电 5nm、华海清科 CMP 国内第一,稀缺性在松动转扩产。</div>
+      <div class="co"><span class="tk">北方华创 002371</span><span class="tk">中微公司 688012</span><span class="tk">拓荆科技 688072</span><span class="tk">华海清科 688120</span><span class="tk star">中科飞测 688361·量测</span><span class="tk">盛美上海 688082</span><span class="tk">芯源微 688037</span></div></div>
+    <div class="lctrl"><span class="scar hi">量测/注入 高</span><span class="scar lo">刻蚀/清洗 已内卷</span><span class="pill p-supp">A股追赶</span></div>
+  </div>
+
+  <div class="layer">
+    <div class="heat split"></div>
+    <div class="lname"><div class="t">材料 / 耗材</div><div class="s">国产替代 · 卡点分化</div></div>
+    <div class="lbody"><div class="con"><b>真卡点 = CMP 抛光垫(杜邦垄断,鼎龙是大陆唯一破局者、反向供货外资)、高端 ArF 光刻胶(日企 87%、国产 &lt;5%)、ALD 前驱体、高端 12 寸大硅片。</b> 已内卷 = 电子大宗特气(2025 利润集体大跌,金宏 -39%)、靶材(江丰已破局)。</div>
+      <div class="co"><span class="tk star">鼎龙股份 300054·抛光垫</span><span class="tk">安集科技 688019</span><span class="tk">南大光电 300346·ArF</span><span class="tk">彤程新材 603650</span><span class="tk">沪硅产业 688126</span><span class="tk">华特气体 688268</span><span class="tk">江丰电子 300666</span></div></div>
+    <div class="lctrl"><span class="scar hi">抛光垫/光刻胶 高</span><span class="scar lo">特气/靶材 已内卷</span><span class="pill p-ctrl">局部控制</span></div>
+  </div>
+
+  <div class="layer">
+    <div class="heat split"></div>
+    <div class="lname"><div class="t">数据中心物理层</div><div class="s">电源 / 液冷 / 铜连接</div></div>
+    <div class="lbody"><div class="con">单机柜功率飙到 100kW+,电力与散热成放量约束 —— <b>但物理层国产化 &gt;60%、玩家众多,整体是"受益但控制力弱"的红海(液冷全栈毛利仅 ~32%)。</b> 真卡点收窄到<b>单一零件:液冷快接头 UQD</b>(漏液最高发、产能跟不上、中航光电领头国产突破)。</div>
+      <div class="co"><span class="tk star">英维克 002837·液冷</span><span class="tk">飞荣达 300602·冷板</span><span class="tk">麦格米特 002851·电源</span><span class="tk">科华数据 002335</span><span class="tk">沃尔核材 002130·铜缆</span><span class="tk">中航光电 002179·UQD</span></div></div>
+    <div class="lctrl"><span class="scar lo">整体 中低</span><span class="scar hi">UQD 高</span><span class="pill p-benef">受益</span><span class="pill p-weak">控制力弱</span></div>
+  </div>
+
+  <div class="layer">
+    <div class="heat split"></div>
+    <div class="lname"><div class="t">IDC + 电力(最上游)</div><div class="s">"算电协同"升国家战略</div></div>
+    <div class="lbody"><div class="con">IDC 运营本身同质(拼电力指标/资源位,毛利低);<b>真正更上游、更硬的约束是电力本身</b> —— 美国 2026 近半新建数据中心因变压器/开关短缺延期或取消。电力设备/绿电/核电是比液冷更上游的卡点(本清单未展开)。</div>
+      <div class="co"><span class="tk">润泽科技 300442</span><span class="tk">光环新网 300383</span><span class="tk">宝信软件 600845</span><span class="tk">电力设备/绿电/核电板块</span></div></div>
+    <div class="lctrl"><span class="scar lo">IDC 中低</span><span class="scar hi">电力 高</span><span class="pill p-weak">IDC控制力弱</span></div>
+  </div>
+
+</div>
+
+<!-- ======================= 2 优先研究名单 ======================= -->
+<h2><span class="n">02</span>优先研究名单(卡点强度 × A 股可投性)</h2>
+<p class="sub">排序依据:需求压力、贴近稀缺层程度、供应商集中度、扩产难度、证据质量、估值落差、时机与风险。每条都说清"卡住什么 / 产业链位置 / 排序原因 / 证据 / 主要风险"。</p>
+
+<div class="pcards">
+
+  <div class="pc"><div class="rk">P1</div>
+    <div class="hd"><span class="rank">P1</span><span class="ti">高速 CCL + 上游电子布</span><span class="pill p-ctrl">控制稀缺层</span><span class="ev s">证据 强</span></div>
+    <div class="body">本轮 AI 链里<b>最接近"物理瓶颈"、证据最硬</b>的子层:CCL 年内累涨 40%+、交期翻 3 倍、约 30% CCL 厂缺料停工;最上游 Low-Dk 电子布日企垄断、明确 2027 前难缓解。</div>
+    <div class="kv">
+      <div class="k">卡住环节</div><div class="v">M8/M9 高速覆铜板 + 上游电子布/HVLP 铜箔/碳氢树脂</div>
+      <div class="k">代表标的</div><div class="v"><b>生益科技 600183</b>(M9 过英伟达认证、批量交付 78 层背板,控制层) · 沪电 002463 / 胜宏 300476(PCB 供应层)</div>
+      <div class="k">排序原因</div><div class="v">供给侧硬约束、可量化,不是情绪;"控制层"在 CCL 与电子布而非 PCB 成品</div>
+      <div class="k">主要风险</div><div class="v">CCL 千亿级扩产潮兑现 → 稀释稀缺性、涨价被证伪;PCB 成品被上游涨价挤压毛利</div>
+    </div>
+  </div>
+
+  <div class="pc"><div class="rk">P2</div>
+    <div class="hd"><span class="rank">P2</span><span class="ti">设备材料国产替代 · 真卡点群</span><span class="pill p-ctrl">控制稀缺层</span><span class="ev s">证据 强(局部)</span></div>
+    <div class="body">在"国产算力自主可控 + 管制"逻辑下,挑<b>供给最集中、认证以年计、国产化仍低</b>的薄层,避开已内卷的成熟制程刻蚀/清洗/大宗特气。</div>
+    <div class="kv">
+      <div class="k">卡住环节</div><div class="v">CMP 抛光垫 · 前道量测检测 · 高端 ArF 光刻胶 · ALD 前驱体 · 离子注入</div>
+      <div class="k">代表标的</div><div class="v"><b>鼎龙股份 300054</b>(抛光垫,大陆唯一破杜邦垄断,强证据) · 中科飞测 688361(量测,国产&lt;3%) · 南大光电 300346 / 彤程新材 603650(光刻胶) · 雅克科技 002409(前驱体)</div>
+      <div class="k">排序原因</div><div class="v">鼎龙已反向供货外资=技术被认可,是少数"控制层";量测是全链国产化最低的良率守门员</div>
+      <div class="k">主要风险</div><div class="v">光刻胶/量测放量极慢、兑现以年计;雅克核心前驱体资产是韩国子公司,地缘风险</div>
+    </div>
+  </div>
+
+  <div class="pc"><div class="rk">P3</div>
+    <div class="hd"><span class="rank">P3</span><span class="ti">先进封装承接(国产算力 chiplet)</span><span class="pill p-benef">受益(有上限)</span><span class="ev m">证据 中–强</span></div>
+    <div class="body">CoWoS 全球紧张下,A 股有<b>真实可验证的国产先进封装工程能力</b>,是国产算力落地的必经工序。</div>
+    <div class="kv">
+      <div class="k">卡住环节</div><div class="v">2.5D / Chiplet / 异构集成(给昇腾/寒武纪类做)</div>
+      <div class="k">代表标的</div><div class="v"><b>通富微电 002156</b>(AMD MI300X HBM3 封装验证、良率 98%、5nm chiplet 量产) · 长电科技 600584(XDFOI 2.5D/3D 量产)</div>
+      <div class="k">排序原因</div><div class="v">"会不会做"已解决;排在 P1/P2 之后因受 IC 载板(味之素 ABF)与大尺寸中介层产能"量"的封顶</div>
+      <div class="k">主要风险</div><div class="v">客户集中(通富=AMD、长电=自研);CoWoS 级产能仍追赶台积电;AI 封装营收占比未单独披露 <span class="ev u">未核实</span></div>
+    </div>
+  </div>
+
+  <div class="pc"><div class="rk">P4</div>
+    <div class="hd"><span class="rank">P4</span><span class="ti">高端光芯片国产替代(EML/硅光)</span><span class="pill p-supp">供应稀缺层(追赶)</span><span class="ev m">证据 中</span></div>
+    <div class="body">这是全球价值链<b>最肥的环节(EML+DSP)</b>,也是 A 股光通信里<b>唯一有"从受益升级到控制"想象空间</b>的方向 —— 但当前证据只到"验证/送样级",尚未跨过高端量产门槛。</div>
+    <div class="kv">
+      <div class="k">卡住环节</div><div class="v">200G/lane EML、CW 激光 + 硅光,绕开海外锁单</div>
+      <div class="k">代表标的</div><div class="v"><b>源杰科技 688498</b>(200G PAM4 EML 完成开发送样) · 仕佳光子 688313(硅光 CW 小批量、EML 验证中)</div>
+      <div class="k">排序原因</div><div class="v">弹性最大但确定性最低:海外 Lumentum 被 NVIDIA 锁产能至 2027,国产是"在追"不是"已替代"</div>
+      <div class="k">主要风险</div><div class="v">高端量产与良率<span class="ev u">未证实</span>;若 CPO 路线提前则可插拔模块需求生变</div>
+    </div>
+  </div>
+
+  <div class="pc"><div class="rk">P5</div>
+    <div class="hd"><span class="rank">P5</span><span class="ti">液冷快接头 UQD(微观单点)</span><span class="pill p-supp">供应稀缺层</span><span class="ev m">证据 中</span></div>
+    <div class="body">液冷整体是红海,但卡点下沉到<b>一颗零件</b>:UQD 快接头 —— 漏液最高发点、产能跟不上、报价飙升、海外(Parker/Staubli)刚被国产突破。要找液冷里的"控制层",应盯 UQD 而非整柜。</div>
+    <div class="kv">
+      <div class="k">卡住环节</div><div class="v">无漏+热插拔快接头(UQD)、CDU</div>
+      <div class="k">代表标的</div><div class="v">中航光电 002179(国产 UQD 领头) · 英维克 002837(全栈+零漏记录,勉强半个控制层)</div>
+      <div class="k">排序原因</div><div class="v">是液冷里唯一供给紧、壁垒真的单点;但单一零件价值量与天花板有限,故排末位</div>
+      <div class="k">主要风险</div><div class="v">国产玩家快速涌入摊薄溢价;整柜液冷价格战传导;部分自媒体份额数字 <span class="ev u">未核实</span></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="call warn" style="margin-top:18px">
+  <h3>刻意放低的"热门/明显"方向(以及为什么)</h3>
+  <p style="margin:6px 0 0">
+  · <b>算力芯片(寒武纪 688256 / 海光 688041)</b> —— 拥挤、估值高,且依赖<b>自己不掌控的台积电产能 + HBM</b>;故事强但贴近卡点弱。<br>
+  · <b>光模块组装龙头(中际旭创 / 新易盛)</b> —— A 股最强一层,但<b>份额领先 ≠ 控制卡点</b>,超额利润被上游 DSP+EML 截走;是优质受益标的,作为"卡点"它在上游被锁。<br>
+  · <b>液冷整柜 / 服务器电源 / 高速铜缆</b> —— 受益确定但<b>玩家多、同质、易替代</b>(红海)。<br>
+  · <b>IDC 运营(光环新网 / 宝信)、存储沾边(深科技 / 华天)</b> —— 同质拼电力指标 / 题材式列名,实质贡献存疑。</p>
+</div>
+
+<!-- ======================= 3 分层公司明细 ======================= -->
+<h2><span class="n">03</span>分层公司明细 · 带证据强度</h2>
+<p class="sub">角色 = 控制稀缺层 / 供应稀缺层 / 受益 / 控制力弱 / 仅故事。证据 <span class="ev s">强</span>(交易所/年报) · <span class="ev m">中</span>(公司口径/券商) · <span class="ev w">弱</span>(财经媒体) · <span class="ev u">未核实</span>(自媒体/股吧/待证)。</p>
+
+<h3>A · 算力芯片 + HBM/CoWoS 全球三紧层(A 股边缘)</h3>
+<div class="tblwrap"><table>
+<thead><tr><th>标的</th><th>角色</th><th>卡住/贴近环节</th><th>关键证据</th><th>证据</th><th>最大风险</th></tr></thead>
+<tbody>
+<tr><td><span class="cn">太极实业</span><br><span class="code">600667</span></td><td><span class="pill p-supp">供应稀缺层</span></td><td>SK 海力士 DRAM(含 HBM)后道封测,合资海太 55%</td><td>第四期后工序合同续签至 2030-06(交易所公告)</td><td><span class="ev s">强</span></td><td>"成本+约定收益"锁利;深绑单一客户;HBM 占比未单列 <span class="ev u">未核实</span></td></tr>
+<tr><td><span class="cn">雅克科技</span><br><span class="code">002409</span></td><td><span class="pill p-ctrl">控制/供应</span></td><td>HBM/先进制程 ALD 前驱体,供 SK海力士/三星/美光</td><td>全球前驱体市占 ~15–18%(第三),国内唯一打入海外三巨头</td><td><span class="ev m">中</span></td><td>核心资产是韩国子公司,地缘风险;耗材非控制环</td></tr>
+<tr><td><span class="cn">香农芯创</span><br><span class="code">300475</span></td><td><span class="pill p-weak">控制力弱</span></td><td>SK 海力士大陆主力代理分销</td><td>2025 半年报分销收入 166 亿占 97%(强:半年报)</td><td><span class="ev m">中</span></td><td>本质批发商,毛利薄无定价权,周期反转即回吐</td></tr>
+<tr><td><span class="cn">深科技</span><br><span class="code">000021</span></td><td><span class="pill p-story">仅有故事</span></td><td>沛顿科技号称 HBM3 量产/过 NVIDIA 验证</td><td>关键 HBM 数据仅见股吧/财富号,无公司公告佐证</td><td><span class="ev u">未证实</span></td><td>HBM 量产/良率/客户均待证;传统封测占比高</td></tr>
+<tr><td><span class="cn">寒武纪 / 海光</span><br><span class="code">688256 / 688041</span></td><td><span class="pill p-weak">受益/受限</span></td><td>国产 AI 芯片设计</td><td>2025 出货高增(媒体口径);受 BIS 管制只能境内 fab</td><td><span class="ev w">弱</span></td><td>拥挤+高估值;依赖不掌控的产能与 HBM</td></tr>
+</tbody>
+</table></div>
+<div class="src-note">全球三紧层(HBM 三巨头控 ~90%、台积电 CoWoS、ASML EUV)A 股<b>零控制力</b>,以上均为"沾边受益",最接近控制力的是太极(强证据)与雅克(中证据)。</div>
+
+<h3>B · 光互连(光模块 / 光芯片 / CPO)</h3>
+<div class="tblwrap"><table>
+<thead><tr><th>标的</th><th>角色</th><th>卡住/贴近环节</th><th>关键证据</th><th>证据</th><th>最大风险</th></tr></thead>
+<tbody>
+<tr><td><span class="cn">中际旭创</span><br><span class="code">300308</span></td><td><span class="pill p-benef">受益(份额龙头)</span></td><td>800G/1.6T 模块组装,1.6T 过英伟达认证 + 谷歌 TPU</td><td>1.6T 全球份额估 &gt;50%(机构口径,出货/产能 <span class="ev u">未核实</span>)</td><td><span class="ev m">中</span></td><td>上游 EML 缺货卡产能;CPO 若提前削弱可插拔需求</td></tr>
+<tr><td><span class="cn">新易盛</span><br><span class="code">300502</span></td><td><span class="pill p-benef">受益</span></td><td>800G/1.6T 模块,海外客户</td><td>1.6T 交付/份额均为机构预测 <span class="ev u">未核实</span></td><td><span class="ev w">弱–中</span></td><td>客户集中度高;EML 配给受制</td></tr>
+<tr><td><span class="cn">天孚通信</span><br><span class="code">300394</span></td><td><span class="pill p-supp">趋近供应稀缺层</span></td><td>光器件/光引擎封装,CPO 配套 FAU、外置光源 ELS</td><td>1.6T 光引擎批量交付;份额/单价为雪球及机构口径 <span class="ev u">未核实</span></td><td><span class="ev w">弱–中</span></td><td>CPO 放量延至 2028+ 则兑现慢</td></tr>
+<tr><td><span class="cn">光迅科技</span><br><span class="code">002281</span></td><td><span class="pill p-benef">受益(含芯片自研)</span></td><td>800G/1.6T 模块,自有光芯片产线(国家队)</td><td>800G 新客户订单 26H1 批量交付;800G LPO 已交付(公告口径)</td><td><span class="ev m">中</span></td><td>数通高端进度落后旭创/新易盛</td></tr>
+<tr><td><span class="cn">源杰科技</span><br><span class="code">688498</span></td><td><span class="pill p-supp">供应稀缺层(追赶)</span></td><td>高端 EML 国产替代</td><td>100G EML 过验证、200G EML 完成开发送样(年报/招股口径)</td><td><span class="ev m">中</span></td><td>高端仍处验证/送样,量产良率 <span class="ev u">未证实</span>;海外被 NVIDIA 锁产能</td></tr>
+<tr><td><span class="cn">仕佳光子</span><br><span class="code">688313</span></td><td><span class="pill p-benef">受益(无源+硅光起步)</span></td><td>AWG 批量、硅光 CW 小批量、EML 验证中</td><td>光芯片及器件收入同比 +190.92%(2025 年报摘要)</td><td><span class="ev m">中</span></td><td>EML 距高端量产远;体量小</td></tr>
+</tbody>
+</table></div>
+<div class="src-note">A 股全球光模块份额 2024 55.6% → 2025 <b>63.2%</b>,但<b>真卡点高端 EML/DSP 仍在海外</b>:25G+ 国产化率 &lt;15%、DSP 博通+Marvell 双寡头无成熟国产替代。"中国造模块,超额利润归 DSP+EML 控制者"。</div>
+
+<h3>C · 半导体设备 + 材料(国产替代,卡点分化)</h3>
+<div class="tblwrap"><table>
+<thead><tr><th>标的</th><th>角色</th><th>卡住/贴近环节</th><th>关键证据</th><th>证据</th><th>最大风险</th></tr></thead>
+<tbody>
+<tr><td><span class="cn">鼎龙股份</span><br><span class="code">300054</span></td><td><span class="pill p-ctrl">控制稀缺层</span></td><td>CMP 抛光垫(大陆唯一破杜邦垄断)</td><td>反向供货外资;2024 抛光垫收入 +~72%;CMP 三剑客占 37%</td><td><span class="ev s">强</span></td><td>杜邦反扑/价格战;高基数后增速回落</td></tr>
+<tr><td><span class="cn">中微公司</span><br><span class="code">688012</span></td><td><span class="pill p-ctrl">控制稀缺层(先进刻蚀)</span></td><td>介质刻蚀 CCP,进台积电 5nm</td><td>全球唯一进台积电 7/5nm 的国产刻蚀商;25H1 刻蚀收入 +40%</td><td><span class="ev s">强</span></td><td>成熟制程刻蚀已内卷;先进订单受扩产节奏制约</td></tr>
+<tr><td><span class="cn">华海清科</span><br><span class="code">688120</span></td><td><span class="pill p-ctrl">控制→转扩产</span></td><td>CMP 设备(国内第一)</td><td>CMP 国产化 2018&lt;5%→2024&gt;30%,国内市占第一</td><td><span class="ev s">强</span></td><td>卡点松动,后续是份额逻辑非垄断</td></tr>
+<tr><td><span class="cn">中科飞测</span><br><span class="code">688361</span></td><td><span class="pill p-supp">供应稀缺层</span></td><td>前道量测/检测(对标 KLA)</td><td>前道量检测国产化 &lt;3%、KLA &gt;50%;飞测 2023 毛利 52.6%</td><td><span class="ev m">中</span></td><td>KLA 技术代差大,高端缺陷检测未攻克</td></tr>
+<tr><td><span class="cn">北方华创</span><br><span class="code">002371</span></td><td><span class="pill p-benef">受益(平台广)</span></td><td>刻蚀/PVD/CVD/炉管多线</td><td>28nm 及以上全覆盖,14nm 验证中;连续 9 年净利高增</td><td><span class="ev s">强</span></td><td>单环节非全球第一;先进制程仍追赶</td></tr>
+<tr><td><span class="cn">拓荆科技</span><br><span class="code">688072</span></td><td><span class="pill p-supp">供应稀缺层</span></td><td>薄膜沉积 PECVD/ALD</td><td>薄膜全球 AMAT+LAM+TEL ~73%,国产历史 5–8%;扩产至 1300 台套</td><td><span class="ev m">中</span></td><td>高端 ALD 仍短板;扩产能否被高端订单消化 <span class="ev u">未核实</span></td></tr>
+<tr><td><span class="cn">南大光电</span><br><span class="code">300346</span></td><td><span class="pill p-supp">供应稀缺层(ArF 领跑)</span></td><td>ArF 光刻胶(最高端国产突破口)</td><td>多支 ArF 在晶圆厂验证、3 支已通过小批量;28nm 量产</td><td><span class="ev m">中</span></td><td>国产化 &lt;5%、日企 87%,放量极慢</td></tr>
+<tr><td><span class="cn">安集科技</span><br><span class="code">688019</span></td><td><span class="pill p-supp">供应稀缺层→扩容</span></td><td>CMP 抛光液(国内龙头)</td><td>2024 抛光液收入 15.5 亿、全球约 10%、全品类</td><td><span class="ev s">强</span></td><td>全球仅 ~10%,卡博特仍主导;高端节点验证</td></tr>
+<tr><td><span class="cn">沪硅产业</span><br><span class="code">688126</span></td><td><span class="pill p-supp">供应稀缺层(大硅片)</span></td><td>12 寸大硅片</td><td>300mm 产能 65 万片/月、国内市占 ~10%,前五占全球 90%</td><td><span class="ev m">中</span></td><td>高端 7nm/SOI 仍被信越/SUMCO 垄断;持续亏损扩产</td></tr>
+<tr><td><span class="cn">江丰电子</span><br><span class="code">300666</span></td><td><span class="pill p-benef">受益(卡点已攻克)</span></td><td>半导体溅射靶材 + 零部件</td><td>半导体靶材出货量全球第一,已转优势</td><td><span class="ev s">强</span></td><td>稀缺性下降;成长靠零部件新曲线</td></tr>
+<tr><td><span class="cn">华特/金宏(特气)</span><br><span class="code">688268 / 688106</span></td><td><span class="pill p-weak">受益→红海</span></td><td>电子大宗/含氟特气</td><td>2025 毛利大跌:华特 -7.15%、金宏 -39.41%</td><td><span class="ev m">中</span></td><td>典型内卷:以价换量、增量不增利</td></tr>
+</tbody>
+</table></div>
+<div class="src-note"><b>真卡点</b>:量测(688361)、CMP 抛光垫(300054)、高端 ArF 光刻胶(300346/603650)、ALD 前驱体(002409)、高端大硅片(688126)。<b>已内卷</b>:成熟制程刻蚀/清洗、大宗特气、靶材。多为 2022–2024 口径,<b>2025 最新国产化率与市占待核</b> <span class="ev u">未核实</span>。</div>
+
+<h3>D · 先进封装 + 高速 PCB/CCL</h3>
+<div class="tblwrap"><table>
+<thead><tr><th>标的</th><th>角色</th><th>卡住/贴近环节</th><th>关键证据</th><th>证据</th><th>最大风险</th></tr></thead>
+<tbody>
+<tr><td><span class="cn">生益科技</span><br><span class="code">600183</span></td><td><span class="pill p-ctrl">控制稀缺层(高速CCL)</span></td><td>M8/M9 高速覆铜板,英伟达认证</td><td>M9 2025-12 过英伟达认证、26Q1 批量交付 78 层背板;26Q1 归母 +105.5%</td><td><span class="ev s">强</span></td><td>上游电子布/树脂断供倒逼限产;验证厂增多压溢价</td></tr>
+<tr><td><span class="cn">沪电股份</span><br><span class="code">002463</span></td><td><span class="pill p-supp">供应稀缺层(高多层PCB)</span></td><td>AI 芯片配套高端 PCB</td><td>25H1 归母预增 40%+;约 43 亿扩产,2026H2 试产</td><td><span class="ev s">强</span></td><td>不控 CCL,受材料涨价挤压;新产能 2026H2 才出</td></tr>
+<tr><td><span class="cn">胜宏科技</span><br><span class="code">300476</span></td><td><span class="pill p-supp">供应稀缺层(英伟达链)</span></td><td>AI 服务器 PCB 高阶层</td><td>25Q1 AI/数据中心收入占比 &gt;40%;AI 服务器 PCB 份额突破 30%(<span class="ev u">建议二次核</span>)</td><td><span class="ev m">中</span></td><td>高份额=高客户集中度(英伟达);扩产稼动风险</td></tr>
+<tr><td><span class="cn">深南电路</span><br><span class="code">002916</span></td><td><span class="pill p-supp">IC 载板国产龙头</span></td><td>FC-BGA/ABF 载板 + 国产算力 PCB</td><td>广州新厂 20 层以下 FC-BGA 量产,最小线宽 9/12μm(载板增速为券商预测)</td><td><span class="ev m">中</span></td><td>ABF 膜受制味之素;载板高端验证周期长</td></tr>
+<tr><td><span class="cn">通富微电</span><br><span class="code">002156</span></td><td><span class="pill p-benef">受益+承接力强</span></td><td>2.5D/Chiplet 先进封装(AMD 伙伴)</td><td>经 AMD MI300X HBM3 封装验证良率 98%;5nm chiplet 量产;封测行业第 2</td><td><span class="ev s">强</span></td><td>深绑 AMD 单一大客户;CoWoS 级仍追赶台积电</td></tr>
+<tr><td><span class="cn">长电科技</span><br><span class="code">600584</span></td><td><span class="pill p-benef">受益+承接力强</span></td><td>XDFOI 2.5D/3D 异构集成</td><td>XDFOI chiplet 稳定量产,应用 HPC/AI</td><td><span class="ev m">中</span></td><td>AI 封装营收占比与放量节奏未明 <span class="ev u">未核实</span></td></tr>
+</tbody>
+</table></div>
+<div class="src-note"><b>高速 PCB/CCL 是被低估的紧环节</b> —— 但真正被低估的是 <b>CCL + 上游电子布</b>(物理瓶颈、证据最硬),而非 PCB 成品(扩产已是千亿共识,反稀释稀缺性)。先进封装 A 股能承接国产算力中高端"主体工序",但被载板/中介层产能封顶"量",远未自主可控。</div>
+
+<h3>E · 数据中心物理层(电源 / 液冷 / 铜连接 / IDC)</h3>
+<div class="tblwrap"><table>
+<thead><tr><th>标的</th><th>角色</th><th>卡住/贴近环节</th><th>关键证据</th><th>证据</th><th>最大风险</th></tr></thead>
+<tbody>
+<tr><td><span class="cn">英维克</span><br><span class="code">002837</span></td><td><span class="pill p-ctrl">控制稀缺层(液冷龙头)</span></td><td>全栈 CDU/QD/manifold/冷板</td><td>已交付 &gt;1.2GW、零漏记录;全栈方案毛利 ~32%</td><td><span class="ev s">强</span></td><td>整机/方案红海,价格战压毛利</td></tr>
+<tr><td><span class="cn">飞荣达</span><br><span class="code">300602</span></td><td><span class="pill p-benef">受益(英伟达冷板)</span></td><td>英伟达液冷板供应</td><td>25H1 净利 +104~124%、散热件营收 +53%(份额/精度数字 <span class="ev u">未核实</span>)</td><td><span class="ev m">中</span></td><td>单一大客户依赖;激进份额数字未独立核实</td></tr>
+<tr><td><span class="cn">麦格米特</span><br><span class="code">002851</span></td><td><span class="pill p-supp">供应稀缺层(英伟达 PSU)</span></td><td>5.5kW PSU、800V HVDC</td><td>PSU 批量交付英伟达;76kW 高密架构 Q3'25 量产</td><td><span class="ev m">中–强</span></td><td>英伟达供应链认证波动</td></tr>
+<tr><td><span class="cn">科华数据</span><br><span class="code">002335</span></td><td><span class="pill p-benef">受益(UPS/HVDC 第一)</span></td><td>高端 UPS、HVDC、自研 SST</td><td>UPS 份额 18.6% 居首;HVDC 中标腾讯</td><td><span class="ev m">中–强</span></td><td>SST 量产未证;HVDC 竞争激烈</td></tr>
+<tr><td><span class="cn">沃尔核材</span><br><span class="code">002130</span></td><td><span class="pill p-benef">受益(铜缆龙头)</span></td><td>高速铜连接(NVLink/铜背板)</td><td>子公司完成单通道 224G 样品</td><td><span class="ev m">中–强</span></td><td>长期被光连接替代;参与者多</td></tr>
+<tr><td><span class="cn">中航光电</span><br><span class="code">002179</span></td><td><span class="pill p-supp">供应稀缺层(UQD)</span></td><td>液冷快接头 UQD(液冷唯一真卡点)</td><td>中金列 UQD 为液冷最紧缺环节,中航光电领头国产突破</td><td><span class="ev m">中</span></td><td>国产玩家涌入摊薄溢价;单一零件天花板有限</td></tr>
+<tr><td><span class="cn">润泽科技</span><br><span class="code">300442</span></td><td><span class="pill p-benef">受益(AIDC 龙头)</span></td><td>AIDC 自建</td><td>AIDC 收入 24H1 同比 +1147%;毛利 30.7% 高于光环 16.5%</td><td><span class="ev m">中</span></td><td>上游电力指标/绿电约束;资本开支重</td></tr>
+</tbody>
+</table></div>
+<div class="src-note"><b>液冷/电源整体是"受益但控制力弱"的红海</b>(国产化 &gt;60%、玩家众多)。真正的控制点在两端:微观=<b>快接头 UQD</b>、宏观=<b>电力本身</b>(变压器/绿电/核电)。整柜液冷与服务器电源都不是"控制稀缺层"。</div>
+
+<!-- ======================= 4 证伪条件 ======================= -->
+<h2><span class="n">04</span>什么情况说明判断错了</h2>
+<div class="grid2">
+  <div class="call dang"><h3>系统性(整条链 β 反转)</h3>
+    <p style="margin:6px 0 0">· 美系四大云厂<b>下季 capex 指引回撤</b> —— 这是整条链最大的回撤来源(亚马逊 2026 自由现金流或转负)。<br>· AI 变现持续不及预期 → 推理需求证伪。</p></div>
+  <div class="call warn"><h3>结构性(卡点松动)</h3>
+    <p style="margin:6px 0 0">· HBM/CoWoS 缺口收窄<b>快于预期</b>(已 20%→10%)。<br>· <b>CCL 千亿扩产潮兑现</b> → 涨价逻辑被证伪、稀缺性稀释。<br>· CPO 大规模部署<b>提前到 2027</b> → 可插拔光模块需求削弱(反之延后则利好模块)。</p></div>
+  <div class="call warn"><h3>个体(兑现/集中度)</h3>
+    <p style="margin:6px 0 0">· 国产替代验证级公司(源杰/中科飞测/南大)<b>迟迟跨不过高端量产门槛</b> → 故事兑现慢。<br>· 单一大客户波动:通富=AMD、太极=SK海力士、飞荣达=英伟达。</p></div>
+  <div class="call dang"><h3>地缘 / 真实性</h3>
+    <p style="margin:6px 0 0">· 雅克核心前驱体资产是<b>韩国子公司</b>,管制下供货连续性。<br>· 深科技/华天等 HBM 题材若<b>正式公告证伪</b>。<br>· 大量份额/产能数字来自自媒体,<b>落库前须以公告交叉验证</b>。</p></div>
+</div>
+
+<!-- ======================= 5 下一步 ======================= -->
+<h2><span class="n">05</span>接下来盯什么(具体验证动作)</h2>
+<div class="call">
+  <p style="margin:0">
+  <b>P1 CCL/PCB:</b> 生益 CCL 单价 + 上游电子布交期 + 英伟达认证后批量节奏;沪电 2026H2 新产能稼动。<br>
+  <b>P2 设备材料:</b> 鼎龙 CMP 三剑客收入占比与抛光垫毛利;南大 ArF 验证转量产进度;查各家 <b>2025 年报/半年报</b>的收入与在手订单结构(扩产能否被高端订单消化)。<br>
+  <b>P3 封装:</b> 通富/长电年报里 AI 先进封装营收单独口径;IC 载板 ABF 供给。<br>
+  <b>P4 光芯片:</b> 源杰 200G EML 是否从送样转<b>大批量+良率</b>;CPO 时间线看 SemiAnalysis / Yole / LightCounting。<br>
+  <b>存储/HBM:</b> 太极年报海太半导体 HBM 后道单独口径与毛利;雅克前驱体中 HBM 收入真实占比;深科技<b>等公司正式公告</b>(目前一律按未核实)。<br>
+  <b>宏观证伪信号:</b> 美系云厂下季 capex 指引、HBM/CoWoS 缺口变化、电力/变压器短缺对数据中心投产的实际拖累。</p>
+</div>
+
+<!-- ======================= 6 来源 ======================= -->
+<h2><span class="n">06</span>主要来源(择要 · 优先财报/交易所/权威媒体)</h2>
+<div class="grid2">
+<div>
+<h3>需求 / 芯片 / HBM / CoWoS</h3>
+<ol class="src">
+<li><b>太极实业</b> 临2025-035 后工序合同(上证披露)— file.finance.qq.com/.../1223910508.PDF</li>
+<li><b>香农芯创</b> 2025 半年报 — file.finance.qq.com/.../1224577570.PDF</li>
+<li><b>NVIDIA</b> FY2026 Q4 8-K(SEC)— sec.gov/Archives/edgar/data/1045810/</li>
+<li><b>CNBC</b> 四大科技 2026 AI 支出近 7000 亿美元</li>
+<li><b>TechSpot</b> SK 海力士产能售罄至 2026</li>
+<li><b>TrendForce</b> 台积电 CoWoS 缺口 20%→10%(2026-06-15)</li>
+<li><b>CFR</b> 中国 AI 芯片差距与出口管制</li>
+</ol>
+<h3>光互连</h3>
+<ol class="src">
+<li><b>TrendForce</b> 2026 AI 光收发市场 260 亿美元 / 元件短缺</li>
+<li><b>TrendForce</b> NVIDIA 战略锁定重塑激光供应链</li>
+<li><b>PhotonCap</b> 中国光模块占前十 7 席、利润仍归芯片(25G+ 国产化&lt;15%)</li>
+<li><b>源杰 688498 / 仕佳 688313</b> 2025 年报摘要</li>
+<li><b>EDN / SemiAnalysis</b> CPO 2026 现状与量产时间线重估</li>
+</ol>
+</div>
+<div>
+<h3>设备 / 材料</h3>
+<ol class="src">
+<li><b>智研咨询</b> 前道量检测 / CMP 设备 2025 国产化</li>
+<li><b>国金证券</b>(新浪财经)CMP 抛光液/垫(安集/鼎龙)</li>
+<li><b>腾讯新闻</b> 光刻胶国产率不足 5%(南大 ArF / 彤程 KrF)</li>
+<li><b>OFweek</b> 电子特气利润率大跌(金宏 -39%、华特 -7%)</li>
+<li><b>新华网</b> 江丰电子靶材出货量全球第一</li>
+<li><b>EET-China</b> 雅克科技前驱体全球 ~15%</li>
+</ol>
+<h3>PCB/CCL / 封装 / 物理层</h3>
+<ol class="src">
+<li><b>财联社</b> AI 硬件升级引爆高端 PCB / IC 载板缺口</li>
+<li><b>同花顺</b> 覆铜板涨价 · 生益 M9 过英伟达认证(26Q1 业绩)</li>
+<li><b>国际电子商情</b> 电子布价格涨幅高达 100%</li>
+<li><b>东方财富/网易</b> 通富微电 · 先进封装从后道变基础设施</li>
+<li><b>中金</b>(新浪)UQD 为液冷最紧缺环节</li>
+<li><b>新浪科技</b> 美国 2026 近半数据中心因电力设备短缺延期</li>
+</ol>
+</div>
+</div>
+
+<div class="foot">
+  <b>方法说明 ·</b> 本页由 serenity-skill 供应链卡点工作流驱动,5 路并行实时检索(2025H2–2026H1),覆盖 12 层、60+ 家公司、50+ 信息源。先排产业链层级,再排公司;稀缺度 = 供给集中度 × 认证壁垒 × 扩产难度。<br>
+  <b>证据诚实声明 ·</b> 凡标 <span class="ev u">未核实</span> 者来自财经媒体/券商/自媒体口径,未回公司公告原文核验,投研引用前须交叉验证;全文未杜撰价格、市值、订单、客户、产能数字,拿不到硬披露处一律标注。<br>
+  <b>风险边界 ·</b> 仅研究支持与研究优先级排序,不构成买卖建议,不含任何收益承诺。交易决策与最终责任由你自己承担。<br>
+  <span class="mono" style="color:var(--mut2)">生成 2026-06-16 · 本地文档,未外发 · Finance_Agent / docs/research/</span>
+</div>
+
+</div>
+</body>
+</html>
