@@ -4,6 +4,7 @@
 # dependencies = [
 #   "curl_cffi==0.9.0",
 #   "readability-lxml==0.8.1",
+#   "lxml-html-clean",
 #   "html2text==2024.2.26",
 #   "beautifulsoup4==4.12.3",
 #   "lxml==5.2.2",
@@ -310,7 +311,7 @@ def main():
         date = meta["published_at"]
         name_prefix = f"{date}-{title_slug}"
 
-        md_dir = os.path.join(kb_root, "raw", "news", "weixin", account_slug)
+        md_dir = os.path.join(kb_root, "raw", "weixin", account_slug)
         ensure_dir(md_dir)
         md_path = os.path.join(md_dir, f"{name_prefix}.md")
         if os.path.exists(md_path) and not args.overwrite:

@@ -42,10 +42,12 @@ from _bilibili_common import (
     dynamic_daily_path,
     ensure_dir,
     get_sessdata,
+    get_wbi_keys,
     init_fingerprint,
     iso_utc_to_cn_date,
     merge_daily_dynamics,
     resolve_kb_root,
+    sign_wbi_params,
     slugify,
 )
 
@@ -247,13 +249,22 @@ def get_dynamics(client, uid, count, types_filter, sessdata):
         types_filter = CONTENT_TYPES
     results, errors, uploader = [], {}, ""
     offset = ""
+    # 预取 WBI key（lru_cache，只调一次）
+    try:
+        img_key, sub_key = get_wbi_keys(client)
+    except Exception:
+        img_key, sub_key = "", ""
+    # 动态 space 页面 Referer（比 bilibili.com 首页更匹配，有助于通过地区校验）
+    client.headers["Referer"] = f"https://space.bilibili.com/{uid}/dynamic"
     for _page in range(10):
         if len(results) >= count:
             break
         api_sleep()
-        params = {"host_mid": uid}
+        params: dict = {"host_mid": uid, "timezone_offset": -480}
         if offset:
             params["offset"] = offset
+        if img_key and sub_key:
+            params = sign_wbi_params(params, img_key, sub_key)
         try:
             resp = client.get(
                 "https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space",
@@ -284,12 +295,17 @@ def get_dynamics(client, uid, count, types_filter, sessdata):
                 try:
                     init_fingerprint(client, sessdata)
                 except Exception:
-                    continue
+                    pass
                 api_sleep()
+                retry_params: dict = {"host_mid": uid, "timezone_offset": -480}
+                if offset:
+                    retry_params["offset"] = offset
+                if img_key and sub_key:
+                    retry_params = sign_wbi_params(retry_params, img_key, sub_key)
                 try:
                     resp = client.get(
                         "https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space",
-                        params=params,
+                        params=retry_params,
                     )
                 except Exception:
                     continue

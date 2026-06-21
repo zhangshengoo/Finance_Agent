@@ -163,7 +163,11 @@ def _save_buvid_cache(b3: str, b4: str) -> None:
 
 
 def init_fingerprint(client: Session, sessdata: str | None = None) -> None:
-    """设置 buvid3/buvid4 cookie。优先复用本地缓存（TTL 7天），过期才请求 /finger/spi。"""
+    """设置 buvid3/buvid4/SESSDATA/DedeUserID cookie。
+
+    buvid 优先复用本地缓存（TTL 7天）；DedeUserID 每次从 /nav 接口实时取（需已登录）。
+    DedeUserID 是动态 /feed/space API 不被地区拦截的关键 cookie 字段。
+    """
     cached = _load_buvid_cache()
     if cached:
         b3, b4 = cached
@@ -181,8 +185,19 @@ def init_fingerprint(client: Session, sessdata: str | None = None) -> None:
         cookie_parts.append(f"buvid4={b4}")
     if sessdata:
         cookie_parts.append(f"SESSDATA={sessdata}")
+    # 临时设置到 client 供 nav 接口鉴权，再取 mid
     if cookie_parts:
         client.headers["Cookie"] = "; ".join(cookie_parts)
+    # 从 nav 取登录 mid（DedeUserID），加入 cookie 解锁动态 API 地区限制
+    try:
+        nav_resp = client.get("https://api.bilibili.com/x/web-interface/nav")
+        nav_data = nav_resp.json().get("data", {})
+        mid = str(nav_data.get("mid", ""))
+        if mid and mid != "0" and nav_data.get("isLogin"):
+            cookie_parts.append(f"DedeUserID={mid}")
+            client.headers["Cookie"] = "; ".join(cookie_parts)
+    except Exception:
+        pass  # 未登录或网络异常不影响 buvid 设置
 
 
 # --- KB_ROOT 解析 + slug 工具 ---

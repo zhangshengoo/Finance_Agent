@@ -271,8 +271,12 @@ def main():
                 bvid = audio_path.stem
             raw_json_path = _create_raw_json(kb_root, bvid, transcript, audio_path)
 
+        try:
+            _rel = raw_json_path.resolve().relative_to(kb_root.resolve())
+        except ValueError:
+            _rel = raw_json_path           # 传入相对/外部路径时直接回显，不再崩溃
         print("\n下一步建议：")
-        print(f"  raw-preview: render_preview.py --source {raw_json_path.relative_to(kb_root)}")
+        print(f"  raw-preview: render_preview.py --source {_rel}")
         print(f"  或摄入 wiki: finance-ingest")
 
     finally:

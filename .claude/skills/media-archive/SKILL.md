@@ -12,7 +12,7 @@ description: 把 B 站视频/动态 与 微信公众号文章 抓取后落到 Kn
 本 skill 的责任**严格限定在 raw/ 层**：
 - 抓取（B 站 API / 公众号 HTML）
 - 规整为可被 `finance-ingest` 消费的结构化文件
-- 落到 `raw/transcripts/bilibili/`、`raw/news/weixin/`、`raw/assets/{bilibili,weixin}/`
+- 落到 `raw/transcripts/bilibili/`、`raw/weixin/`、`raw/assets/{bilibili,weixin}/`
 - 提示用户下一步触发 `finance-ingest`
 
 **永远不写 `wiki/`、不写 `ontology/`、不动 `.ingest-cache/`**。那是 `finance-ingest` 的事。
@@ -57,7 +57,7 @@ description: 把 B 站视频/动态 与 微信公众号文章 抓取后落到 Kn
 | B 站视频（含字幕） | `raw/transcripts/bilibili/<up>/videos/<YYYY>/<YYYY-MM>/` | JSON | `<YYYY-MM-DD>_<bvid>.json` |
 | B 站动态（按日聚合） | `raw/transcripts/bilibili/<up>/dynamics/<YYYY>/<YYYY-MM>/` | JSON | `<YYYY-MM-DD>.json` |
 | B 站图片 | `raw/assets/bilibili/<uid>/` | png/jpg | 原文件名（hash 兜底） |
-| 微信公众号文章 | `raw/news/weixin/<account-slug>/` | Markdown + frontmatter | `<date>-<title-slug>.md` |
+| 微信公众号文章 | `raw/weixin/<account-slug>/` | Markdown + frontmatter | `<date>-<title-slug>.md` |
 | 公众号正文图片 | `raw/assets/weixin/<account-slug>/` | png/jpg | `<date>-<title-slug>-<idx>.<ext>` |
 
 **slug / 日期规则**：
@@ -77,7 +77,7 @@ description: 把 B 站视频/动态 与 微信公众号文章 抓取后落到 Kn
    - **公众号 URL**：以 `https://mp.weixin.qq.com/s/` 开头
 2. 解析 `KB_ROOT`（见上节）。
 3. `ls "${KB_ROOT}/raw/{transcripts,news,assets}"` 预检。
-4. 必要时 `mkdir -p` 子目录（`raw/transcripts/bilibili/`、`raw/news/weixin/<account-slug>/`、`raw/assets/bilibili/<uid>/`、`raw/assets/weixin/<account-slug>/`）。
+4. 必要时 `mkdir -p` 子目录（`raw/transcripts/bilibili/`、`raw/weixin/<account-slug>/`、`raw/assets/bilibili/<uid>/`、`raw/assets/weixin/<account-slug>/`）。
 
 ### Phase B — 抓取并落 raw/
 
@@ -142,13 +142,13 @@ uv run --with 'curl_cffi==0.9.0' \
 
 #### 公众号文章
 ```bash
-uv run --with 'curl_cffi==0.9.0,readability-lxml==0.8.1,html2text==2024.2.26,beautifulsoup4==4.12.3' \
+uv run --with 'curl_cffi==0.9.0,readability-lxml==0.8.1,lxml-html-clean,html2text==2024.2.26,beautifulsoup4==4.12.3' \
   "${SKILL_DIR}/scripts/fetch_weixin.py" \
   --kb-root "${KB_ROOT}" \
   --url 'https://mp.weixin.qq.com/s/...'
 ```
 - 同步执行即可（无 WBI 风控，但有 referer 限制）
-- 输出：一份 `raw/news/weixin/<account-slug>/<date>-<title-slug>.md`；正文图片落 `raw/assets/weixin/<account-slug>/`，文中改写为相对路径
+- 输出：一份 `raw/weixin/<account-slug>/<date>-<title-slug>.md`；正文图片落 `raw/assets/weixin/<account-slug>/`，文中改写为相对路径
 
 ### Phase B+ — 重建创作者时间线（B 站，自动收尾）
 
@@ -168,7 +168,7 @@ python3 "${SKILL_DIR}/scripts/build_timeline.py" \
 
 **定位**：`timeline.json` 与 `_previews/` 同等地位——派生、可重建、随时可删，**不进** `wiki/` / `ontology/` / `_index.json`。它既不破坏 `raw/` 不可变铁律，也不绕过 `finance-ingest` 的两步 CoT 人工 review 边界。设计见 [`frontend/media-timeline-architecture.html`](../../../frontend/media-timeline-architecture.html)：**「wiki 装结论，raw + 轻量 digest 装流水」**。
 
-> 公众号文章（`raw/news/weixin/`）暂不纳入 `timeline.json`（当前仅覆盖 B 站 UP 主时间线）。
+> 公众号文章（`raw/weixin/`）暂不纳入 `timeline.json`（当前仅覆盖 B 站 UP 主时间线）。
 
 ### Phase C — 报告结果 + 提示下游 skill（不自动调用）
 
@@ -318,7 +318,7 @@ raw-preview 与 asset-describe 的产物**都不进 wiki / ontology / _index.jso
 - `stats.by_type` 计数与对应数组长度一致（合并时重算）
 - 同日二次抓取走 **C2b 新值覆盖合并**：相同 `dynamic_id` 的旧条目被新条目整体替换；新增条目追加；顶层 `fetched_at` 更新为最新时间
 
-### 公众号 Markdown（`raw/news/weixin/<account-slug>/<date>-<title-slug>.md`）
+### 公众号 Markdown（`raw/weixin/<account-slug>/<date>-<title-slug>.md`）
 
 ```markdown
 ---
@@ -405,7 +405,7 @@ uv run scripts/migrate_bilibili_layout.py --kb-root "${KB_ROOT}" --apply
 
 - `uv`（PEP 723 内联依赖管理）
 - B 站抓取：`curl_cffi==0.9.0`（自动安装）
-- 公众号抓取：`readability-lxml`、`html2text`、`beautifulsoup4`（自动安装）
+- 公众号抓取：`readability-lxml`、`lxml-html-clean`、`html2text`、`beautifulsoup4`（自动安装）
 - B 站 ASR 转写（`transcribe_bilibili.py`）：
   - `Third_Party/bili2text/`：主体工具，含 `DashScopeQwenTranscriber`（已安装于项目中）
   - `Third_Party/Qwen3-ASR-Toolkit/`：QwenASR 封装（重试/幻觉过滤），已克隆
