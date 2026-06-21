@@ -568,12 +568,69 @@ def _simulate_mode(args, persist_dir, out_dir, runid):
             "memory_embed_model": args.memory_embed_model, "n_decisions": len(decisions),
             "n_trades": len(all_trades), "n_closed_trades": len(closed_trades), "n_reflected": n_reflected,
             "metrics": metrics, "generated_at": datetime.now().isoformat(timespec="seconds")})
+        report_path = _write_simulate_report_md(args, runid, out_dir, tickers,
+                                                 equity_curve, closed_trades, metrics)
+        if report_path:
+            print(f"   report : {report_path}")
 
     m = metrics
     print(f"OK mode=simulate universe={','.join(tickers)} days={len(equity_curve)} "
           f"total_return={m['total_return']} sharpe={m['sharpe']} maxDD={m['max_drawdown']} "
           f"win_rate={m['win_rate']} closed={m['n_closed_trades']} reflected={n_reflected} "
           f"{'(dry-run)' if args.dry_run else 'out='+out_dir}")
+
+
+def _write_simulate_report_md(args, runid, out_dir, tickers, equity_curve, closed_trades, metrics):
+    """M2 单票前向模拟 → 前端可读 backtest-report.md（mode: simulate）。
+    仅单票挂公司页（多票组合视图后续）；equity_curve + metrics 放正文 json 块（数组进不了 mini-YAML）。"""
+    if len(tickers) != 1:
+        print("  （多票组合：跳过前端报告，仅机器产物；组合视图后续）")
+        return None
+    ticker = tickers[0]
+    kb_root = os.path.abspath(os.path.join(args.ta_root, os.pardir, "Knowledge_Wiki"))
+    report_dir = args.report_dir or os.path.join(kb_root, "raw", "analysis", "backtests", "cn")
+    os.makedirs(report_dir, exist_ok=True)
+    report_path = os.path.join(report_dir, f"{ticker}-{runid}.md")
+    rel_out = os.path.relpath(out_dir, kb_root).replace(os.sep, "/")
+    m = metrics or {}
+
+    def _pct(x):
+        return round(x * 100, 2) if isinstance(x, (int, float)) else None
+
+    def _atom(v):
+        return v if v is not None else "null"
+
+    p_from = equity_curve[0]["date"] if equity_curve else ""
+    p_to = equity_curve[-1]["date"] if equity_curve else ""
+    tr, mdd = _pct(m.get("total_return")), _pct(m.get("max_drawdown"))
+    wr, vb = _pct(m.get("win_rate")), _pct(m.get("vs_benchmark"))
+    n_closed = m.get("n_closed_trades", 0) or 0
+    has_bench = any(p.get("benchmark_equity") for p in equity_curve)
+    run_status = "ok" if (equity_curve and n_closed) else "partial"
+
+    payload = json.dumps({"mode": "simulate", "metrics": m,
+                          "equity_curve": equity_curve, "trades": closed_trades}, ensure_ascii=False)
+
+    fm = ["---", "type: backtest-report", f'ticker: "{ticker}"', "mode: simulate",
+          f"run_status: {run_status}", f'as_of: "{p_to}"',
+          f'period_from: "{p_from}"', f'period_to: "{p_to}"',
+          f"initial_cash: {int(args.initial_cash)}",
+          f"total_return_pct: {_atom(tr)}", f"sharpe: {_atom(m.get('sharpe'))}",
+          f"max_drawdown_pct: {_atom(mdd)}", f"win_rate_pct: {_atom(wr)}",
+          f"vs_benchmark_pct: {_atom(vb)}", f"n_closed_trades: {n_closed}",
+          "sources:", f"  - {rel_out}/equity_curve.json", f"  - {rel_out}/trades.jsonl",
+          f"  - {rel_out}/config.json", "---"]
+
+    body = [f"# {ticker} · M2 前向纸面交易", "",
+            (f"{p_from} → {p_to} 单票前向模拟（A 股 T+1，初始资金 ¥{int(args.initial_cash):,}）。"
+             f"总收益 {tr if tr is not None else '—'}%，最大回撤 {mdd if mdd is not None else '—'}%，"
+             f"平仓 {n_closed} 笔。" + ("（含基准对比）" if has_bench else "")),
+            "", "⚠ 净值/收益用 Tushare 真实 qfq close 逐日 mark-to-market；非投资建议。", "",
+            "<!-- backtest-json -->", "```json", payload, "```", ""]
+
+    with open(report_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(fm) + "\n\n" + "\n".join(body) + "\n")
+    return report_path
 
 
 def _reflect_close(args, persist_dir, ticker, snap, returns_str):
