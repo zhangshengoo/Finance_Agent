@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生益科技 600183 单公司深挖 · serenity 单公司挑战 · 2026-06-17</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1b222c; --bd:#232c3a; --bd2:#2c3747;
+    --tx:#c9d4e3; --mut:#8b97a8; --dim:#6b7787;
+    --acc:#58a6ff; --acc2:#79c0ff;
+    --green:#3fb950; --amber:#d29922; --red:#f85149; --gray:#8b949e; --purple:#bc8cff;
+    --mono:'SF Mono',ui-monospace,'JetBrains Mono',Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+    font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:34px 26px 90px}
+  a{color:var(--acc);text-decoration:none} a:hover{text-decoration:underline}
+  h1{font-size:26px;font-weight:800;margin:0 0 4px}
+  h2{font-size:13px;font-weight:700;letter-spacing:1.6px;color:var(--acc2);
+    text-transform:uppercase;margin:0 0 16px;padding-bottom:9px;border-bottom:1px solid var(--bd)}
+  .sub{color:var(--mut);font-size:13.5px;margin:0 0 4px}
+  .mono{font-family:var(--mono)}
+  section{margin:40px 0 0}
+  .secno{font-family:var(--mono);color:var(--dim);font-weight:700;margin-right:8px}
+
+  .hd{border:1px solid var(--bd);background:linear-gradient(180deg,#161d27,#12171f);border-radius:13px;padding:24px 26px;margin-bottom:8px}
+  .hdtop{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .tk{font-family:var(--mono);font-size:15px;color:var(--acc2);background:#1f2937;padding:3px 10px;border-radius:6px;border:1px solid var(--bd2)}
+  .statbar{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+  .stat{flex:1;min-width:120px;border:1px solid var(--bd);background:var(--panel);border-radius:9px;padding:10px 13px}
+  .stat .l{font-size:11px;color:var(--mut);font-family:var(--mono);letter-spacing:.4px}
+  .stat .v{font-size:18px;font-weight:800;color:#e7edf5;margin-top:3px;font-family:var(--mono)}
+  .stat .v.up{color:#ff8a85} .stat .v.ok{color:#7ee2a0}
+  .disc{margin-top:16px;padding:11px 14px;border-left:3px solid var(--amber);background:rgba(210,153,34,.07);border-radius:0 7px 7px 0;color:#d9c08a;font-size:12.7px;line-height:1.55}
+
+  .grid{display:grid;gap:13px}
+  .g2{grid-template-columns:1fr 1fr} .g3{grid-template-columns:1fr 1fr 1fr}
+  .card{border:1px solid var(--bd);background:var(--panel);border-radius:10px;padding:15px 17px}
+  .card .k{font-family:var(--mono);font-size:11px;color:var(--acc);letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:6px}
+  .card b{color:#e7edf5}
+  .hl-red{color:#ff8a85;font-weight:600} .hl-grn{color:#7ee2a0;font-weight:600} .hl-amb{color:#e3b341;font-weight:600}
+
+  /* chain */
+  .chain{border:1px solid var(--bd);background:#12161d;border-radius:10px;padding:16px;font-size:13px}
+  .clayer{border:1px solid var(--bd2);border-radius:8px;padding:10px 13px;margin:7px 0;position:relative}
+  .clayer .lt{font-weight:700;color:#e7edf5}
+  .clayer .ld{color:var(--mut);font-size:12px;margin-top:3px}
+  .carrow{text-align:center;color:var(--dim);font-size:16px;line-height:1;margin:2px 0}
+  .cup{border-left:3px solid var(--red)} .cmid{border-left:3px solid var(--amber)} .cdown{border-left:3px solid var(--green)}
+  .cside{border-left:3px solid var(--purple)}
+
+  table{width:100%;border-collapse:collapse;font-size:12.7px;margin-top:4px}
+  thead th{text-align:left;color:var(--mut);font-weight:600;font-size:11px;letter-spacing:.5px;text-transform:uppercase;padding:8px 10px;border-bottom:1px solid var(--bd2)}
+  tbody td{padding:9px 10px;border-bottom:1px solid #1a2230;vertical-align:top}
+  tbody tr:hover{background:#141a23}
+
+  .vb{font-family:var(--mono);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap;display:inline-block}
+  .vb-ok{background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3)}
+  .vb-part{background:rgba(210,153,34,.14);color:var(--amber);border:1px solid rgba(210,153,34,.3)}
+  .vb-no{background:rgba(248,81,73,.14);color:var(--red);border:1px solid rgba(248,81,73,.3)}
+
+  /* bar */
+  .barrow{display:grid;grid-template-columns:120px 1fr 56px;gap:10px;align-items:center;margin:7px 0;font-size:12.5px}
+  .barrow .nm{color:var(--tx)}
+  .track{height:13px;border-radius:4px;background:#0e1420;overflow:hidden;display:flex}
+  .track>i{display:block;height:100%}
+  .barrow .vv{font-family:var(--mono);text-align:right;color:var(--mut);font-size:11.5px}
+
+  ul.clean{margin:6px 0 0;padding-left:20px} ul.clean li{margin:5px 0}
+  ul.clean li b{color:#e7edf5}
+  .kill{border:1px solid var(--bd);border-left:3px solid var(--red);background:rgba(248,81,73,.05);border-radius:0 9px 9px 0;padding:11px 14px;margin-bottom:8px;font-size:13px}
+  .kill b{color:#ff9b96}
+  .up-cond{border-left-color:var(--green);background:rgba(63,185,80,.05)} .up-cond b{color:#7ee2a0}
+  .note{color:var(--dim);font-size:12px;margin-top:10px}
+  .legend{display:flex;flex-wrap:wrap;gap:13px;margin:8px 0;font-size:11.5px;color:var(--mut)}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+  code{font-family:var(--mono);font-size:12px;background:#1b222c;padding:1.5px 6px;border-radius:4px;color:var(--acc2)}
+  .tagrow{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+  .tag{font-family:var(--mono);font-size:11.5px;padding:3px 9px;border-radius:5px;background:#1f2937;color:var(--acc2);border:1px solid var(--bd2)}
+  .src a{display:inline-block;font-size:11.6px;color:var(--mut);margin:2px 10px 2px 0;word-break:break-all}
+  .src a:hover{color:var(--acc)}
+  .foot{margin-top:44px;padding-top:16px;border-top:1px solid var(--bd);color:var(--dim);font-size:12px;text-align:center}
+  .scn{border:1px solid var(--bd);border-radius:10px;padding:13px 15px}
+  .scn.bull{border-top:3px solid var(--green)} .scn.base{border-top:3px solid var(--amber)} .scn.bear{border-top:3px solid var(--red)}
+  .scn h4{margin:0 0 6px;font-size:14px} .scn.bull h4{color:#7ee2a0} .scn.base h4{color:#e3b341} .scn.bear h4{color:#ff8a85}
+  .scn p{margin:4px 0;font-size:12.3px;color:var(--mut)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="hd">
+    <div class="hdtop"><h1>生益科技</h1><span class="tk">600183 · A股</span>
+      <span class="sub mono" style="color:var(--dim);margin-left:auto">serenity 单公司挑战 · 2026-06-17 · 行情 as-of 06-16</span></div>
+    <p class="sub">真龙头、真双击——但"控制英伟达 M9 稀缺层"无一手，真正硬的价值藏在它控股的两家公司里</p>
+    <div class="statbar">
+      <div class="stat"><div class="l">现价</div><div class="v">179.40</div></div>
+      <div class="stat"><div class="l">总市值</div><div class="v">4358亿</div></div>
+      <div class="stat"><div class="l">PE-TTM</div><div class="v up">94–111</div></div>
+      <div class="stat"><div class="l">PB</div><div class="v up">24–27</div></div>
+      <div class="stat"><div class="l">近1年</div><div class="v up">+628%</div></div>
+      <div class="stat"><div class="l">26Q1毛利率</div><div class="v ok">28.1%</div></div>
+    </div>
+    <div class="tagrow">
+      <span class="tag">CCL 全球#2 / 国产#1</span>
+      <span class="tag">高速料=追赶者(龙头台光)</span>
+      <span class="tag">M9/英伟达=未核实</span>
+      <span class="tag">联瑞23.26%(第一大股东)</span>
+      <span class="tag">生益电子62.93%(并表)</span>
+      <span class="tag">打分 #8 / 62.7</span>
+      <span class="tag" style="color:#7ee2a0;border-color:rgba(63,185,80,.4)">续核 06-17 · 定生死4项</span>
+    </div>
+    <div class="disc"><b>研究边界：</b>仅研究支持，不构成买卖建议。让生益"性感"的英伟达 M9 全套细节（认证/78层/单价400/毛利45%/30-40%份额/GB300产能）<b>全部停留在自媒体，且与公司 25.10% 综合毛利矛盾</b>，一律按未核实/存疑处理。前瞻 PE/PEG 为据公开市值自算并注明；未杜撰任何价格/市值/订单/客户/产能/份额/毛利/估值/目标价数字。</div>
+  </div>
+
+  <!-- 00 判断先行 -->
+  <section>
+    <h2><span class="secno">00</span>判断先行</h2>
+    <div class="grid g2">
+      <div class="card"><span class="k">① 龙头光环来自"总盘"不是"尖端"</span>全球刚性 CCL 第二、国产第一（约 <b>13.7%</b>）；但英伟达最看重的<b>高速/高频尖端料</b>，龙头是<span class="hl-amb">台光电子(2383)</span>，生益是"国产第一/追赶者"。</div>
+      <div class="card"><span class="k">② M9/英伟达旗舰叙事 = 未核实</span>2025 年报全文（双源逐词）<span class="hl-red">查无 M9/M8/英伟达/Rubin/背板/78层/400元</span>；e互动无母公司具名回复。"单价400/毛利45%"与 <b>25.10%</b> 综合毛利直接打架。</div>
+      <div class="card"><span class="k">③ 财务是真的</span>2025 营收 284.31亿(+39.45%)/归母 33.34亿(+91.75%)；26Q1 营收 81.41亿(+45%)/归母 11.58亿(+105%)。<span class="hl-grn">已核实</span>。增长归因=<b>量价齐升+结构升级</b>，非 M9。</div>
+      <div class="card"><span class="k">④ 隐藏价值在两家关联公司</span><b>联瑞新材 23.26%（第一大股东</b>，HBM Low-α 球硅）+ <b>生益电子 62.93%（并表</b>，AI PCB，2025 营收+102%/AI产品+242%）。买生益≈买这两块。</div>
+      <div class="card" style="grid-column:1/-1"><span class="k">⑤ 估值无安全边际</span>近一年 +628% 里 <b>EPS 只贡献约 +90%，其余靠估值扩张</b>；PE-TTM 94–111×、PB 24–27×（历史极值区），前瞻 PE ~78–95×、PEG 1.6–2.5，<span class="hl-red">已 price-in 净利连续两年向 55–90 亿翻倍兑现</span>。把它当"英伟达 M9 独家卡点"来买，是把传闻当基本面。</div>
+    </div>
+  </section>
+
+  <!-- 01 价值链位置 -->
+  <section>
+    <h2><span class="secno">01</span>确切价值链位置 · 它是"夹心层"不是"卡点层"</h2>
+    <div class="chain">
+      <div class="clayer cup"><div class="lt">上游材料（真卡点在这里 — 生益是"受制方"）</div>
+        <div class="ld">电子布 19% · 铜箔 42% · 树脂 26% ＝ 占 CCL 直接成本约 <b style="color:#ff8a85">87%</b>；日企/海外主导、正普涨。<b>电子布=瓶颈之瓶颈，生益向上买、不是卖。</b></div></div>
+      <div class="carrow">▼</div>
+      <div class="clayer cmid"><div class="lt">生益科技 600183 ｜ 覆铜板(CCL) + 粘结片　<span style="color:var(--dim);font-weight:400">← 本体在这层</span></div>
+        <div class="ld">全球刚性 CCL #2 / 国产 #1；高速料细分=追赶者（龙头台光）。2025 这块 177.7 亿 / 毛利 23.91%。</div></div>
+      <div class="carrow">▼ <span style="font-size:11px;color:var(--dim)">（卖给 PCB 厂 = 间接二阶，不直供英伟达整机）</span></div>
+      <div class="clayer cdown"><div class="lt">PCB 厂：沪电 / 胜宏 / 深南 …</div>
+        <div class="ld">做 AI 服务器主板/加速卡/交换机板 → 再到英伟达 / 云厂 ASIC。生益"进英伟达"=高速料(M8)进入认证料号（券商-媒体口径）。</div></div>
+      <div class="carrow">▼</div>
+      <div class="clayer"><div class="lt" style="color:var(--mut)">英伟达 / 云厂 ASIC 整机</div></div>
+      <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="clayer cside"><div class="lt" style="color:#d2a8ff">↗ 联瑞新材 688300 · 持股 23.26%（第一大股东）</div><div class="ld">上游填料：HBM 用 Low-α 球硅，国产替代最成熟，已实供生益/南亚 → 锁填料端+享上游涨价投资收益。</div></div>
+        <div class="clayer cside"><div class="lt" style="color:#d2a8ff">↘ 生益电子 688183 · 持股 62.93%（并表）</div><div class="ld">下游 AI 服务器 PCB：2025 营收 94.94亿(+102.57%)/归母 14.73亿(+343.76%)/服务器占比&gt;60%/AI产品+242%。</div></div>
+      </div>
+    </div>
+    <p class="note"><b>它到底卡住什么？</b>名义在"控制层(CCL)"，但① CCL <b>可多源</b>（南亚/台光/松下都能做）；② 真正卡点在它够不着的<b>上游电子布</b>（它是受制方）；③ M9 控制证据<b>无一手</b>。→ 更像 <span class="hl-amb">"涨价 β + 结构升级"</span> 赢家，而非 <span class="hl-grn">"独家卡点 α"</span>。</p>
+  </section>
+
+  <!-- 02 M9 终审 -->
+  <section>
+    <h2><span class="secno">02</span>M9 / 英伟达叙事终审 · 本轮最关键的核验</h2>
+    <div class="disc" style="border-left-color:var(--red);background:rgba(248,81,73,.06);color:#e0a8a3">
+      <b>2025 年报全文（新浪 + 发现报告 + 关键词复核，三入口逐词比对）查无：</b><span class="mono">M9 · M8 · 英伟达 · NVIDIA · Rubin · 背板 · 78层 · 224Gbps · 单价400元</span>。
+      仅有泛化表述「高算力/AI 服务器/高频高速/核心终端开发」，<b>不点名英伟达</b>。e互动里供亚马逊/Meta/谷歌 ASIC 的是 <b>生益电子(688183 子公司 PCB)</b>，不是母公司 CCL 的 M9/英伟达。
+    </div>
+    <div class="disc" style="border-left-color:var(--green);background:rgba(63,185,80,.06);color:#a8d8b4">
+      <b>2026-06-17 续核：</b>「经营情况讨论与分析」整节深读——官方措辞为「AI 芯片设计快速迭代是新增需求<b>主要驱动力</b>，将高频 HDI、高速背板作为突破口」，在研为高 Tg/低膨胀基材、AlPCB、HDI、Anylayer 孔 HDI，<b>全是泛化品类、无 M 系列代号</b>；前五大客户合计 8.28亿、占营收 <b>29.71% 且未具名</b>（看不到单一 AI 超级大客户）。e互动再尝试（sns.sseinfo / 全景网 / 理杏仁）<b>全被 404/JS/限流挡住，仍取不到一手</b>。→ M9 维持<b>未核实</b>，"年报不含 M9"已三源坐实。
+    </div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--green)"></span>已核实（年报/季报原文）</span>
+      <span><span class="dot" style="background:var(--amber)"></span>部分核实</span>
+      <span><span class="dot" style="background:var(--red)"></span>未核实 / 存疑（仅自媒体）</span>
+    </div>
+    <table>
+      <thead><tr><th>声明</th><th>一手核验</th><th>判定</th></tr></thead>
+      <tbody>
+        <tr><td>2025 营收 284.31亿(+39.45%)/归母 33.34亿(+91.75%)/毛利率 25.10%</td><td>年报吻合</td><td><span class="vb vb-ok">已核实</span></td></tr>
+        <tr><td>2026Q1 营收 81.41亿(+45.09%)/归母 11.58亿(+105.47%)/毛利率 28.1%</td><td>季报吻合</td><td><span class="vb vb-ok">已核实</span></td></tr>
+        <tr><td>海外收入 68.1亿(+102.82%，翻倍)</td><td>年报披露</td><td><span class="vb vb-ok">已核实</span></td></tr>
+        <tr><td>利润增长 = 量价齐升 + 结构升级</td><td>年报/财报解读一致</td><td><span class="vb vb-ok">已核实</span></td></tr>
+        <tr><td><b>M9 过英伟达认证</b></td><td>年报、e互动均查无</td><td><span class="vb vb-no">未核实</span></td></tr>
+        <tr><td><b>78 层正交背板 / Rubin 核心基材</b></td><td>年报无"背板/Rubin"</td><td><span class="vb vb-no">未核实</span></td></tr>
+        <tr><td><b>M9 单价 400 元·㎡、毛利 45%+</b></td><td>年报无；与综合毛利 25.10% <b>严重背离</b></td><td><span class="vb vb-no">未核实/存疑</span></td></tr>
+        <tr><td><b>"大陆唯一过 M9、占全球 30–40%" / 1200万㎡供 GB300</b></td><td>无一手依据</td><td><span class="vb vb-no">未核实</span></td></tr>
+        <tr><td>子公司生益电子供亚马逊、拓 Meta/谷歌 ASIC</td><td>e互动确认（主体是 688183）</td><td><span class="vb vb-part">部分核实</span></td></tr>
+      </tbody>
+    </table>
+    <p class="note">一句话：<b>所有让生益"性感"的英伟达 M9 细节，都停在自媒体，且与公司自己披露的毛利率打架。公司一手兑现前，不计入基本面。</b></p>
+  </section>
+
+  <!-- 03 竞争位 -->
+  <section>
+    <h2><span class="secno">03</span>竞争位 · 总盘 vs 高速细分</h2>
+    <div class="grid g2">
+      <div class="card"><span class="k">总盘 / 刚性 CCL（Prismark，2024）</span>
+        建滔 ≈14.4% &gt; <b>生益 ≈13.7%</b> &gt; 台光 ≈13.2% / 南亚塑胶 ≈12%，CR5 ≈55%。<br><span class="hl-grn">生益全球第二、国内第一（可采信）。</span></div>
+      <div class="card"><span class="k">高速/高频细分（格局完全不同）</span>
+        松下 / 台光 / 台燿 / 联茂 / Resonac 主导（Top5 ≈59%）；高频 PTFE 龙头 Rogers/AGC。<br><span class="hl-red">生益、南亚是追赶/国产替代梯队，未进全球前五。</span></div>
+    </div>
+    <div class="card" style="margin-top:12px"><span class="k">vs 台光电子 2383（高速料龙头）</span>
+      台光=全球第一梯队、英伟达高端 GPU 板高速料核心供应商；生益=国产第一/追赶者。台光近一年 ≈+520%（822→5095 新台币）。
+      <b>核心反差：生益"龙头"来自总盘，不来自最赚钱、英伟达最看重的高速料尖端代际。</b></div>
+    <div class="card" style="margin-top:10px"><span class="k">vs 南亚新材 688519</span>
+      纸面代际节奏<b>南亚更"实"</b>（M9 NPI / M10 率先推有<b>年报摘要</b>背书）；生益 M9 仅自媒体。<b>但体量、M8 英伟达卡位、财务确定性，生益远强于南亚。</b></div>
+  </section>
+
+  <!-- 04 隐藏价值 -->
+  <section>
+    <h2><span class="secno">04</span>隐藏价值 · 叙事焦点与价值结构错位</h2>
+    <div class="grid g2">
+      <div class="card" style="border-left:3px solid var(--purple)"><span class="k">联瑞新材 688300 · 持股 23.26%（第一大股东）</span>
+        硅微粉/球硅龙头，<b>全球第二家量产 HBM 用 Low-α 超低放射性球硅</b>（见 P1 深钻 L4，国产替代最成熟、已实供生益/南亚）。生益借此<b>锁定填料端</b>。<br>
+        <span style="color:#7ee2a0">续核（年报附注）：</span>权益法贡献投资收益约 <b>0.474亿、仅占归母约 1.4%</b>（投资收益 +160% 主因是<b>一次性处置股权 0.72亿</b>，非联瑞经营）→ <b>战略价值真、当期 P&L 贡献小</b>。</div>
+      <div class="card" style="border-left:3px solid var(--purple)"><span class="k">生益电子 688183 · 持股 62.93%（并表）</span>
+        下游 AI 服务器 PCB 主体（非 CCL）：2025 营收 <b>94.94亿(+102.57%)</b>、归母 <b>14.73亿(+343.76%)</b>、服务器占比 &gt;60%、AI 算力产品 <b>+242%</b>、全球 PCB 第 20。是否直供英伟达 = <b>N/A</b>。</div>
+    </div>
+    <p class="note"><b>含义（续核校准）：</b>"买生益" ≈ "全球第二 CCL（涨价β+结构升级）+ <b>生益电子 AI PCB 弹性（并表，约占归母 28%，最实）</b> + 联瑞填料卡点影子（战略真、P&L 仅 ~1.4%）"。<b style="color:#ff8a85">母公司 CCL 自身的 M9 溢价反而最缥缈（无一手）——盯 M9，不如盯生益电子的 AI PCB 兑现。</b></p>
+  </section>
+
+  <!-- 05 估值 + 上游 -->
+  <section>
+    <h2><span class="secno">05</span>估值 price-in 了什么 + 上游成本反噬</h2>
+    <div class="grid g2">
+      <div class="card"><span class="k">涨幅归因（+628%）</span>戴维斯双击，但<b>估值扩张主导</b>：EPS 侧 +90%量级，<span class="hl-red">其余约 5–6 倍来自 PE/PB 倍数扩张</span>——2026–27 超级周期预期提前折现。PB 24–27×/PE-TTM 94–111× = 历史极值区。</div>
+      <div class="card"><span class="k">前瞻 PE / PEG（据 ~4358 亿市值自算）</span>2026E=46亿(Q1年化)→PE ~95×；=56亿(激进)→78×；2027E=86亿→51×。<b>PEG 1.6–2.5，无安全边际</b>。撑住估值需净利向 <b>55–90 亿连续两年翻倍</b>兑现。多数券商 2026E 反而<b>过时偏低</b>。</div>
+    </div>
+
+    <div class="card" style="margin-top:12px"><span class="k">上游成本反噬 · CCL 直接成本约 87% 是三大主材</span>
+      <div class="barrow"><span class="nm">铜箔</span><div class="track"><i style="width:42.1%;background:linear-gradient(90deg,#f85149,#ff7a45)"></i><i style="flex:1;background:#0e1420"></i></div><span class="vv">42.1%</span></div>
+      <div class="barrow"><span class="nm">树脂</span><div class="track"><i style="width:26.1%;background:linear-gradient(90deg,#ffa940,#ffc53d)"></i><i style="flex:1;background:#0e1420"></i></div><span class="vv">26.1%</span></div>
+      <div class="barrow"><span class="nm">电子布(玻纤布)</span><div class="track"><i style="width:19.1%;background:linear-gradient(90deg,#d29922,#e3b341)"></i><i style="flex:1;background:#0e1420"></i></div><span class="vv">19.1%</span></div>
+      <div class="barrow"><span class="nm" style="color:var(--mut)">其他</span><div class="track"><i style="width:12.7%;background:#3a4452"></i><i style="flex:1;background:#0e1420"></i></div><span class="vv">12.7%</span></div>
+      <p class="note" style="margin-top:8px">上游普涨：电子布五轮翻倍、铜箔 +30%、树脂交期 3周→15周。<span class="hl-grn">当前转嫁顺畅（Q1 毛利逆势升至 28.1%）</span>，但 <b>87% 主材占比 + 历史对下游议价弱</b> → 一旦 AI 需求转弱、卖方市场逆转，<span class="hl-red">毛利反噬迅速</span>。
+      <b>自供对冲</b>：联瑞 23.26% + 松山湖二厂 1 亿米/年粘结片自产；<b>但铜箔(42%)+电子布(19%)两大头仍外采，敞口仍在</b>。<br>
+      <span style="color:#7ee2a0">续核自纠：</span>原稿"26Q1 capex 23.76亿"是<b>2025 全年</b>口径；<b>Q1 单季实为 8.52亿</b>，vs 经营现金流 5.72亿 缺口仅 ~2.8亿（温和），2025 全年现金流 52.74亿已覆盖。母公司<b>无股权再融资摊薄</b>（自有+借款，负债率 42→44%）；<b>唯一股权稀释在子公司生益电子 26亿定增</b>（AI 算力募投，注册阶段）。</p>
+    </div>
+  </section>
+
+  <!-- 06 市场没看清 + 失败条件 -->
+  <section>
+    <h2><span class="secno">06</span>市场可能没看清的地方 + 什么情况说明判断错了</h2>
+    <div class="grid g2">
+      <div>
+        <div class="card" style="margin-bottom:10px"><span class="k">市场可能没看清</span>
+          <ul class="clean" style="margin-top:2px">
+            <li><b>M9/英伟达是"预期"不是"已兑现"</b>，且与毛利矛盾——传闻溢价被当基本面。</li>
+            <li><b>高速料龙头是台光不是生益</b>，"全球龙头"来自总盘。</li>
+            <li><b>真正硬的价值在联瑞(23.26%)和生益电子(62.93%)</b>，母公司 M9 溢价最缥缈。</li>
+            <li><b>入算力链是间接二阶</b>，不直供英伟达；电子布卡点对它是<b>成本反噬</b>非护城河。</li>
+            <li><b>+628% 里估值扩张占 5–6 倍</b>，券商 2026E 反而过时偏低，"锚"不牢。</li>
+          </ul></div>
+      </div>
+      <div>
+        <div class="kill up-cond"><b>判断被推翻（上行）：</b>若公司年报补充 / e互动 / 业绩会<b>正式确认 M9 过英伟达 + 高速料占比 + 单价毛利</b>，则"控制稀缺层"坐实，应上修——这是"按未核实对待"被证伪的明确条件。</div>
+        <div class="kill"><b>看多被证伪（下行）：</b>M9 长期无一手 + 台光/南亚/松下上量 → 溢价收窄。</div>
+        <div class="kill"><b>转嫁失败：</b>电子布/铜箔续涨而转嫁不动 → 87% 主材吃毛利。</div>
+        <div class="kill"><b>周期逆转：</b>AI capex 转弱 → 高 PE(94–111×)+周期性 = <b>戴维斯双杀</b>。</div>
+        <div class="kill"><b>无安全边际：</b>净利兑现不及"55–90亿连续翻倍"即杀估值（摊薄风险已降级：母公司无股权再融资，仅子公司生益电子 26亿定增）。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 三情景 -->
+  <section>
+    <h2><span class="secno">07</span>三情景（定性 + 自算 PE · 不含杜撰目标价）</h2>
+    <div class="grid g3">
+      <div class="scn bull"><h4>牛</h4><p><b>触发：</b>M9 一手坐实 + 高速料放量 + 转嫁持续</p><p><b>盈利：</b>2026E→56亿、2027E→86亿</p><p><b>估值：</b>前瞻 PE 由 ~95× 降到 2027 ~51×，靠成长消化，叙事兑现撑高估值</p></div>
+      <div class="scn base"><h4>中性</h4><p><b>触发：</b>无 M9 一手但景气延续、量价齐升</p><p><b>盈利：</b>2026E ~46亿（Q1年化）</p><p><b>估值：</b>前瞻 PE ~95×，靠 EPS 2–3 年被动消化，股价区间震荡</p></div>
+      <div class="scn bear"><h4>熊</h4><p><b>触发：</b>AI capex 转弱 / 转嫁失败 / 摊薄</p><p><b>盈利：</b>2026E 回落、毛利率下行</p><p><b>估值：</b>PE 94–111× + 周期性双杀，估值大幅压缩</p></div>
+    </div>
+    <p class="note">情景仅为框架，<b>不构成目标价或买卖建议</b>；盈利数字为券商区间与 Q1 年化外推，非承诺。</p>
+  </section>
+
+  <!-- 08 盯什么 -->
+  <section>
+    <h2><span class="secno">08</span>接下来盯什么（2026-06-17 续核后状态 · ✅闭环 🟡部分 ⬜开放）</h2>
+    <ul class="clean">
+      <li>🟡 <b>M9 定生死</b>：经营讨论已读（三入口仍无 M9/英伟达）；<b>唯一未取到的是上证 e互动 600183 官方问答</b>（404/JS/限流）—— 需登录态/浏览器内直连 sns.sseinfo / 全景网，及巨潮"投资者关系活动记录表"新档。</li>
+      <li>✅ <b>联瑞投资收益贡献</b>：权益法 0.474亿/占归母 ~1.4%；投资收益大增主因一次性处置股权 0.72亿。</li>
+      <li>✅ <b>capex 融资</b>：母公司自有+借款、无股权再融资；股权稀释仅子公司生益电子 26亿定增（注册阶段）。</li>
+      <li>⬜ <b>高速料占覆铜板/营收比重</b>（公司从未单列）；⬜ <b>分部毛利拆分</b>（CCL vs PCB）；⬜ <b>铜箔/电子布外采占比与长协</b>。</li>
+      <li>⬜ <b>台光 2383 PE-TTM</b> 横向对标；⬜ <b>真实最新 2026E/2027E 一致预期</b>（Wind/Choice，现搜到的多过时偏低）。</li>
+    </ul>
+  </section>
+
+  <!-- 09 来源 -->
+  <section>
+    <h2><span class="secno">09</span>来源（一手优先）</h2>
+    <div class="src">
+      <div style="margin-bottom:6px"><b style="color:var(--acc2);font-size:12.5px">强（年报/季报）</b><br>
+        <a href="http://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?stockid=600183&id=12198074">新浪 600183 2025年报全文</a>
+        <a href="https://www.fxbaogao.com/detail/5376882">发现报告 年报</a>
+        <a href="https://stockmc.xueqiu.com/202604/600183_20260429_PM62.pdf">2026Q1 季报 PDF</a>
+        <a href="https://www.ithome.com/0/944/556.htm">Q1 简析</a></div>
+      <div style="margin-bottom:6px"><b style="color:var(--acc2);font-size:12.5px">中（券商/Prismark/子公司）</b><br>
+        <a href="https://m.gelonghui.com/p/821299">格隆汇 CCL 份额</a>
+        <a href="https://www.dirmarketresearch.com/reports/high-frequency-high-speed-ccl-1934867821526384640">DIR 高频高速 CCL</a>
+        <a href="https://www.stcn.com/article/detail/3792433.html">生益电子 2025 年报</a>
+        <a href="https://bg.qianzhan.com/report/detail/300/240429-f3c3bea5.html">成本结构 前瞻产业研究院</a>
+        <a href="https://finance.sina.com.cn/wm/2026-06-15/doc-inicnyqk9885099.shtml">联瑞 23.26% 第一大股东</a>
+        <a href="https://www.cnyes.com/twstock/ps_historyprice.aspx?code=2383">台光 2383 价格</a></div>
+      <div style="margin-bottom:6px"><b style="color:#7ee2a0;font-size:12.5px">续核新增 06-17（强/中）</b><br>
+        <a href="http://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?stockid=600183&id=12303650">2025 业绩说明会记录（未给高速料占比）</a>
+        <a href="https://m.jiemian.com/article/14288262.html">联瑞 2025 归母 2.93亿</a>
+        <a href="https://stockmc.xueqiu.com/202601/600183_20260105_EHWN.pdf">松山湖 45亿"自有/自筹"公告</a>
+        <a href="https://www.jjckb.cn/20251118/e4aa2c3e91a8461f8817947e999c6576/c.html">生益电子拟定增不超 26亿</a>
+        <a href="https://ir.p5w.net/c/600183/questionlist.shtml">全景网投资者互动（空壳）</a></div>
+      <div><b style="color:#ff8a85;font-size:12.5px">未核实（自媒体 · 不得作事实引用，仅标识叙事来源）</b><br>
+        <a href="https://caifuhao.eastmoney.com/news/20260612104940501310350">财富号 M9/78层/400元</a>
+        <a href="https://xueqiu.com/1376635585/367573902">雪球 M9</a></div>
+    </div>
+    <p class="note">完整证据分级总表与逐节来源见配套 MD：<code>docs/research/stock_600183_shengyi_deepdive_20260617.md</code></p>
+  </section>
+
+  <div class="foot">
+    serenity 单公司挑战 · 3 路并行核查回一手 · 财务/年报双源交叉<br>
+    M9/英伟达全套细节未核实且与毛利矛盾 · 前瞻 PE/PEG 为据公开市值自算 · 全文未杜撰任何价格/市值/订单/客户/产能/份额/毛利/估值/目标价<br>
+    生成 2026-06-17 · 本地文档，未外发 · Finance_Agent / docs/research/
+  </div>
+
+</div>
+</body>
+</html>
