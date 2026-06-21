@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>研究报告 · Finance Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Serif+SC:wght@500;600&family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+/* ===== DESIGN TOKENS — mirrors main frontend ===== */
+:root{
+  --void:#eef2f0;--ink:#ffffff;--ink-2:#f3f7f5;--ink-3:#e7ece9;
+  --line:rgba(20,50,44,.13);--line-2:rgba(15,156,140,.32);
+  --accent:#0f9c8c;--accent-hi:#0b7064;--accent-dim:#a9ddd5;
+  --text:#16241f;--mute:#566159;--faint:#8c968f;--ghost:#c2ccc6;
+  --warn:#bd7a0e;
+  --shadow:0 1px 2px rgba(20,50,44,.06),0 10px 30px rgba(20,50,44,.06);
+  --serif:'Newsreader','Noto Serif SC',Georgia,serif;
+  --sans:'Archivo','Noto Sans SC',system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',monospace;
+  --sp:clamp(18px,2.8vw,44px);
+  /* Scarcity spectrum — keyed by color_key in JSON */
+  --L1:#d44040;--L2a:#c97535;--L2b:#c4a020;--L3:#3d9e6b;--L4:#2f7fc4;--L5:#5356cf;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--void);color:var(--text);font-family:var(--sans);font-size:15px;
+  line-height:1.6;letter-spacing:.005em;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+.bg{position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:radial-gradient(900px 600px at 80% -8%,rgba(15,156,140,.08),transparent 60%),
+             radial-gradient(700px 500px at 8% 108%,rgba(83,86,207,.05),transparent 60%),
+             var(--void)}
+.bg::before{content:"";position:absolute;inset:0;
+  background-image:radial-gradient(rgba(20,60,52,.10) 1px,transparent 1.4px);
+  background-size:46px 46px;opacity:.5;
+  mask-image:radial-gradient(120% 90% at 50% 30%,#000 30%,transparent 90%)}
+
+::selection{background:var(--accent);color:var(--void)}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+
+/* Layout */
+.shell{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+
+/* ===== Spine ===== */
+.spine{position:sticky;top:0;height:100vh;border-right:1px solid var(--line);
+  background:linear-gradient(180deg,var(--ink) 0%,var(--void) 100%);
+  display:flex;flex-direction:column;padding:24px 0;z-index:10;overflow-y:auto}
+.brand{display:flex;gap:12px;align-items:center;padding:0 24px 22px;
+  border-bottom:1px solid var(--line);margin-bottom:16px;flex-shrink:0}
+.brand-tx h1{font-family:var(--serif);font-weight:500;font-size:20px;line-height:1;letter-spacing:.01em}
+.brand-tx span{font-family:var(--mono);font-size:9px;letter-spacing:.3em;color:var(--accent);
+  text-transform:uppercase;display:block;margin-top:5px}
+.navsec{padding:0 14px;flex:1}
+.navlabel{font-family:var(--mono);font-size:9px;letter-spacing:.24em;color:var(--faint);
+  text-transform:uppercase;padding:14px 10px 8px}
+.nav{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;
+  cursor:pointer;color:var(--mute);font-weight:500;font-size:13.5px;
+  position:relative;transition:.22s;border:1px solid transparent;user-select:none}
+.nav:hover{color:var(--text);background:var(--ink-2)}
+.nav.on{color:var(--text);background:linear-gradient(90deg,rgba(70,202,189,.12),transparent);border-color:var(--line-2)}
+.nav.on::before{content:"";position:absolute;left:-14px;top:50%;transform:translateY(-50%);
+  width:3px;height:20px;background:var(--accent);border-radius:0 3px 3px 0;box-shadow:0 0 12px var(--accent)}
+.nav .dot{width:7px;height:7px;border-radius:50%;flex:none;background:currentColor}
+.nav .tag{margin-left:auto;font-family:var(--mono);font-size:8px;letter-spacing:.1em;
+  color:var(--faint);border:1px solid var(--line);padding:1px 5px;border-radius:20px}
+.nav .ct{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint)}
+.ind1{padding-left:12px}.ind1 .nav{font-size:12.5px}
+.ind2{padding-left:24px}.ind2 .nav{font-size:12px}
+.nav.soon{opacity:.4;cursor:not-allowed}.nav.soon:hover{background:transparent;color:var(--mute)}
+/* report selector in spine */
+.rsel-wrap{padding:0 14px 10px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.rsel{width:100%;font-family:var(--mono);font-size:11px;color:var(--text);
+  background:var(--ink-2);border:1px solid var(--line);border-radius:7px;
+  padding:7px 10px;cursor:pointer;appearance:none}
+
+/* ===== Main ===== */
+.main{min-width:0}
+.view{display:none;padding:0}
+.view.on{display:block;animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* Masthead */
+.masthead{padding:24px var(--sp) 18px;border-bottom:1px solid var(--line);position:relative;overflow:hidden}
+.masthead::after{content:"";position:absolute;left:0;bottom:-1px;height:1px;width:34%;
+  background:linear-gradient(90deg,var(--accent),transparent);animation:scan 7s ease-in-out infinite}
+@keyframes scan{0%,100%{transform:translateX(-10%);opacity:.4}50%{transform:translateX(240%);opacity:1}}
+.kicker{font-family:var(--mono);font-size:10px;letter-spacing:.26em;color:var(--accent);
+  text-transform:uppercase;display:flex;gap:10px;align-items:center}
+.kicker .pulse{width:6px;height:6px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 10px var(--accent);animation:blink 2.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+.masthead h2{font-family:var(--serif);font-weight:400;font-size:clamp(22px,3.2vw,38px);
+  line-height:1.05;margin:10px 0 0;letter-spacing:-.01em}
+.masthead .msub{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:7px}
+.crumb{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;
+  color:var(--faint);flex-wrap:wrap}
+.crumb .cl{cursor:pointer;transition:.15s}.crumb .cl:hover{color:var(--accent)}
+.crumb .sep{color:var(--ghost)}.crumb .cur{color:var(--text);font-weight:500}
+
+.content{padding:26px var(--sp) 80px}
+.sec-h{display:flex;align-items:baseline;gap:14px;margin:34px 0 15px}
+.sec-h:first-child{margin-top:0}
+.sec-h h3{font-family:var(--serif);font-weight:500;font-size:20px;letter-spacing:.01em}
+.sec-h .n{font-family:var(--mono);font-size:11px;color:var(--accent);
+  border:1px solid var(--line-2);border-radius:20px;padding:3px 9px;white-space:nowrap}
+.sec-h .ln{flex:1;height:1px;background:var(--line)}
+.panel{background:var(--ink);border:1px solid var(--line);border-radius:14px}
+.instruments{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;
+  overflow:hidden;margin-bottom:22px}
+.inst{background:var(--ink);padding:16px 18px}
+.inst .lab{font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--faint);text-transform:uppercase}
+.inst .val{font-family:var(--serif);font-size:28px;line-height:1.1;margin-top:9px;letter-spacing:-.01em}
+.inst .val small{font-family:var(--mono);font-size:12px;color:var(--mute);letter-spacing:0}
+.inst .sub{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:5px}
+
+/* ===== SIGNATURE: Chain pressure map ===== */
+.chain-map{background:var(--ink);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:22px}
+.chain-head{display:flex;justify-content:space-between;align-items:flex-end;
+  padding:16px 22px 12px;border-bottom:1px solid var(--line);gap:14px;flex-wrap:wrap}
+.chain-head .cht{font-family:var(--serif);font-size:17px;font-weight:500}
+.chain-head .chs{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--faint);
+  text-transform:uppercase;margin-top:4px}
+.chain-legend{display:flex;gap:12px;align-items:center;flex-shrink:0}
+.cleg{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;color:var(--faint)}
+.cleg i{width:9px;height:9px;border-radius:2px;display:block;flex:none}
+.chain-body{padding:6px 0}
+.lr{display:grid;grid-template-columns:50px 1fr 200px 96px;align-items:center;
+  padding:0 22px;cursor:pointer;transition:background .18s}
+.lr:hover{background:rgba(15,156,140,.04)}
+.lr+.lr{border-top:1px solid rgba(20,50,44,.07)}
+.lr-rank{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--faint);
+  letter-spacing:.04em;padding:15px 0}
+.lr-info{padding:13px 14px 13px 5px;min-width:0}
+.lr-name{font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lr-note{font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lr-bar{height:6px;background:var(--ink-3);border-radius:10px;position:relative}
+.lr-fill{height:100%;border-radius:10px;position:relative}
+.lr-fill::after{content:"";position:absolute;right:-4px;top:50%;transform:translateY(-50%);
+  width:11px;height:11px;border-radius:50%;background:inherit;box-shadow:0 0 8px currentColor;opacity:.8}
+.lr-meta{display:flex;align-items:center;gap:8px;padding-left:16px}
+.lr-pct{font-family:var(--mono);font-size:12px;font-weight:700;min-width:34px;text-align:right}
+.lr-chip{font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:.04em;
+  padding:2px 8px;border-radius:20px;white-space:nowrap;color:#fff;min-width:46px;text-align:center}
+.chain-foot{border-top:1px solid var(--line);padding:10px 22px;display:flex;
+  justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.chain-foot .hint{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.chain-foot .src{font-family:var(--mono);font-size:10px;color:var(--ghost)}
+
+/* P-tier cards */
+.ptier-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:13px}
+.ptier{background:var(--ink);border:1px solid var(--line);border-radius:13px;padding:18px;
+  cursor:pointer;transition:.22s;position:relative;overflow:hidden}
+.ptier:hover{border-color:var(--line-2);transform:translateY(-2px);box-shadow:var(--shadow)}
+.ptier.soon{opacity:.52;cursor:not-allowed}.ptier.soon:hover{transform:none;border-color:var(--line)}
+.ptier .pt-tag{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.ptier .pt-name{font-family:var(--serif);font-size:18px;font-weight:500;margin:7px 0 4px}
+.ptier .pt-desc{font-size:12.5px;color:var(--mute);line-height:1.5}
+.ptier .pt-meta{margin-top:12px;display:flex;gap:6px;flex-wrap:wrap}
+.ptier .pt-badge{font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:var(--mute);
+  border:1px solid var(--line);border-radius:20px;padding:2px 8px}
+.ptier .pt-bar{margin-top:13px;height:3px;background:var(--ink-3);border-radius:10px}
+.ptier .pt-fill{height:100%;border-radius:10px}
+.ptier .pt-arrow{position:absolute;top:16px;right:16px;font-family:var(--mono);font-size:11px;
+  color:var(--faint);background:var(--ink-2);border:1px solid var(--line);border-radius:20px;padding:2px 9px}
+
+/* Finding box */
+.finding{background:linear-gradient(135deg,rgba(15,156,140,.07),rgba(15,156,140,.02));
+  border:1px solid rgba(15,156,140,.24);border-radius:12px;padding:16px 20px;margin-bottom:22px}
+.finding .fk{font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--accent);
+  text-transform:uppercase;margin-bottom:8px}
+.finding p{font-size:13px;color:var(--mute);line-height:1.7}
+.finding strong{color:var(--text)}
+
+/* Layer view */
+.report-meta{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:10px 16px;
+  background:var(--ink);border:1px solid var(--line);border-radius:10px;
+  margin-bottom:22px;font-family:var(--mono);font-size:11px;color:var(--faint)}
+.report-meta .rm-val{color:var(--text);font-weight:500}
+.report-meta a{color:var(--accent);font-weight:600;margin-left:auto;transition:.15s}
+.report-meta a:hover{color:var(--accent-hi)}
+.sl-list{display:flex;flex-direction:column;gap:8px;margin-bottom:26px}
+.sl{background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:13px 18px;
+  display:grid;grid-template-columns:50px 1fr auto;align-items:center;gap:13px;
+  cursor:pointer;transition:.2s}
+.sl:hover{border-color:var(--line-2)}
+.sl-rank{font-family:var(--mono);font-size:12px;font-weight:700}
+.sl-name{font-weight:600;font-size:13.5px}
+.sl-note{font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:3px}
+.sl-r{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.sl-pct{font-family:var(--mono);font-size:12px;font-weight:700}
+.sl-chip{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.04em;
+  padding:2px 9px;border-radius:20px;color:#fff;text-align:center}
+
+/* Company grid */
+.co-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(188px,1fr));gap:10px}
+.co{background:var(--ink);border:1px solid var(--line);border-radius:12px;
+  padding:14px 16px;cursor:pointer;transition:.22s;position:relative;overflow:hidden}
+.co:hover{border-color:var(--line-2);transform:translateY(-2px);box-shadow:var(--shadow)}
+.co .co-stripe{position:absolute;left:0;top:0;bottom:0;width:3px}
+.co .co-layer{font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase}
+.co .co-name{font-family:var(--serif);font-size:16px;font-weight:500;margin:5px 0 0}
+.co .co-ticker{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.co .co-num{display:flex;align-items:baseline;gap:5px;margin:10px 0 6px}
+.co .co-score{font-family:var(--serif);font-size:32px;line-height:1}
+.co .co-max{font-family:var(--mono);font-size:11px;color:var(--ghost)}
+.co .co-track{height:4px;background:var(--ink-3);border-radius:10px}
+.co .co-fill{height:100%;border-radius:10px}
+.co .co-v{font-family:var(--mono);font-size:9px;color:var(--mute);margin-top:6px}
+
+/* Company scorecard */
+.score-hero{background:var(--ink);border:1px solid var(--line);border-radius:16px;
+  padding:24px 28px;display:grid;grid-template-columns:auto 1fr;gap:26px;
+  align-items:center;margin-bottom:20px}
+.sc-big{font-family:var(--serif);font-size:64px;line-height:1;color:var(--accent-hi);letter-spacing:-.02em}
+.sc-big small{font-size:20px;color:var(--ghost);font-family:var(--mono)}
+.sc-name{font-family:var(--serif);font-size:24px;font-weight:500}
+.sc-ticker{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:4px}
+.sc-verdict{display:inline-flex;align-items:center;gap:7px;margin-top:11px;
+  font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);
+  border:1.5px solid rgba(15,156,140,.4);border-radius:20px;padding:4px 14px}
+.sc-verdict i{width:7px;height:7px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 8px var(--accent);flex:none}
+.sc-chain{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:8px;line-height:1.5}
+.sc-date{font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:5px}
+.factor-list{display:flex;flex-direction:column;gap:10px}
+.frow{display:grid;grid-template-columns:165px 1fr 52px 82px;align-items:center;gap:11px}
+.f-name{font-size:13px;color:var(--mute);font-weight:500}
+.f-track{height:6px;background:var(--ink-3);border-radius:10px}
+.f-fill{height:100%;border-radius:10px}
+.f-pts{font-family:var(--mono);font-size:12px;font-weight:700;text-align:right}
+.f-rat{font-family:var(--mono);font-size:10px;color:var(--faint);text-align:right}
+.factor-sep{border-top:1px dashed var(--line);margin:4px 0;padding-top:10px;
+  font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--warn);text-transform:uppercase}
+.factor-total{display:flex;justify-content:space-between;align-items:center;
+  margin-top:13px;padding-top:12px;border-top:1px solid var(--line)}
+.ft-l{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.ft-l b{color:var(--text)}.ft-l .fw{color:var(--warn)}
+.ft-r{font-family:var(--serif);font-size:22px;color:var(--accent-hi)}
+.kill-list{display:flex;flex-direction:column;gap:7px;margin-bottom:24px}
+.kill{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--mute);
+  line-height:1.5;background:rgba(212,64,64,.05);border:1px solid rgba(212,64,64,.17);
+  border-radius:9px;padding:9px 13px}
+.kill::before{content:"✕";color:#d44040;font-family:var(--mono);font-size:11px;flex:none;margin-top:1px}
+.ev-list{display:flex;flex-direction:column;gap:9px;margin-bottom:26px}
+.ev{background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:14px 17px}
+.ev.warn-ev{border-color:rgba(189,122,14,.3);background:rgba(189,122,14,.04)}
+.ev.partial-ev{border-color:rgba(47,127,196,.28);background:rgba(47,127,196,.04)}
+.ev-tag{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px}
+.ev-claim{font-size:13px;line-height:1.65}
+.ev-meta{display:flex;gap:9px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.ev-src{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.ev-str{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.04em;padding:2px 8px;border-radius:20px}
+.ev-str.ok{background:rgba(15,156,140,.1);color:var(--accent-hi);border:1px solid rgba(15,156,140,.3)}
+.ev-str.weak{background:rgba(189,122,14,.1);color:#9a6c10;border:1px solid rgba(189,122,14,.3)}
+.ev-str.par{background:rgba(47,127,196,.1);color:#1a5c9a;border:1px solid rgba(47,127,196,.3)}
+.nav-btns{display:flex;gap:9px;flex-wrap:wrap}
+.nbtn{font-family:var(--mono);font-size:11px;letter-spacing:.05em;border-radius:9px;cursor:pointer;
+  padding:8px 16px;transition:.18s;border:1px solid var(--line-2);background:transparent;color:var(--accent)}
+.nbtn:hover{background:rgba(15,156,140,.08)}
+.nbtn.ghost{border-color:var(--line);color:var(--mute)}.nbtn.ghost:hover{color:var(--text)}
+
+/* Loading / empty states */
+.state-center{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:60vh;gap:16px;text-align:center;padding:40px}
+.state-center .big{font-family:var(--serif);font-size:28px;color:var(--mute)}
+.state-center .sub{font-family:var(--mono);font-size:12px;color:var(--faint);max-width:460px;line-height:1.7}
+.spinner{width:32px;height:32px;border:2px solid var(--ink-3);border-top-color:var(--accent);
+  border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.code-block{font-family:var(--mono);font-size:11px;background:var(--ink);border:1px solid var(--line);
+  border-radius:10px;padding:14px 18px;color:var(--mute);text-align:left;max-width:480px;
+  white-space:pre;overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="shell">
+
+<!-- ===================== SPINE ===================== -->
+<aside class="spine">
+  <div class="brand">
+    <svg width="34" height="34" viewBox="0 0 34 34" style="flex:none">
+      <circle cx="17" cy="17" r="10" stroke="#0f9c8c" fill="none" stroke-width="1.1"/>
+      <circle cx="17" cy="17" r="3" fill="#0f9c8c"/>
+      <line x1="17" y1="4" x2="17" y2="0" stroke="#0f9c8c" stroke-width="1.1"/>
+      <line x1="30" y1="17" x2="34" y2="17" stroke="#0f9c8c" stroke-width="1.1"/>
+      <line x1="17" y1="30" x2="17" y2="34" stroke="#0f9c8c" stroke-width="1.1"/>
+      <line x1="4" y1="17" x2="0" y2="17" stroke="#0f9c8c" stroke-width="1.1"/>
+    </svg>
+    <div class="brand-tx">
+      <h1>Finance Agent</h1>
+      <span>知识台 · Research</span>
+    </div>
+  </div>
+
+  <!-- report selector (hidden until >1 report) -->
+  <div class="rsel-wrap" id="rsel-wrap" style="display:none">
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase;margin-bottom:7px">切换报告</div>
+    <select class="rsel" id="rsel" onchange="switchReport(this.value)"></select>
+  </div>
+
+  <div class="navsec">
+    <div class="navlabel">知识台</div>
+    <div class="nav"><span class="dot" style="color:#2f7fc4"></span>行业总览</div>
+    <div class="nav"><span class="dot" style="color:#bd7a0e"></span>个股画像</div>
+
+    <div class="navlabel" style="margin-top:6px">研究报告</div>
+    <div id="nav-tree">
+      <!-- Built dynamically from loaded report data -->
+    </div>
+
+    <div class="navlabel" style="margin-top:6px">工具</div>
+    <div class="nav"><span class="dot" style="color:var(--accent)"></span>个股分析</div>
+  </div>
+</aside>
+
+<!-- ===================== MAIN ===================== -->
+<main class="main">
+
+  <!-- Loading -->
+  <div id="v-loading" class="view on">
+    <div class="state-center">
+      <div class="spinner"></div>
+      <div class="big">加载研究报告中</div>
+      <div class="sub">正在从知识库 raw/research/serenity/ 读取 Serenity 研究报告…</div>
+    </div>
+  </div>
+
+  <!-- Empty / no reports -->
+  <div id="v-empty" class="view">
+    <div class="state-center">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="22" stroke="#c2ccc6" stroke-width="1.5"/>
+        <path d="M16 24h16M24 16v16" stroke="#c2ccc6" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <div class="big">暂无研究报告</div>
+      <div class="sub">
+        运行 Serenity 研究流程后，在末尾触发前端归档阶段，即可生成报告并在此展示。<br><br>
+        示例指令：「对 AI 产业链高速CCL做 Serenity 深钻，完成后归档到知识库」
+      </div>
+      <div class="code-block"># 归档已有研究结果示例
+uv run --python 3.12 \
+  Knowledge_Wiki/.claude/skills/raw-intake/scripts/intake.py \
+  --envelope /tmp/serenity-intake-env.json
+
+# 文件落点：
+# Knowledge_Wiki/raw/research/serenity/&lt;slug&gt;-&lt;date&gt;.json</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:8px">
+        需要通过 serve.sh 启动本地服务才能读取 raw/ 文件
+      </div>
+    </div>
+  </div>
+
+  <!-- Theme view -->
+  <div id="v-theme" class="view">
+    <div class="masthead">
+      <div class="kicker"><span class="pulse"></span><span id="th-kicker">Serenity 研究框架 · 供应链卡点猎手</span></div>
+      <h2 id="th-title">AI 产业链卡点总图</h2>
+      <div class="msub" id="th-sub"></div>
+    </div>
+    <div class="content">
+      <div class="instruments" id="th-stats"></div>
+      <div class="chain-map" id="th-chain-map"></div>
+      <div class="sec-h"><h3>研究专题</h3><div class="n" id="th-ptier-n"></div><div class="ln"></div></div>
+      <div class="ptier-grid" id="th-ptier-grid"></div>
+      <div class="sec-h" style="margin-top:38px"><h3>核心判断</h3><div class="ln"></div></div>
+      <div class="finding" id="th-finding"></div>
+    </div>
+  </div>
+
+  <!-- Layer view -->
+  <div id="v-layer" class="view">
+    <div class="masthead">
+      <div class="crumb" id="la-crumb"></div>
+      <h2 id="la-title" style="margin-top:10px"></h2>
+    </div>
+    <div class="content">
+      <div class="report-meta" id="la-meta"></div>
+      <div class="sec-h"><h3>子层卡点排序</h3><div class="n">先排子层，再排公司</div><div class="ln"></div></div>
+      <div class="sl-list" id="la-sublayers"></div>
+      <div class="sec-h" style="margin-top:34px">
+        <h3>标的排名</h3>
+        <div class="n" id="la-co-n"></div>
+        <div class="ln"></div>
+      </div>
+      <div class="co-grid" id="la-co-grid"></div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:13px;line-height:1.7"
+           id="la-disclaimer"></div>
+    </div>
+  </div>
+
+  <!-- Company view -->
+  <div id="v-company" class="view">
+    <div class="masthead">
+      <div class="crumb" id="co-crumb"></div>
+      <h2 id="co-title" style="margin-top:10px"></h2>
+    </div>
+    <div class="content" id="co-content"></div>
+  </div>
+
+</main>
+</div><!-- .shell -->
+
+<script>
+/* ===== CONSTANTS ===== */
+const COLORS = {L1:'#d44040',L2a:'#c97535',L2b:'#c4a020',L3:'#3d9e6b',L4:'#2f7fc4',L5:'#5356cf'};
+const FACTOR_LABELS = {
+  demand_inflection:'需求拐点强度', architecture_coupling:'架构耦合度',
+  chokepoint_severity:'卡点严重程度', supplier_concentration:'供应商集中度',
+  expansion_difficulty:'扩产难度', evidence_quality:'证据质量',
+  valuation_disconnect:'估值折扣 ↓', catalyst_timing:'催化剂时机',
+};
+const PENALTY_LABELS = { hype_risk:'炒作风险', cyclicality:'周期性风险' };
+const VERDICT_COLOR = {
+  'Top priority':'#c97535','High priority':'#c4a020',
+  'Worth tracking':'#0f9c8c','Early lead / low priority':'#8c968f',
+};
+
+/* ===== STATE ===== */
+let REPORTS = [], activeReport = null, activeCo = null;
+
+function getColor(key) { return COLORS[key] || '#0f9c8c'; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ===== LOADING ===== */
+async function init() {
+  showView('loading');
+  try {
+    const res = await fetch('/frontend/manifest.json');
+    if (!res.ok) throw new Error('manifest 不可达（需要 serve.sh）');
+    const { files = [] } = await res.json();
+    const sfiles = files.filter(f => f.startsWith('raw/research/serenity/') && f.endsWith('.json'));
+    if (!sfiles.length) { showView('empty'); return; }
+
+    REPORTS = (await Promise.all(
+      sfiles.map(f => fetch('/Knowledge_Wiki/' + f).then(r => r.ok ? r.json() : null))
+    )).filter(Boolean);
+    if (!REPORTS.length) { showView('empty'); return; }
+
+    // Sort newest first
+    REPORTS.sort((a, b) => (b.as_of || '').localeCompare(a.as_of || ''));
+    activeReport = REPORTS[0];
+
+    buildReportSelector();
+    buildNav(activeReport);
+    renderThemeView(activeReport);
+    showView('theme');
+  } catch (e) {
+    console.warn('Serenity load error:', e.message);
+    showView('empty');
+  }
+}
+
+function switchReport(idx) {
+  activeReport = REPORTS[parseInt(idx, 10)];
+  activeCo = null;
+  buildNav(activeReport);
+  renderThemeView(activeReport);
+  showView('theme');
+}
+
+function buildReportSelector() {
+  const wrap = document.getElementById('rsel-wrap');
+  const sel = document.getElementById('rsel');
+  if (REPORTS.length < 2) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  sel.innerHTML = REPORTS.map((r, i) =>
+    `<option value="${i}">${esc(r.title)} (${r.as_of})</option>`
+  ).join('');
+}
+
+/* ===== NAV TREE ===== */
+function buildNav(r) {
+  const el = document.getElementById('nav-tree');
+  const ptiers = r.p_tiers || [];
+  const companies = r.companies || [];
+  const p1 = ptiers.find(p => p.status === 'published');
+
+  el.innerHTML = `
+    <div class="nav on" id="n-theme" onclick="renderThemeView(activeReport);showView('theme')">
+      <span class="dot" style="color:var(--L1)"></span>${esc(r.theme || r.title)}
+    </div>
+    <div class="ind1">
+      ${p1 ? `
+      <div class="nav" id="n-layer" onclick="renderLayerView(activeReport);showView('layer')">
+        <span style="font-family:var(--mono);font-size:9px;color:var(--L1);font-weight:700;flex:none">${esc(p1.id)}</span>
+        ${esc(p1.name)}
+      </div>
+      <div class="ind2" id="n-companies">
+        ${companies.map(c => `
+          <div class="nav" onclick="selectCo('${esc(c.ticker)}')">
+            <span class="dot" style="color:${getColor(c.layer)}"></span>${esc(c.name)}
+            <span class="ct">${c.score.toFixed(1)}</span>
+          </div>`).join('')}
+      </div>
+      ` : ''}
+      ${ptiers.filter(p => p.status !== 'published').map(p => `
+        <div class="nav soon">
+          <span style="font-family:var(--mono);font-size:9px;color:var(--ghost);font-weight:700;flex:none">${esc(p.id)}</span>
+          ${esc(p.name)} <span class="tag">即将</span>
+        </div>`).join('')}
+    </div>`;
+}
+
+function highlightNav(id) {
+  document.querySelectorAll('.nav').forEach(n => n.classList.remove('on'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('on');
+  if (id === 'n-layer' || id === 'n-company') {
+    const t = document.getElementById('n-theme'); if (t) t.classList.add('on');
+  }
+  if (id === 'n-company') {
+    const l = document.getElementById('n-layer'); if (l) l.classList.add('on');
+  }
+  // highlight the company nav entry
+  if (id === 'n-company' && activeCo) {
+    document.querySelectorAll('#n-companies .nav').forEach(n => {
+      if (n.textContent.includes(activeCo.name)) n.classList.add('on');
+    });
+  }
+}
+
+/* ===== VIEWS ===== */
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  document.getElementById('v-' + id).classList.add('on');
+  window.scrollTo(0, 0);
+}
+
+/* --- THEME VIEW --- */
+function renderThemeView(r) {
+  document.getElementById('th-kicker').textContent = (r.method || 'Serenity 研究框架') + ' · 供应链卡点猎手';
+  document.getElementById('th-title').textContent = r.theme || r.title;
+  document.getElementById('th-sub').textContent = `先排产业链层级，再排公司 · ${r.as_of} 更新`;
+
+  // Stats
+  const s = r.stats || {};
+  document.getElementById('th-stats').innerHTML = `
+    <div class="inst"><div class="lab">覆盖标的</div>
+      <div class="val" style="color:var(--accent-hi)">${s.company_count || 0} <small>家</small></div>
+      <div class="sub">${esc(r.theme)}</div></div>
+    <div class="inst"><div class="lab">最窄漏斗</div>
+      <div class="val" style="font-size:18px;color:var(--L1);margin-top:15px">${esc(s.top_bottleneck_name || '—')}</div>
+      <div class="sub">${esc(s.top_bottleneck_layer || '')} · 稀缺度最高</div></div>
+    <div class="inst"><div class="lab">综合最高分</div>
+      <div class="val" style="color:var(--accent-hi)">${s.top_score || '—'}</div>
+      <div class="sub">${esc(s.top_score_name || '')} ${esc(s.top_score_ticker || '')}</div></div>
+    <div class="inst"><div class="lab">报告日期</div>
+      <div class="val" style="font-size:18px;margin-top:15px">${r.as_of}</div>
+      <div class="sub">${esc(r.method || '').slice(0, 20)}</div></div>`;
+
+  // Chain map
+  const layers = r.chain_layers || [];
+  document.getElementById('th-chain-map').innerHTML = `
+    <div class="chain-head">
+      <div>
+        <div class="cht">供应链压强瀑布</div>
+        <div class="chs">上游 → 下游 · 越满 = 越卡 · 点击层级进入深钻</div>
+      </div>
+      <div class="chain-legend">
+        <div class="cleg"><i style="background:var(--L1)"></i>极度稀缺</div>
+        <div class="cleg"><i style="background:var(--L3)"></i>中高</div>
+        <div class="cleg"><i style="background:var(--L5)"></i>受益层</div>
+      </div>
+    </div>
+    <div class="chain-body">
+      ${layers.map(l => `
+        <div class="lr" onclick="renderLayerView(activeReport);showView('layer')">
+          <div class="lr-rank" style="color:${getColor(l.color_key)}">${esc(l.id)}</div>
+          <div class="lr-info">
+            <div class="lr-name">${esc(l.name)}</div>
+            <div class="lr-note">${esc(l.note)}</div>
+          </div>
+          <div class="lr-bar">
+            <div class="lr-fill" style="width:${l.scarcity_pct}%;background:${getColor(l.color_key)}"></div>
+          </div>
+          <div class="lr-meta">
+            <div class="lr-pct" style="color:${getColor(l.color_key)}">${l.scarcity_pct}%</div>
+            <div class="lr-chip" style="background:${getColor(l.color_key)}">${esc(l.scarcity_label)}</div>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="chain-foot">
+      <div class="hint">↑ 点击任意行 → 深钻报告</div>
+      <div class="src">${esc(r.method || '')} · raw/research/serenity/</div>
+    </div>`;
+
+  // P-tiers
+  const tiers = r.p_tiers || [];
+  document.getElementById('th-ptier-n').textContent = `${tiers.length} 个优先层级`;
+  document.getElementById('th-ptier-grid').innerHTML = tiers.map(p => {
+    const published = p.status === 'published';
+    return `
+      <div class="ptier${published ? '' : ' soon'}" ${published ? `onclick="renderLayerView(activeReport);showView('layer')"` : ''}>
+        <div class="pt-tag" style="color:${published ? getColor('L1') : 'var(--ghost)'}">${esc(p.id)} · ${published ? '稀缺度最高' : '规划中'}</div>
+        <div class="pt-name">${esc(p.name)}</div>
+        <div class="pt-desc">${esc(p.desc)}</div>
+        <div class="pt-meta">${(p.badges || []).map(b => `<span class="pt-badge">${esc(b)}</span>`).join('')}</div>
+        <div class="pt-bar"><div class="pt-fill" style="width:${p.scarcity_pct}%;background:${getColor(published ? 'L1' : 'ghost')}"></div></div>
+        ${published ? '<div class="pt-arrow">深钻 →</div>' : ''}
+      </div>`;
+  }).join('');
+
+  // Core finding
+  document.getElementById('th-finding').innerHTML = `
+    <div class="fk">Serenity 深钻 · ${r.as_of} · ${esc(r.theme || '')}</div>
+    <p>${esc(r.core_finding || '')}</p>`;
+
+  highlightNav('n-theme');
+}
+
+/* --- LAYER VIEW --- */
+function renderLayerView(r) {
+  const p1 = (r.p_tiers || []).find(p => p.status === 'published') || {};
+  document.getElementById('la-crumb').innerHTML = `
+    <span class="cl" onclick="renderThemeView(activeReport);showView('theme')">研究报告</span>
+    <span class="sep">/</span>
+    <span class="cl" onclick="renderThemeView(activeReport);showView('theme')">${esc(r.theme)}</span>
+    <span class="sep">/</span>
+    <span class="cur">${esc(p1.id || 'P1')} ${esc(p1.name || '')}</span>`;
+  document.getElementById('la-title').textContent = `${p1.id || 'P1'} 深钻：${p1.name || ''}`;
+
+  document.getElementById('la-meta').innerHTML = `
+    <span>报告日期 <span class="rm-val">${r.as_of}</span></span>
+    <span>方法 <span class="rm-val">${esc((r.method || '').split('（')[0])}</span></span>
+    <span>标的 <span class="rm-val">${(r.companies || []).length} 家</span></span>
+    <a href="../docs/research/p1_ccl_glassfabric_deepdive_20260616.html">完整报告 →</a>`;
+
+  // Sub-layers
+  document.getElementById('la-sublayers').innerHTML = (r.sub_layers || []).map(sl => `
+    <div class="sl" onclick="renderLayerView(activeReport);showView('layer')">
+      <div class="sl-rank" style="color:${getColor(sl.color_key)}">${esc(sl.rank)}</div>
+      <div>
+        <div class="sl-name">${esc(sl.name)}</div>
+        <div class="sl-note">${esc(sl.note)}</div>
+      </div>
+      <div class="sl-r">
+        <div class="sl-pct" style="color:${getColor(sl.color_key)}">${sl.scarcity_pct}%</div>
+        <div class="sl-chip" style="background:${getColor(sl.color_key)}">${esc(sl.scarcity_label)}</div>
+      </div>
+    </div>`).join('');
+
+  // Companies grid
+  const cos = r.companies || [];
+  document.getElementById('la-co-n').textContent = `${cos.length} 家 · v2 含真实估值`;
+  document.getElementById('la-co-grid').innerHTML = cos.map(c => {
+    const color = getColor(c.layer);
+    const isAct = activeCo && activeCo.ticker === c.ticker;
+    return `
+      <div class="co" style="${isAct ? 'border-color:rgba(15,156,140,.4);background:linear-gradient(135deg,rgba(15,156,140,.06),var(--ink))' : ''}"
+           onclick="selectCo('${esc(c.ticker)}')">
+        <div class="co-stripe" style="background:${isAct ? 'var(--accent)' : color}"></div>
+        <div class="co-layer">${esc(c.layer_label)}${isAct ? ' <span style="color:var(--accent);font-weight:700">← 当前</span>' : ''}</div>
+        <div class="co-name">${esc(c.name)}</div>
+        <div class="co-ticker">${esc(c.ticker)}</div>
+        <div class="co-num">
+          <div class="co-score" style="color:${isAct ? 'var(--accent-hi)' : color}">${c.score.toFixed(1)}</div>
+          <div class="co-max">/100</div>
+        </div>
+        <div class="co-track"><div class="co-fill" style="width:${c.score}%;background:${isAct ? 'var(--accent)' : color}"></div></div>
+        <div class="co-v">${esc(c.verdict)}</div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('la-disclaimer').textContent = r.disclaimer || '';
+  highlightNav('n-layer');
+}
+
+/* --- COMPANY VIEW --- */
+function selectCo(ticker) {
+  if (!activeReport) return;
+  activeCo = (activeReport.companies || []).find(c => c.ticker === ticker);
+  if (!activeCo) return;
+  renderCompanyView(activeReport, activeCo);
+  showView('company');
+}
+
+function renderCompanyView(r, c) {
+  const color = getColor(c.layer);
+  const p1 = (r.p_tiers || []).find(p => p.status === 'published') || {};
+
+  document.getElementById('co-crumb').innerHTML = `
+    <span class="cl" onclick="renderThemeView(activeReport);showView('theme')">研究报告</span>
+    <span class="sep">/</span>
+    <span class="cl" onclick="renderThemeView(activeReport);showView('theme')">${esc(r.theme)}</span>
+    <span class="sep">/</span>
+    <span class="cl" onclick="renderLayerView(activeReport);showView('layer')">${esc(p1.id)} ${esc(p1.name)}</span>
+    <span class="sep">/</span>
+    <span class="cur">${esc(c.name)} ${esc(c.ticker)}</span>`;
+  document.getElementById('co-title').textContent = `${c.name} · Serenity 打分卡`;
+
+  // Factor bars
+  const hasFactors = c.factor_details && Object.keys(c.factor_details).length > 0;
+  const factorRows = hasFactors ? Object.entries(FACTOR_LABELS).map(([k, label]) => {
+    const f = c.factor_details[k] || {};
+    const pct = f.rating ? (f.rating / 5 * 100) : 0;
+    const isValuation = k === 'valuation_disconnect';
+    return `<div class="frow">
+      <div class="f-name" style="${isValuation ? 'color:var(--warn)' : ''}">${label}</div>
+      <div class="f-track"><div class="f-fill" style="width:${pct}%;background:${isValuation ? 'var(--warn)' : 'var(--accent)'}"></div></div>
+      <div class="f-pts" style="color:${isValuation ? 'var(--warn)' : 'var(--accent-hi)'}">${f.points != null ? f.points.toFixed(1) : '—'}</div>
+      <div class="f-rat">${f.rating != null ? f.rating.toFixed(1) : '—'} / 5 ×${f.weight || '—'}</div>
+    </div>`;
+  }).join('') : '';
+
+  const penaltyRows = hasFactors && c.penalty_details ? Object.entries(PENALTY_LABELS).map(([k, label]) => {
+    const p = c.penalty_details[k] || {};
+    const pct = p.rating ? (p.rating / 5 * 100) : 0;
+    return `<div class="frow">
+      <div class="f-name" style="color:var(--warn)">${label}</div>
+      <div class="f-track"><div class="f-fill" style="width:${pct}%;background:var(--warn)"></div></div>
+      <div class="f-pts" style="color:var(--warn)">–${p.points != null ? p.points.toFixed(1) : '—'}</div>
+      <div class="f-rat" style="color:var(--warn)">${p.rating != null ? p.rating.toFixed(1) : '—'} / 5</div>
+    </div>`;
+  }).join('') : '';
+
+  const factorSection = hasFactors ? `
+    <div class="sec-h"><h3>因子得分</h3><div class="n">8 维度 + 减分项</div><div class="ln"></div></div>
+    <div class="panel" style="padding:18px 20px;margin-bottom:20px">
+      <div class="factor-list">
+        ${factorRows}
+        ${penaltyRows ? `<div class="factor-sep">减分项</div>${penaltyRows}` : ''}
+      </div>
+      <div class="factor-total">
+        <div class="ft-l">原始合计 <b>${(c.raw_factor_points || 0).toFixed(1)}</b>
+          ${c.penalty_points ? ` &nbsp;–&nbsp; 减分 <b class="fw">${c.penalty_points.toFixed(1)}</b>` : ''}</div>
+        <div class="ft-r">= ${c.score.toFixed(1)}</div>
+      </div>
+    </div>` : '';
+
+  const killSection = (c.kill_switches || []).length ? `
+    <div class="sec-h"><h3>Kill Switches</h3><div class="n">${c.kill_switches.length} 项</div><div class="ln"></div></div>
+    <div class="kill-list">
+      ${c.kill_switches.map(k => `<div class="kill">${esc(k)}</div>`).join('')}
+    </div>` : '';
+
+  const evSection = (c.evidence || []).length ? `
+    <div class="sec-h"><h3>一手证据</h3><div class="n">已核实 / 未核实</div><div class="ln"></div></div>
+    <div class="ev-list">
+      ${c.evidence.map(e => {
+        const isWarn = e.status === 'unverified' || e.status === 'disproved';
+        const isPart = e.status === 'partial';
+        const tagColor = isWarn ? 'var(--warn)' : isPart ? '#2f7fc4' : 'var(--accent)';
+        const tagText = {verified:'已核实', unverified:'未核实 — 谨慎引用', partial:'部分核实', disproved:'证伪'}[e.status] || e.status;
+        const strCls = e.strength === 'primary' ? 'ok' : e.strength === 'medium' ? 'par' : 'weak';
+        return `
+          <div class="ev${isWarn ? ' warn-ev' : isPart ? ' partial-ev' : ''}">
+            <div class="ev-tag" style="color:${tagColor}">${tagText}</div>
+            <div class="ev-claim">${esc(e.claim)}</div>
+            <div class="ev-meta">
+              <span class="ev-src">${esc(e.source)}</span>
+              <span class="ev-str ${strCls}">${esc(e.strength)}</span>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>` : '';
+
+  document.getElementById('co-content').innerHTML = `
+    <div class="score-hero">
+      <div class="sc-big" style="color:${color}">${c.score.toFixed(1)}<small>/100</small></div>
+      <div>
+        <div class="sc-name">${esc(c.name)}</div>
+        <div class="sc-ticker">${esc(c.ticker)} · A 股 · ${esc(c.layer_label)}</div>
+        <div class="sc-verdict"><i></i><span>${esc(c.verdict)}</span></div>
+        <div class="sc-chain">${esc(c.chain_position || '')}</div>
+        <div class="sc-date">as-of ${r.as_of} · serenity_scorecard.py v2 含真实估值</div>
+      </div>
+    </div>
+    ${factorSection}
+    ${killSection}
+    ${evSection}
+    <div class="nav-btns">
+      <button class="nbtn" onclick="renderLayerView(activeReport);showView('layer')">← 回到排名</button>
+      <button class="nbtn ghost" onclick="renderThemeView(activeReport);showView('theme')">← 产业链总图</button>
+    </div>`;
+
+  highlightNav('n-company');
+}
+
+/* ===== BOOT ===== */
+init();
+</script>
+</body>
+</html>
