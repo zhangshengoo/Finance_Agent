@@ -21,3 +21,8 @@ venv/
 
 # --- third-party clones (large, not tracked) ---
 Third_Party/
+
+# --- runtime / generated ---
+logs/
+frontend/server.log
+frontend/server.pid
