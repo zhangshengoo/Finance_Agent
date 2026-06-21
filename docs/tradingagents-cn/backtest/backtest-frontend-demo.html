@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>前端「回测」功能单元 Demo v4 · M1 核心版（601899 真实实证）— Finance_Agent</title>
+<title>前端「回测」功能单元 Demo v5 · M1 + M2（601899 真实数据）— Finance_Agent</title>
 <style>
   :root{
     --c-media:#cd5638; --c-macro:#7a4fce; --c-sector:#2f7fc4; --gold:#bf8a2c; --c-thesis:#48993d;
@@ -169,30 +169,45 @@
   .rcard ul{margin:8px 0 0;padding-left:17px;font-size:12.5px;color:var(--dim)}.rcard li{margin:4px 0}
   .rcard code{font:600 11px var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:#c9d2dd}
 
+  /* M2 净值面板 */
+  .m2wrap{border:1px solid rgba(47,127,196,.42);border-radius:13px;background:linear-gradient(180deg,rgba(47,127,196,.07),transparent 52%);padding:16px 17px;margin-top:18px}
+  .m2top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:2px}
+  .m2top h3{margin:0;font-size:15px}
+  .m2top .tag2{margin-left:auto;font:700 10px var(--mono);color:#86b8e0;background:rgba(47,127,196,.16);border:1px solid rgba(47,127,196,.45);border-radius:6px;padding:3px 9px}
+  .mcards{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin:13px 0 4px}
+  @media(max-width:680px){.mcards{grid-template-columns:repeat(2,1fr)}}
+  .mcard{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:11px 12px}
+  .mcard .lab{font:600 9.5px var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:.05em}
+  .mcard .val{font:700 18px var(--mono);margin:4px 0 1px;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .mcard .val.up{color:var(--gain)}.mcard .val.down{color:var(--loss)}.mcard .val.dim{color:var(--faint)}
+  .mcard .sub2{font-size:10.5px;color:var(--faint)}
+  .m2chart{border:1px solid var(--line);border-radius:11px;background:#0c0f14;padding:12px 10px 4px;margin:4px 0 2px}
+  .m2chart svg{width:100%;height:auto;display:block}
+
   footer{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);font:500 12px var(--mono);color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <div class="kicker">Finance_Agent · 前端「回测」功能单元 · v4 实证版 · 601899</div>
-  <h1>回测单元 Demo — M1 核心版（601899 真实记忆环已闭合）</h1>
-  <p class="sub">本版用 <b>601899 紫金矿业</b>的<b>真实数据</b>填充：它已有两次个股分析（06-10 买入 → 06-15 卖出），构成真实决策序列。06-10 的买入持 3 交易日到 06-15，<b>真实兑现 +13.03%</b>（@27.70→@31.31，Tushare qfq），引擎已于今日 18:05 调 <code>reflect_and_remember</code>（=功能 A）把教训写进 5 个记忆桶；<b>功能 B</b> 次日同票分析时召回。前端只渲染<b>决策反思表 + 记忆教训卡</b>。M2 组合模拟留作后续。</p>
+  <div class="kicker">Finance_Agent · 前端「回测」功能单元 · v5 · M1 + M2 · 601899</div>
+  <h1>回测单元 Demo — M1 单决策反思 + M2 前向净值（601899 真实数据）</h1>
+  <p class="sub">同一「回测 / 记忆环」单元承载<b>两种回测语义</b>，靠运行选择器切换：<b>M1 单决策反思</b>（已实证）+ <b>M2 前向纸面交易</b>（本版引入）。601899 已有两次个股分析（06-10 买入 → 06-15 卖出）构成真实决策序列：<b>M1</b> 对 06-10 买入算 3 交易日前向收益 <b>+13.03%</b>（@27.70→@31.31，Tushare qfq）→ <code>reflect_and_remember</code> 写 5 桶记忆（功能 A），次日召回（功能 B）；<b>M2</b> 把这串决策当信号跑组合模拟（A 股 T+1、逐日 mark-to-market）出<b>净值曲线 + 指标卡 + round-trip 成交</b>。M2 <b>纯算价、零 LLM</b>。</p>
 
   <div class="changes">
-    <div class="h">v4 改动：换成 601899 真实数据（记忆环已实证闭合）</div>
+    <div class="h">v5 改动：引入 M2 前向净值（M1 + M2 同单元，运行选择器切换）</div>
     <ul>
-      <li><b>不再是 sample</b>：收益 +13.03% 为 Tushare 真实 qfq close 算得；5 桶教训为引擎真实生成并已写入 <code>.kb-vectors/ta-memory</code>（chroma 已含 <code>*_memory__601899</code> 五桶）。<code>report_status: ok</code>。</li>
-      <li><b>记忆环主内容</b>：决策反思表 → <b>记忆教训卡（5 桶 · 真实教训精简）</b> → 次日召回。这是本单元区别于普通回测工具的唯一价值。</li>
-      <li><b>评审 #1 已跑通</b>：教训卡所需的「<code>get_memories</code> 回读 5 桶教训 → 导出」这一步，刚才已只读验证可行；剩下只是把它接进 runner 输出 + 落 KB 文件。</li>
-      <li><b>诚实</b>：教训仍是<b>模型生成·非事实</b>（挂 ⚠ banner）；其余 horizon（06-10 的 5 日、06-15 的卖出）前向不足 → <code>non_evaluable</code> 跳过，已用真实价格层确认。</li>
+      <li><b>新增 M2 渲染</b>：<code>run_backtest.py --mode simulate</code> 末尾落一份 <code>backtest-report.md</code>（<code>mode: simulate</code>，正文 json 块带 <code>equity_curve</code> + <code>metrics</code>）→ 前端 <code>renderBacktest()</code> 按 <code>mode==='simulate'</code> 分流到 M2 视图：<b>指标卡 + 手绘 SVG 净值曲线 + round-trip 成交表</b>。M1 反思路径零回归。</li>
+      <li><b>同一单元、两条运行</b>：M1（reflect）与 M2（simulate）各是一条 <code>companies[].backtests[]</code> 记录，靠运行选择器切换；不需要两份代码、两个页签。</li>
+      <li><b>M2 纯算价、零 LLM</b>：<code>--no-reflect</code> 走纯 Tushare 价格模拟（数秒），不碰 claude-max-proxy；平仓真实收益与 M1 同源，亦可喂功能 A（reflect-on-close）。</li>
+      <li><b>诚实</b>：当前 601899 仅单票 1 笔往返 → 净值点少、Sharpe/CAGR 在短样本上不稳定，<b>占位「—」不杜撰</b>；M2 真正价值在前向多笔序列累积后。多票<b>组合</b>净值视图为后续。</li>
     </ul>
     <div class="capmap">
-      <div class="cap"><span class="k M1">M1</span><span class="d"><b>单决策反思</b> 现有 snapshot 即可跑·不重跑引擎</span></div>
-      <div class="cap"><span class="k A">A</span><span class="d"><b>写半边</b> reflect_and_remember 写 5 桶</span></div>
+      <div class="cap"><span class="k M1">M1</span><span class="d"><b>单决策反思</b> 现有 snapshot·不重跑引擎</span></div>
+      <div class="cap"><span class="k" style="background:var(--c-sector)">M2</span><span class="d"><b>前向净值</b> simulate·T+1·逐日 mark-to-market</span></div>
+      <div class="cap"><span class="k A">A</span><span class="d"><b>写半边</b> reflect 写 5 桶</span></div>
       <div class="cap"><span class="k B">B</span><span class="d"><b>读半边</b> 次日召回（已上线）</span></div>
-      <div class="cap"><span class="k MEM">记忆层</span><span class="d"><b>.kb-vectors/ta-memory</b> · text-embedding-v4</span></div>
-      <div class="cap soon"><span class="k">M2</span><span class="d">组合模拟 / 净值曲线 —— <b>后续扩展</b></span></div>
+      <div class="cap"><span class="k MEM">记忆层</span><span class="d"><b>.kb-vectors/ta-memory</b> · v4</span></div>
     </div>
   </div>
 
@@ -217,7 +232,7 @@
           <div class="tk">601899</div>
           <div class="nm"><b>紫金矿业</b> · 上证主板 · 有色金属/黄金</div>
           <span class="decpill sell">最新决策(06-15) · 卖出</span>
-          <div class="runsel"><div class="selbox">反思运行 <span class="cv">cn/601899-20260615-1805 ▾</span> <span class="cx">M1 · 1 次</span></div></div>
+          <div class="runsel"><div class="selbox">运行 <span class="cv">601899-…1805 · M1 reflect ▾</span> <span class="cx">2 次 · M1 + M2</span></div></div>
         </div>
 
         <div class="subtab">
@@ -234,7 +249,7 @@
           <div class="it"><span class="k">DashScope</span><b>探活 OK · v4</b></div>
           <div class="it"><span class="badge ok">report_status: ok · 真实</span></div>
         </div>
-        <p class="lead">两块内容，上薄下重：<b>① 决策反思表</b>（这一笔对不对）→ <b>② 记忆教训卡</b>（写进 5 桶、次日召回）。601899 的记忆环<b>已真实闭合</b>，记忆环是主角。</p>
+        <p class="lead">M1 reflect 运行下两块内容，上薄下重：<b>① 决策反思表</b>（这一笔对不对）→ <b>② 记忆教训卡</b>（写进 5 桶、次日召回）。601899 的记忆环<b>已真实闭合</b>。切到 <b>simulate 运行</b>则见下方 <b>③ M2 净值面板</b>。</p>
 
         <!-- ① 决策反思表 -->
         <div class="blk-h"><span class="tag">M1</span><h3>决策 × horizon 前向收益</h3><span class="n">trades.jsonl · 收益用 Tushare 真实 qfq close</span><span class="ln"></span></div>
@@ -284,10 +299,53 @@
           </div>
         </div>
 
-        <!-- M2 后续占位 -->
-        <div class="soonbox">
-          <div class="sh"><span class="tag">M2 · 后续扩展</span><h3>组合表现：净值曲线 / 指标卡 / 组合往返成交</h3></div>
-          <p>需先积累<b>前向决策序列</b>（按节奏跑、攒真·样本外样本）后再接入；不在首版。接入后此处展开净值曲线 + 指标，平仓收益同样喂入上方记忆桶。</p>
+        <!-- ③ M2 净值模拟（切到 simulate 运行） -->
+        <div class="m2wrap">
+          <div class="m2top"><span class="sp" style="background:var(--c-sector)">📈</span><h3>M2 前向纸面交易 · 净值曲线</h3><span class="tag2">切到 simulate 运行</span></div>
+          <p class="lead" style="margin-top:6px">同一标的的另一种回测：把 601899 的决策序列（06-10 买入 → 06-15 卖出）当信号跑<b>组合模拟</b>（A 股 T+1、加权成本、单边费率），逐交易日按真实 close <b>mark-to-market</b> 出净值曲线 + 指标。<b>纯算价、零 LLM</b>（<code>--mode simulate --no-reflect</code>，数秒）。初始资金 ¥1,000,000，单笔预算 = 资金 × 0.2 × confidence(0.75) → 06-10 约 5,400 股建仓。</p>
+
+          <div class="mcards">
+            <div class="mcard"><div class="lab">总收益</div><div class="val up">+1.93%</div><div class="sub2">相对初始 ¥1,000,000</div></div>
+            <div class="mcard"><div class="lab">最大回撤</div><div class="val">-0.02%</div><div class="sub2">峰值到谷</div></div>
+            <div class="mcard"><div class="lab">胜率</div><div class="val">100%</div><div class="sub2">1 笔平仓</div></div>
+            <div class="mcard"><div class="lab">Sharpe</div><div class="val dim">—</div><div class="sub2">样本过短·占位</div></div>
+            <div class="mcard"><div class="lab">vs 基准</div><div class="val dim">—</div><div class="sub2">沪深300 未取</div></div>
+          </div>
+
+          <div class="blk-h"><span class="tag" style="background:var(--c-sector);color:#fff">M2</span><h3>组合净值曲线</h3><span class="n">equity_curve · Tushare qfq 逐日 mark-to-market</span><span class="ln"></span></div>
+          <div class="m2chart">
+            <svg viewBox="0 0 900 240" role="img" aria-label="M2 净值曲线（601899 单票前向模拟）">
+              <line x1="58" y1="20" x2="58" y2="210" stroke="#2a313d"/>
+              <line x1="58" y1="210" x2="882" y2="210" stroke="#2a313d"/>
+              <line x1="58" y1="38.4" x2="882" y2="38.4" stroke="#2a313d" opacity=".5"/>
+              <text x="50" y="41.4" text-anchor="end" font-size="9" fill="#6b7480" font-family="ui-monospace,monospace">101.9w</text>
+              <line x1="58" y1="119.5" x2="882" y2="119.5" stroke="#2a313d" opacity=".5"/>
+              <text x="50" y="122.5" text-anchor="end" font-size="9" fill="#6b7480" font-family="ui-monospace,monospace">101.0w</text>
+              <line x1="58" y1="191.6" x2="882" y2="191.6" stroke="#2a313d" opacity=".5"/>
+              <text x="50" y="194.6" text-anchor="end" font-size="9" fill="#6b7480" font-family="ui-monospace,monospace">100.0w</text>
+              <polyline points="58,191.6 264,157.6 470,119.5 676,38.4 882,39.7" fill="none" stroke="#cd5638" stroke-width="2.5"/>
+              <circle cx="58" cy="191.6" r="3.6" fill="#0c0f14" stroke="#cd5638" stroke-width="2"/>
+              <circle cx="264" cy="157.6" r="3.6" fill="#0c0f14" stroke="#cd5638" stroke-width="2"/>
+              <circle cx="470" cy="119.5" r="3.6" fill="#0c0f14" stroke="#cd5638" stroke-width="2"/>
+              <circle cx="676" cy="38.4" r="3.6" fill="#0c0f14" stroke="#cd5638" stroke-width="2"/>
+              <circle cx="882" cy="39.7" r="3.6" fill="#0c0f14" stroke="#cd5638" stroke-width="2"/>
+              <text x="58" y="226" text-anchor="middle" font-size="9" fill="#6b7480" font-family="ui-monospace,monospace">06-10</text>
+              <text x="470" y="226" text-anchor="middle" font-size="9" fill="#6b7480" font-family="ui-monospace,monospace">06-12</text>
+              <text x="882" y="226" text-anchor="end" font-size="9" fill="#6b7480" font-family="ui-monospace,monospace">06-16</text>
+              <text x="64" y="33" font-size="10" fill="#cd5638" font-family="ui-monospace,monospace">— 组合净值（基准未取·无叠加）</text>
+              <text x="676" y="30" text-anchor="middle" font-size="9.5" fill="#7fd0a3" font-family="ui-monospace,monospace">06-15 平仓→现金（持平）</text>
+            </svg>
+          </div>
+
+          <div class="blk-h"><span class="tag" style="background:var(--c-sector);color:#fff">M2</span><h3>round-trip 成交</h3><span class="n">closed_trades · 平仓真实收益（同样可喂功能 A）</span><span class="ln"></span></div>
+          <table class="tr">
+            <thead><tr><th>买入</th><th>卖出</th><th style="text-align:right">股数</th><th style="text-align:right">成本</th><th style="text-align:right">卖价</th><th style="text-align:right">持有收益</th><th style="text-align:right">实现盈亏</th><th>持有</th></tr></thead>
+            <tbody>
+              <tr><td class="num" style="text-align:left">2026-06-10</td><td class="num" style="text-align:left">2026-06-15</td><td class="num">5,400</td><td class="num">27.70</td><td class="num">31.31</td><td class="num ret up">+13.03%</td><td class="num ret up">+19,494</td><td>5d</td></tr>
+            </tbody>
+          </table>
+
+          <div class="honest">净值点仅 5 个（单票、1 笔往返）→ Sharpe / CAGR 在如此短样本上不稳定，<b>占位「—」不杜撰</b>。M2 的真正价值在<b>前向多笔决策序列</b>累积后（按周/月节奏跑、攒真·样本外）。多票<b>组合</b>净值视图为后续。平仓真实收益 +13.03% 与上方 M1 同源，<b>同样可喂功能 A</b>（reflect-on-close）。曲线 06-15 平仓后转全现金 → 06-16 持平。</div>
         </div>
 
       </div>
@@ -378,8 +436,8 @@
   </div>
 
   <!-- ============ 04 · 数据契约 ============ -->
-  <h2 class="sec"><span class="no">04</span><span class="cn">前端读的数据契约（M1 首版）</span></h2>
-  <p class="sub" style="margin-bottom:14px">前端 <code>kb-parse.js</code> 解析 <code>raw/analysis/backtests/cn/&lt;ticker&gt;-&lt;runid&gt;.md</code> → <code>companies[].backtests[]</code>。标量进 frontmatter；<b>数组（trades / lessons）进正文 <code>```json</code> 块</b>（mini-YAML 会把嵌套结构退化成字符串）。首版无 equity_curve。</p>
+  <h2 class="sec"><span class="no">04</span><span class="cn">前端读的数据契约（M1 reflect + M2 simulate）</span></h2>
+  <p class="sub" style="margin-bottom:14px">前端 <code>kb-parse.js</code> 解析 <code>raw/analysis/backtests/cn/&lt;ticker&gt;-&lt;runid&gt;.md</code> → <code>companies[].backtests[]</code>。标量进 frontmatter；<b>数组进正文 <code>```json</code> 块</b>（mini-YAML 会把嵌套结构退化成字符串）。<b>同一 <code>backtest-report</code> 类型、靠 <code>mode</code> 分流</b>：M1（reflect）json 块 = <code>{trades, lessons}</code>；M2（simulate）json 块多 <code>equity_curve</code> + <code>metrics</code>（见下）。</p>
   <div class="schemagrid">
     <div>
       <h4>① backtest-report frontmatter（标量）</h4>
@@ -412,6 +470,41 @@
     </div>
   </div>
 
+  <div style="margin-top:16px;border:1px solid rgba(47,127,196,.32);border-radius:11px;background:rgba(47,127,196,.05);padding:15px 16px">
+    <h4 style="margin:0 0 8px;font-size:13px;color:#86b8e0">M2 变体（mode: simulate）— 同一 backtest-report 类型，多 equity_curve + metrics 指标原子</h4>
+    <div class="schemagrid">
+      <div>
+        <p class="cap2">① simulate frontmatter（组合标量）</p>
+<pre><span class="k">type:</span> backtest-report
+<span class="k">ticker:</span> <span class="s">"601899"</span>
+<span class="k">mode:</span> <span class="hl">simulate</span>
+<span class="k">run_status:</span> ok
+<span class="k">period_from:</span> <span class="s">"2026-06-10"</span>
+<span class="k">period_to:</span> <span class="s">"2026-06-16"</span>
+<span class="k">initial_cash:</span> <span class="n">1000000</span>
+<span class="k">total_return_pct:</span> <span class="n">1.93</span>
+<span class="k">sharpe:</span> null
+<span class="k">max_drawdown_pct:</span> <span class="n">0.02</span>
+<span class="k">win_rate_pct:</span> <span class="n">100.0</span>
+<span class="k">n_closed_trades:</span> <span class="n">1</span></pre>
+      </div>
+      <div>
+        <p class="cap2">② 正文 json 块（<span style="color:#9fc3e8">equity_curve + metrics</span> 新增）</p>
+<pre>{<span class="k">"mode"</span>:<span class="s">"simulate"</span>,
+ <span class="k">"metrics"</span>:{<span class="k">"total_return"</span>:<span class="n">0.0193</span>,<span class="k">"sharpe"</span>:<span class="k">null</span>,
+   <span class="k">"max_drawdown"</span>:<span class="n">0.0002</span>,<span class="k">"win_rate"</span>:<span class="n">1.0</span>,
+   <span class="k">"n_closed_trades"</span>:<span class="n">1</span>},
+ <span class="hl">"equity_curve"</span>:[{<span class="k">"date"</span>:<span class="s">"2026-06-10"</span>,<span class="k">"equity"</span>:<span class="n">999925</span>,
+   <span class="k">"benchmark_equity"</span>:<span class="k">null</span>},
+  {<span class="k">"date"</span>:<span class="s">"2026-06-15"</span>,<span class="k">"equity"</span>:<span class="n">1019419</span>}, …],
+ <span class="k">"trades"</span>:[{<span class="k">"entry_date"</span>:<span class="s">"2026-06-10"</span>,<span class="k">"date"</span>:<span class="s">"2026-06-15"</span>,
+   <span class="k">"qty"</span>:<span class="n">5400</span>,<span class="k">"avg_cost"</span>:<span class="n">27.70</span>,<span class="k">"price"</span>:<span class="n">31.31</span>,
+   <span class="k">"holding_return_pct"</span>:<span class="n">13.03</span>,<span class="k">"realized_pnl"</span>:<span class="n">19494</span>}]}</pre>
+      </div>
+    </div>
+    <p class="cap2" style="margin-top:9px">前端按 <code style="font:600 11px var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:#c9d2dd">mode==='simulate' || equity_curve.length</code> 分流到 M2 渲染（指标卡 + SVG 净值曲线 + round-trip 表）；否则走 M1（反思表 + 教训卡）。<b>数组进不了 mini-YAML，故 equity_curve / trades 一律落 json 块。</b></p>
+  </div>
+
   <!-- ============ 05 · 路线图 ============ -->
   <h2 class="sec"><span class="no">05</span><span class="cn">范围：首版核心 vs 后续扩展</span></h2>
   <div class="road">
@@ -426,7 +519,7 @@
     <div class="rcard soon">
       <h4><span class="lbl">后续扩展</span>逐步加，保证不返工</h4>
       <ul>
-        <li><b>M2 组合模拟</b>：净值曲线 + 指标卡 + 组合往返成交（需前向累积决策序列；引擎层已实现，待接前端）。</li>
+        <li><b>M2 组合模拟</b>：单票净值曲线 + 指标卡 + round-trip 成交<b>已设计接入（本 demo v5）</b>，引擎层 <code>--mode simulate</code> 已实现；<b>多票组合</b>净值视图 + 前向序列累积为后续。</li>
         <li><b>触发器</b>：Option A 复制命令（零新增服务）→ 可选 127.0.0.1 SSE 桥（需确认）。</li>
         <li><b>多 horizon / 卖出 / 持有口径</b>：HOLD 怎么记、horizon 取值（设计文档 §9）。</li>
         <li><b>ontology + wiki/reports 编译</b>：Backtest 节点 + finance-ingest 两步 CoT。</li>
@@ -436,7 +529,7 @@
 
   <footer>
     <span>Finance_Agent · docs/tradingagents-cn/backtest/backtest-frontend-demo.html</span>
-    <span>回测前端单元 Demo v4 · M1 核心版 · 601899 真实实证</span>
+    <span>回测前端单元 Demo v5 · M1 + M2 · 601899 真实数据</span>
   </footer>
 
 </div>

@@ -1,17 +1,18 @@
 # 回测 + 交易模拟 + 记忆功能 A — 设计方案
 
-> 状态：**M1 前端单元已端到端落地并实证（2026-06-16）**；M2 引擎已实现、前端待接。代码 `.claude/skills/backtest-analysis/`（run_backtest.py + SKILL.md）+ `frontend/`（index.html / kb-parse.js / serve.sh）。基于对 TradingAgents-CN 引擎、本项目 stock-analysis skill/runner、Knowledge_Wiki、frontend 四个子系统的逐文件调研。
+> 状态：**M1 + M2 前端单元已端到端落地并实证（2026-06-16）；浏览器 SSE 桥一键 + wiki/ontology 编译已落**。代码 `.claude/skills/backtest-analysis/`（run_backtest.py + SKILL.md）+ `frontend/`（index.html / kb-parse.js / serve.sh）+ `Knowledge_Wiki/`（wiki/reports + ontology + finance-ingest 场景 F）。基于对 TradingAgents-CN 引擎、本项目 stock-analysis skill/runner、Knowledge_Wiki、frontend 四个子系统的逐文件调研。
 > 目标读者：实现者（含未来的自己）。
 >
 > **实现状态**：
 > - ✅ **M1 单决策反思**：价格层(Tushare 真实数据) + curr_state 重建 + 原生 reflect_and_remember + trades.jsonl + 幂等台账。验证：reflect 写→跨进程读回 5/5 桶 sim=1.000。
 > - ✅ **M1 导出 `--mode export`（2026-06-16 新增）**：reflect 把教训写进 ChromaDB 后**只读回读**（chromadb exact-match situation，零 embedding/零 LLM）+ Tushare 重算收益 → 落机器产物 `raw/data/backtests/cn/.../ {trades.json,lessons.json,config.json}` + 前端可读报告 `raw/analysis/backtests/cn/<ticker>-<runid>.md`（`type: backtest-report`，flat frontmatter + 正文 `<!-- backtest-json -->` 块）。**M1 内容全部走现有链路生成，不另起生成。**
-> - ✅ **前端「回测 / 记忆环」单元（2026-06-16 落地）**：挂个股详情，与「研究报告输出 / wiki」并列同一套 md 解析（`kb-parse.js` backtest-report 分支 → `companies[].backtests[]`；`index.html renderBacktest()` 反思表 + 5 桶教训卡，配色对齐 `eqVCol`）。
-> - ✅ **浏览器一键生成（2026-06-16）**：`serve.sh` 改为 **仅绑 127.0.0.1** + no-store + **动态 `/manifest.json`**（实时 glob，新报告刷新即见）+ **`POST /api/backtest {ticker}`**（ticker 校验 `^\d{6}$`、subprocess 参数数组不走 shell、跑 export）。前端「⟳ 生成 / 刷新回测报告」按钮 → `genBacktest()` → 重载 KB 停在回测页。**实证：601899 06-10 买入持 3 日 +13.03%（@27.70→@31.31, Tushare qfq）→ 5/5 桶教训读回 → 前端渲染。**
-> - ✅ **M2 前向组合模拟（引擎层）**：组合状态机(现金/持仓/T+1/加权成本/费率) + 每日 mark-to-market 净值曲线 + 指标(总收益/CAGR/Sharpe/maxDD/胜率) + **平仓时真实持有期收益 reflect-on-close**。验证：账目逐笔核对正确，reflect-on-close 600519 +1.02% → 5/5 桶 sim=1.000。**前端面板待接（M2 净值曲线/指标尚未 renderBacktest）。**
+> - ✅ **前端「回测 / 记忆环」单元（2026-06-16 落地，M1 + M2 同屏）**：挂个股详情，与「研究报告输出 / wiki」并列同一套 md 解析（`kb-parse.js` backtest-report 分支 → `companies[].backtests[]`；`index.html renderBacktest()` 组合 `_btM1`（反思表 + 5 桶教训卡）+ `_btM2`（指标卡 + `btEquitySVG()` 手绘净值曲线 + round-trip 成交表），各取该模式最新 run，配色对齐 `eqVCol`）。
+> - ✅ **M2 前向组合模拟前端已接（2026-06-16）**：`--mode simulate` 末尾落 `backtest-report.md`（`mode: simulate`，正文 json 块带 `equity_curve` + `metrics`）→ 前端按 `mode==='simulate'` 分流渲染。**实证：601899 单票前向模拟 +1.93%（最大回撤 -0.20%、1 笔 round-trip、平仓 +13.03%）。** 多票组合净值视图后续。
+> - ✅ **浏览器一键生成 · SSE 桥（2026-06-16）**：`serve.sh` 改为 **仅绑 127.0.0.1** + ThreadingTCPServer + no-store + **动态 `/manifest.json`** + **SSE 桥 `GET /api/backtest/stream?ticker=&mode=`**（流式 `progress`/`done` 事件、串行锁、ticker `^\d{6}$` + mode 白名单、subprocess 参数数组不走 shell）。前端双按钮「⟳ M1 反思」(export) /「📈 M2 净值模拟」(simulate) → `genBacktest()` EventSource → 重载 KB 停在回测页。**实证：601899 M1 +13.03%（@27.70→@31.31, Tushare qfq）→ 5/5 桶教训读回 → 前端渲染。**
+> - ✅ **wiki/ontology 编译（2026-06-16）**：`finance-ingest` 场景 F 编 `wiki/reports/2026-06-15-601899-backtest.md`（`type: report`，指标逐个溯源机器产物、教训进「非事实」段）+ `graph_append` 建 `Backtest` 节点 + `COVERS → comp_601899` 边（`ontology/schema.yaml` 已登记 Backtest/COVERS/EVALUATES）；前端星图标签「回测 +13.03%」。绑定契约见 `docs/kb/frontend-kb-binding.md` §2d。
 > - ✅ **嵌入超长修复**（见 §11，关键）：发现并修复一个静默拖垮功能 A/B 的零向量 bug。
-> - ⏳ **仍待实现**：M2 前端面板（净值曲线 + 指标）；raw-intake 溯源 ledger handoff（当前 export 由 runner 直写 raw/analysis）；finance-ingest→wiki/reports + ontology Backtest 节点编译。
-> - §10 的两个分叉决策已确认（M1 优先）；前端触发选定 **Option B 轻量版**（127.0.0.1 端点直跑 export，非 SSE——因 export 只需数秒），经用户显式确认后实现。
+> - ⏳ **仍待实现**：M2 多票组合净值视图（当前单票挂公司页）；raw-intake 溯源 ledger handoff（当前 runner 直写 raw/analysis）；M3 历史 walk-forward 重跑（前瞻偏差，需标注）。
+> - §10 决策：M1 优先已落 M1 + M2；前端触发**选定 Option B · 127.0.0.1 SSE 桥**（`GET /api/backtest/stream`，ThreadingTCPServer 流式 progress/done + 串行锁，M1 export / M2 simulate 双按钮），经用户显式确认后实现。
 
 ---
 
