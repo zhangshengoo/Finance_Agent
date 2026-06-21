@@ -123,6 +123,29 @@ sources: ["raw/analysis/stocks/600519-2026-06-08.md", "raw/data/stock-snapshots/
 - `build_frontend_data.py` 扫 `raw/analysis/stocks/*.md`（`type: stock-report`）→ 按 ticker 挂到 `companies[].reports[]`（按 `as_of` 倒序）；报告原子与 wiki 共用 `build_analysis(fm)`。
 - 样例：`688981`（中芯国际）= 研究报告 `report_status: sample`（8 模块，news/sentiment 因仅选 market+fundamentals 而 missing）+ wiki distilled（4 模块）；`601899`（紫金矿业）= 仅 wiki（7 模块，run2 风险/裁决 degraded）。
 
+## 2d. 回测 / 记忆环绑定契约（type: backtest-report → wiki report）
+
+> **状态：前端「回测 / 记忆环」单元已接入（M1 反思 2026-06-16；M2 净值曲线 2026-06-16）。** 链路 `raw/analysis/backtests/cn/<ticker>-<runid>.md` → `kb-parse.js`（backtest-report 分支）→ `companies[].backtests[]` → `index.html renderBacktest()`（同屏堆叠 M1 + M2，各取该模式最新 run）。浏览器一键经 serve.sh **仅绑 127.0.0.1** 的 SSE 桥 `GET /api/backtest/stream?ticker=&mode=`。
+
+### 2d.1 raw 层（前端直接 live-parse 的源）
+
+`type: backtest-report`，flat frontmatter + 正文 `<!-- backtest-json -->` ```json``` 块（**数组进不了 mini-YAML，故进 json 块**）：
+
+| mode | frontmatter 原子 | json 块 |
+|---|---|---|
+| `reflect`（M1） | `headline_return_pct` / `n_reflected` / `n_non_evaluable` / `horizons` / `snapshot_date` | `{trades[], lessons[]}` |
+| `simulate`（M2） | `total_return_pct` / `sharpe` / `max_drawdown_pct` / `win_rate_pct` / `vs_benchmark_pct` / `n_closed_trades` / `period_from` / `period_to` / `initial_cash` | `{mode, metrics{}, equity_curve[], trades[]}` |
+
+公共：`type` / `ticker` / `mode` / `run_status`(ok|partial|sample) / `as_of` / `sources[]`。前端按 `mode==='simulate' || equity_curve.length` 分流：M2 渲染指标卡 + 手绘 SVG 净值曲线 + round-trip 成交表；M1 渲染决策反思表 + 5 桶教训卡。**收益 / 净值只用 Tushare 真实 qfq close，缺失 `non_evaluable` / `null`，禁止臆造。**
+
+### 2d.2 wiki 层（finance-ingest 场景 F 编译产物）
+
+`wiki/reports/<as_of>-<ticker>-backtest.md`（`type: report`）= raw 回测报告的蒸馏复盘页，供 Agent / Obsidian 阅读 + 喂 ontology。指标逐个溯源自机器产物，模型教训进「（非事实）」段。（当前前端无 `report` 类型渲染器 → 该页不在前端面板出现，其前端可见产出是**星图 Backtest 节点**。）
+
+### 2d.3 ontology
+
+1 run = 1 个 `Backtest` 节点（`graph_append.py create --type Backtest`）+ `COVERS → Company`（+ 可选 `EVALUATES → Thesis`）。**绝不给每笔成交 / 每个净值点建节点。** 星图节点标签显示「回测 ±x%」（`kb-parse.js` 节点标签规则；颜色落 company 金色）。
+
 ## 3. 其他类型（已接入）
 
 | type | 前端取数 |
